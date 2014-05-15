@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
         
         <provider
-     	 	android:name="com.mendeley.api.network.BufferContentProvider"
+     	 	android:name="com.example.db.BufferContentProvider"
      	 	
       		android:authorities="com.mendeley.api.network" >
    		</provider>

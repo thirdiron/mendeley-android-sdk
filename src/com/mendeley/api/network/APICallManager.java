@@ -47,7 +47,7 @@ public abstract class APICallManager {
 	HttpResponse doGet(String url) throws ClientProtocolException, IOException {
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(url);
-		httpget.setHeader("Authorization", "Bearer " + DefaultNetworkProvider.accessToken);
+		httpget.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
 		
 		HttpResponse response = httpclient.execute(httpget);
 		  
@@ -66,7 +66,7 @@ public abstract class APICallManager {
         nameValuePairs.add(new BasicNameValuePair("client_id", credentialsManager.getClientID()));
         nameValuePairs.add(new BasicNameValuePair("client_secret", credentialsManager.getClientSecret()));
         if (grantType.equals(GRANT_TYPE_REFRESH)) {
-        	nameValuePairs.add(new BasicNameValuePair("refresh_token", DefaultNetworkProvider.refreshToken));
+        	nameValuePairs.add(new BasicNameValuePair("refresh_token", NetworkProvider.refreshToken));
         }
         
         httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));

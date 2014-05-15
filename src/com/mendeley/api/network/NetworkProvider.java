@@ -7,10 +7,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,10 +35,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mendeley.api.model.Document;
+import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyAPICallsInterface;
 
-class DefaultNetworkProvider {
+public class NetworkProvider {
 
 	public static int documentsLimit = 100;
 	protected static String tokenType = null;
@@ -46,32 +50,16 @@ class DefaultNetworkProvider {
 	AuthenticationInterface authInterface;
 	MendeleyAPICallsInterface appInterface;
 	
-	DefaultNetworkProvider(AuthenticationInterface authInterface, MendeleyAPICallsInterface appInterface) {
+	NetworkProvider(AuthenticationInterface authInterface, MendeleyAPICallsInterface appInterface) {
 		this.authInterface = authInterface;
 		this.appInterface = appInterface;
 	}
 	
-//	private void removeFromDB(String id) {
-//		int rows = MendeleyNetworkProvider.dbHelper.delete(id);
-//		
-//		Log.e("", "db  delete rows: " + rows);
-//	}
-//	
-//	private String insertDB(String url) {
-//		
-//		long id = MendeleyNetworkProvider.dbHelper.insert(url);
-//		
-//		Log.e("", "db  insert id: " + id);
-//		
-//		return id+"";
-//
-//	}
-	
-	protected void doDeleteDocument(String url, String id) throws ClientProtocolException, IOException {
+	protected void doDeleteDocument(String url, String id) throws IOException {
 		 new DeleteDocumentTask().execute(url + id, id);
 	}
 	
-	protected void doPostDocument(String url, Document document) throws ClientProtocolException, IOException {
+	protected void doPostDocument(String url, Document document) throws IOException {
 
 		JasonParser parser = new JasonParser();
 		try {
@@ -81,17 +69,15 @@ class DefaultNetworkProvider {
 		}
 	}
 	
-	protected void doPostTrashDocument(String url, String id) throws ClientProtocolException, IOException {
+	protected void doPostTrashDocument(String url, String id) throws IOException {
 		 new PostTrashDocumentTask().execute(url + id + "/trash", id);
 	}
 	
-	protected void doGetDocument(String url, String id) throws ClientProtocolException, IOException {
+	protected void doGetDocument(String url, String id) throws IOException {
 		 new GetDocumentTask().execute(url + id);
 	}
 	
-	protected void doGetDocuments(String url) throws ClientProtocolException, IOException {
-		
-//		String id = insertDB(url);		
+	protected void doGetDocuments(String url) throws IOException {
 		new GetDocumentsTask().execute(url + "?limit=" + documentsLimit);		  
 	}
 	
@@ -100,7 +86,7 @@ class DefaultNetworkProvider {
         return df.format(date);
 	}
 	
-	protected void doPatchDocument(String url, String id, Date date, Document document) throws ClientProtocolException, IOException {
+	protected void doPatchDocument(String url, String id, Date date, Document document) throws IOException {
 
 		String dateString = null;
 		
@@ -140,11 +126,11 @@ class DefaultNetworkProvider {
 	    public String getMethod() {
 	        return METHOD_NAME;
 	    }
-
 	}
 	
 	protected class PatchDocumentTask extends AsyncTask<String, Void, String> {
 
+		MendeleyResponse response;
 		String documentId = null;
 		
 		@Override
@@ -157,7 +143,7 @@ class DefaultNetworkProvider {
 
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPatch httpPatch = new HttpPatch(url);
-			httpPatch.setHeader("Authorization", "Bearer " + DefaultNetworkProvider.accessToken);
+			httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
 			httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
 			httpPatch.setHeader("Accept", "application/json");
 			
@@ -407,12 +393,11 @@ class DefaultNetworkProvider {
 				}
 			}
 		}
-		
 	}
 	
 	protected class GetDocumentTask extends AsyncTask<String, Void, String> {
 
-		HttpResponse response = null;
+		MendeleyResponse response;
 		Document document;
 		String date;
 		
@@ -428,9 +413,10 @@ class DefaultNetworkProvider {
 					con = getConnection(url, "GET");
 					con.connect();
 		
-					int responseCode = con.getResponseCode();
 
-					if (responseCode != 200) {
+					response = getResponse(con);
+					
+					if (response.responseCode != 200) {
 						return "callError";
 					} else {
 
@@ -476,26 +462,60 @@ class DefaultNetworkProvider {
 		}
 	}
 	
+	private MendeleyResponse getResponse(HttpsURLConnection con) throws IOException {
+		
+		int responseCode = con.getResponseCode();
+		Map<String, List<String>> headersMap = con.getHeaderFields();
+		
+		MendeleyResponse response = new MendeleyResponse(responseCode);
+		
+		for (String key : headersMap.keySet()) {
+
+			if (key != null) {
+				switch (key) {
+					case "Date":
+						response.date = headersMap.get(key).get(0);	
+						break;
+					case "Vary":
+						response.vary = headersMap.get(key).get(0);	
+						break;
+					case "Content-Type":
+						response.contentType = headersMap.get(key).get(0);	
+						break;
+					case "X-Mendeley-Trace-Id":
+						response.traceId = headersMap.get(key).get(0);	
+						break;
+					case "Connection":
+						response.connection = headersMap.get(key).get(0);	
+						break;
+					case "Link":
+						response.link = headersMap.get(key).get(0);	
+						break;
+					case "Content-Length":
+						response.contentLength = headersMap.get(key).get(0);	
+						break;
+					case "Content-Encoding":
+						response.contentEncoding = headersMap.get(key).get(0);	
+						break;
+				}
+			}
+		}
+
+		return response;
+		
+	}
+	
+
 	protected class GetDocumentsTask extends AsyncTask<String, Void, String> {
 
-		HttpResponse response = null;
 		List<Document> documents;
-		String link;
-		String date;
-//		String dbId;
-		
+		MendeleyResponse response = null;
+
 		@Override
 		protected String doInBackground(String... params) {
 			
 			String url = params[0];
-//			dbId = params[1];
 
-//			HttpClient httpclient = HttpClientFactory.getThreadSafeClient();
-//			
-//			HttpGet httpGet = new HttpGet(url_);
-//			httpGet.setHeader("Authorization", "Bearer " + DefaultNetworkProvider.accessToken);
-//			
-			
 			HttpsURLConnection con = null;
 
 			InputStream is = null;
@@ -503,33 +523,25 @@ class DefaultNetworkProvider {
 				con = getConnection(url, "GET");
 				con.connect();
 				
-				Map<String, List<String>> headersMap = con.getHeaderFields();
-	
-				int responseCode = con.getResponseCode();
+				response = getResponse(con);				
 
-				if (responseCode != 200) {
+				if (response.responseCode != 200) {
 					return "callError";
-				} else {
-
-				    date = headersMap.get("Date").get(0);					
-					link = headersMap.get("Link").get(0);
-					
-					link = link.substring(link.indexOf("<")+1, link.indexOf(">"));					
-					Log.e("", "link: " + link);					
-//					doGetDocuments(link);
+				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 					is.close();
-					
+			
+						
 					JasonParser parser = new JasonParser();
 					documents = parser.parseDocumentList(jsonString);
 					
 					return "ok";
 				}
-				
+				 
 			}	catch (IOException | JSONException e) {
-				e.printStackTrace();
+				Log.e("", "", e);
 				return null;
 			} finally {
 				if (is != null) {
@@ -552,10 +564,7 @@ class DefaultNetworkProvider {
 				if (result.equals("callError")) {
 					authInterface.onAuthenticationFail();
 				}
-				else {
-//					if (dbId != null) {
-//						removeFromDB(dbId);
-//					}					
+				else {				
 					appInterface.onDocumentsReceived(documents);					
 				}
 			}
@@ -571,7 +580,7 @@ class DefaultNetworkProvider {
 		con.setConnectTimeout(15000 );
 		con.setRequestMethod(method);
 		con.setDoInput(true);
-		con.addRequestProperty("Authorization", "Bearer " + DefaultNetworkProvider.accessToken);
+		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
 		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
 		con.addRequestProperty("Accept", "application/vnd.mendeley-document.1+json");
 		
@@ -622,6 +631,52 @@ class DefaultNetworkProvider {
 	  
 	        return client;
 	    } 
+	}
+	
+	
+	
+	
+	
+	
+	//Testing
+	
+	public NetworkProvider() {
+		
+	}
+
+	public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		
+		Object result = null;
+		
+		Object[] values = new Object[args.size()];
+		Class[] classes = new Class[args.size()];
+		
+		for (int i = 0; i < args.size(); i++) {
+			if (args.get(i).getClass().getName().equals("sun.net.www.protocol.https.HttpsURLConnectionImpl")) {
+				classes[i] =  javax.net.ssl.HttpsURLConnection.class;
+			} else if (args.get(i).getClass().getName().equals("sun.net.www.protocol.http.HttpURLConnection$HttpInputStream")) { 
+				classes[i] =  java.io.InputStream.class;
+			} else {
+				classes[i] = args.get(i).getClass();
+			}
+			
+		//	System.out.println(args.get(i).getClass().getName());
+			values[i] = args.get(i);
+		}
+
+		Method method = null;
+		
+		if (args.size() > 0) {
+			method = this.getClass().getDeclaredMethod(methodName, classes);	
+			method.setAccessible(true);
+			result = method.invoke(this, values);
+		} else {
+			method = this.getClass().getDeclaredMethod(methodName);
+			method.setAccessible(true);
+			result = method.invoke(this);
+		}
+
+		return result;
 	}
 
 }

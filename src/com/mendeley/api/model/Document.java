@@ -73,6 +73,25 @@ public class Document {
 	}
 	
 	@Override
+	public boolean equals(Object object) {
+		
+		Document other;
+		
+		try {
+			other = (Document) object;
+		}
+		catch (ClassCastException e) {
+			return false;
+		}
+		
+		if (other == null) {
+			return false;
+		} else {
+			return other.id.equals(this.id);
+		}
+	}
+	
+	@Override
 	public String toString() {
 		
 		return "lastModified: " + lastModified +

@@ -55,7 +55,7 @@ public class AuthentictionManager extends APICallManager {
     }
 	  
 	private void createRefreshHandler() {
-		long delayMillis = (long)((DefaultNetworkProvider.expiresIn * 0.9) * 1000);
+		long delayMillis = (long)((NetworkProvider.expiresIn * 0.9) * 1000);
 		Log.e("", "creating handler - " + delayMillis);
 		refreshHandler = new Handler();
 		refreshHandler.postDelayed(refreshRunnable, delayMillis);
@@ -101,10 +101,10 @@ public class AuthentictionManager extends APICallManager {
 		
 		JSONObject tokenObject = new JSONObject(tokenString);
 		
-		DefaultNetworkProvider.accessToken = tokenObject.getString("access_token");
-		DefaultNetworkProvider.tokenType = tokenObject.getString("token_type");
-		DefaultNetworkProvider.expiresIn = tokenObject.getInt("expires_in");
-		DefaultNetworkProvider.refreshToken = tokenObject.getString("refresh_token");		
+		NetworkProvider.accessToken = tokenObject.getString("access_token");
+		NetworkProvider.tokenType = tokenObject.getString("token_type");
+		NetworkProvider.expiresIn = tokenObject.getInt("expires_in");
+		NetworkProvider.refreshToken = tokenObject.getString("refresh_token");		
 	}
 	    
     class AuthenticateTask extends AsyncTask<String, Void, String> {

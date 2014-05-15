@@ -13,7 +13,7 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyAPICallsInterface;
 
-public class MendeleySDK implements AuthenticationInterface{
+public class MendeleySDK implements AuthenticationInterface {
 
 	static boolean authenticated = false;
 	private static String apiUrl = "https://mix.mendeley.com:443/";
@@ -23,19 +23,15 @@ public class MendeleySDK implements AuthenticationInterface{
 	AuthentictionManager authentictionManager;
 	MethodtoInvoke methodToInvoke;
 	
-	DefaultNetworkProvider networkProvider;
+	NetworkProvider networkProvider;
 	MendeleyAPICallsInterface appInterface;
 	
-	protected static DatabaseHelper dbHelper;
 	
 	public MendeleySDK(Context appContext) {
 		this.appContext = appContext;
 		appInterface = (MendeleyAPICallsInterface) appContext;
 		authentictionManager = new AuthentictionManager(appContext, this);
-		networkProvider = new DefaultNetworkProvider(this, appInterface);
-		
-		dbHelper = DatabaseHelper.getInstance(appContext);
-	
+		networkProvider = new NetworkProvider(this, appInterface);
 	}
 
 	public void getDocuments() throws ClientProtocolException, IOException {
@@ -137,7 +133,7 @@ public class MendeleySDK implements AuthenticationInterface{
 		}
 		
 		MethodtoInvoke(String methodName, @SuppressWarnings("rawtypes") Class[] argumentTypes, Object[] arguments) {
-			this.methodName =methodName;
+			this.methodName = methodName;
 			this.argumentTypes = argumentTypes;
 			this.arguments = arguments;
 		}
@@ -154,4 +150,11 @@ public class MendeleySDK implements AuthenticationInterface{
 		Log.e("", "onAPICallFail");
 	}
 
+	
+	// Testing
+	
+	public MendeleySDK() {
+		
+	}
+	
 }
