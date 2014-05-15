@@ -18,6 +18,7 @@ public final class R {
     }
     public static final class layout {
         public static int dialog_layout=0x7f030000;
+        public static int main=0x7f030001;
     }
     public static final class string {
         public static int app_name=0x7f040000;

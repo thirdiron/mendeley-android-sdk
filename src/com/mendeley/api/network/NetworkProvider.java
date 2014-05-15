@@ -104,7 +104,7 @@ public class NetworkProvider {
 		}
 	}
 	
-	protected class HttpPatch extends HttpEntityEnclosingRequestBase {
+	public static class HttpPatch extends HttpEntityEnclosingRequestBase {
 
 	    public final static String METHOD_NAME = "PATCH";
 
@@ -142,16 +142,7 @@ public class NetworkProvider {
 			String jsonString = params[3];
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = new HttpPatch(url);
-			httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
-			httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-			httpPatch.setHeader("Accept", "application/json");
-			
-			Log.e("", "date: "+date);
-			
-			if (date != null) {
-				httpPatch.setHeader("If-Unmodified-Since", date);
-			}
+			HttpPatch httpPatch = getHttpPatch(url, date);
 
 	        try {
 	        	
@@ -571,6 +562,17 @@ public class NetworkProvider {
 		}
 	}
 	
+	private HttpPatch getHttpPatch(String url, String date) {
+		HttpPatch httpPatch = new HttpPatch(url);
+		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+		httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
+		httpPatch.setHeader("Accept", "application/json");
+		if (date != null) {
+			httpPatch.setHeader("If-Unmodified-Since", date);
+		}
+		
+		return httpPatch;
+	}
 	
 	private HttpsURLConnection getConnection(String newUrl, String method) throws IOException {
 		HttpsURLConnection con = null;
@@ -654,13 +656,13 @@ public class NetworkProvider {
 		for (int i = 0; i < args.size(); i++) {
 			if (args.get(i).getClass().getName().equals("sun.net.www.protocol.https.HttpsURLConnectionImpl")) {
 				classes[i] =  javax.net.ssl.HttpsURLConnection.class;
-			} else if (args.get(i).getClass().getName().equals("sun.net.www.protocol.http.HttpURLConnection$HttpInputStream")) { 
+			} else if (args.get(i).getClass().getName().equals("sun.net.www.protocol.http.HttpURLConnection$HttpInputStream") ||
+				       args.get(i).getClass().getName().equals("org.apache.http.conn.EofSensorInputStream")) { 
 				classes[i] =  java.io.InputStream.class;
 			} else {
 				classes[i] = args.get(i).getClass();
 			}
 			
-		//	System.out.println(args.get(i).getClass().getName());
 			values[i] = args.get(i);
 		}
 
