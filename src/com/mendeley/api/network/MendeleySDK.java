@@ -2,16 +2,21 @@ package com.mendeley.api.network;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.ClientProtocolException;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyAPICallsInterface;
+import com.mendeley.api.network.interfaces.MendeleyDocumentsInterface;
+import com.mendeley.api.network.interfaces.MendeleyFoldersInterface;
+import com.mendeley.api.util.Utils;
 
 public class MendeleySDK implements AuthenticationInterface {
 
@@ -23,74 +28,124 @@ public class MendeleySDK implements AuthenticationInterface {
 	AuthentictionManager authentictionManager;
 	MethodtoInvoke methodToInvoke;
 	
-	NetworkProvider networkProvider;
-	MendeleyAPICallsInterface appInterface;
+	DocumentsNetworkProvider documentdNetworkProvider;
 	
-	
+	MendeleyDocumentsInterface documentsInterface;
+	MendeleyFoldersInterface foldersInterface;
+
 	public MendeleySDK(Context appContext) {
 		this.appContext = appContext;
-		appInterface = (MendeleyAPICallsInterface) appContext;
+		
 		authentictionManager = new AuthentictionManager(appContext, this);
-		networkProvider = new NetworkProvider(this, appInterface);
+		initialiseInterfaces(appContext);
+		
+		hasCredentials();
 	}
 
-	public void getDocuments() throws ClientProtocolException, IOException {
-		if (!authenticated) {
+	public boolean hasCredentials() {
+		return authentictionManager.hasCredentials();
+	}
+	
+	public void clearCredentials() {
+		authentictionManager.clearCredentials();
+	}
+	
+	private void initialiseInterfaces(Context context) {
+		
+		if (context instanceof MendeleyDocumentsInterface) {
+			documentsInterface = (MendeleyDocumentsInterface) context;
+		}
+		
+		if (context instanceof MendeleyFoldersInterface) {
+			foldersInterface = (MendeleyFoldersInterface) context;
+		}
+		
+		documentdNetworkProvider = new DocumentsNetworkProvider(this, documentsInterface);
+	} 
+	
+	private boolean isAuthenticated() {
+
+		boolean isAuthenticated = false;
+		
+		if (NetworkProvider.accessToken != null && NetworkProvider.expiresAt != null) {
+			Date now = new Date();
+			Date expires = null;
+			try {
+				expires = Utils.dateFormat.parse(NetworkProvider.expiresAt);
+			} catch (ParseException e) {
+				Log.e("", "", e);
+				return false;
+			}
+
+			long diffInMs = expires.getTime() - now.getTime();
+			long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
+			
+			isAuthenticated = diffInSec > 0;
+		}
+
+		return isAuthenticated;
+	}
+
+	public void getDocuments() throws ClientProtocolException, IOException, InterfaceNotImplementedException {
+		if (documentsInterface == null) {
+			throw new InterfaceNotImplementedException(MendeleyDocumentsInterface.class + " is not implemented ");
+		}
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName());
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doGetDocuments(documentsUrl);
+			documentdNetworkProvider.doGetDocuments(documentsUrl);
 		}
 	}
 	
 	public void getDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!authenticated) {
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doGetDocument(documentsUrl, documentId);
+			documentdNetworkProvider.doGetDocument(documentsUrl, documentId);
 		}
 	}
 	
 	public void trashDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!authenticated) {
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doPostTrashDocument(documentsUrl, documentId);
+			documentdNetworkProvider.doPostTrashDocument(documentsUrl, documentId);
 		}
 	}
 	
 	public void deleteDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!authenticated) {
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doDeleteDocument(documentsUrl, documentId);
+			documentdNetworkProvider.doDeleteDocument(documentsUrl, documentId);
 		}
 	}
 	
 	public void postDocument(Document document) throws ClientProtocolException, IOException {
-		if (!authenticated) {
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{document.getClass()}, new Object[]{document});
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doPostDocument(documentsUrl, document);
+			documentdNetworkProvider.doPostDocument(documentsUrl, document);
 		}
 	}
 
 	public void patchDocument(String id, Date date, Document document) throws ClientProtocolException, IOException {
-		if (!authenticated) {
+		if (!isAuthenticated()) {
 			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{id.getClass(), date.getClass(), document.getClass()}, new Object[]{id, date, document});
 			authentictionManager.authenticate();
 		}
 		else {
-			networkProvider.doPatchDocument(documentsUrl, id, date, document);
+			documentdNetworkProvider.doPatchDocument(documentsUrl, id, date, document);
 		}
 	}
 

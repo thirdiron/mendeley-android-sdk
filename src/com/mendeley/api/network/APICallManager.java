@@ -17,9 +17,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import com.mendeley.api.network.interfaces.MendeleyAPICallsInterface;
-
 import android.content.Context;
+import android.util.Log;
+
+import com.mendeley.api.network.interfaces.MendeleyDocumentsInterface;
+import com.mendeley.api.network.interfaces.MendeleyFoldersInterface;
 
 public abstract class APICallManager {
 
@@ -34,25 +36,27 @@ public abstract class APICallManager {
 	Context context;
 	CredentialsManager credentialsManager;
 	
-	MendeleyAPICallsInterface appInterface;
+
 	
 	protected APICallManager(Context context) {
 		this.context = context;
-		
-		appInterface = (MendeleyAPICallsInterface) context;
-		
+
 		credentialsManager = new CredentialsManager(context);
 	}
-	 
-	HttpResponse doGet(String url) throws ClientProtocolException, IOException {
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet httpget = new HttpGet(url);
-		httpget.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
-		
-		HttpResponse response = httpclient.execute(httpget);
-		  
-		return response;  
+	
+	protected void clearCredentials() {
+		credentialsManager.clearCredentials();
 	}
+	
+//	HttpResponse doGet(String url) throws ClientProtocolException, IOException {
+//		HttpClient httpclient = new DefaultHttpClient();
+//		HttpGet httpget = new HttpGet(url);
+//		httpget.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+//		
+//		HttpResponse response = httpclient.execute(httpget);
+//		  
+//		return response;  
+//	}
 	
 	HttpResponse doPost(String url, String grantType, String authorizationCode) throws ClientProtocolException, IOException {
 		

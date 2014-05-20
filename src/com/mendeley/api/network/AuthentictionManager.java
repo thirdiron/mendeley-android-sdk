@@ -1,23 +1,31 @@
 package com.mendeley.api.network;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.R;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+
+import com.mendeley.api.R;
+import com.mendeley.api.network.interfaces.AuthenticationInterface;
+import com.mendeley.api.util.Utils;
 
 public class AuthentictionManager extends APICallManager {
 	
@@ -33,13 +41,20 @@ public class AuthentictionManager extends APICallManager {
 		this.authInterface = authInterface;
 	}
 	
+	protected boolean hasCredentials() {
+		return credentialsManager.hasCredentials();
+	}
+	
 	public void authenticate() {
-		
-		createDialog();		
-		this.webView.setWebViewClient(new MendeleyWebViewClient());
-		this.webView.loadUrl(getOauth2URL());
-
-	    loginDialog.show();
+		if (hasCredentials()) {
+			createRefreshHandler(true);
+		} else {
+			createDialog();		
+			this.webView.setWebViewClient(new MendeleyWebViewClient());
+			this.webView.loadUrl(getOauth2URL());
+	
+		    loginDialog.show();
+		}
 	}
 		
 	private void createDialog() {
@@ -47,30 +62,50 @@ public class AuthentictionManager extends APICallManager {
 		loginDialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		loginDialog.setContentView(R.layout.dialog_layout);
 		loginDialog.setTitle("Log in Mendeley");
-		loginDialog.setCancelable(false);
+		loginDialog.setCancelable(true);
 
 		loginDialog.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.ic_launcher);
 
     	webView = (WebView) loginDialog.findViewById(R.id.dialogWebView);
-    }
+
+    	((Button)loginDialog.findViewById(R.id.cancelButton)).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				loginDialog.hide();
+			}
+		});
+    } 
 	  
-	private void createRefreshHandler() {
+	private void createRefreshHandler(boolean notify) {
+
 		long delayMillis = (long)((NetworkProvider.expiresIn * 0.9) * 1000);
-		Log.e("", "creating handler - " + delayMillis);
 		refreshHandler = new Handler();
-		refreshHandler.postDelayed(refreshRunnable, delayMillis);
+		
+		if (notify) {
+			refreshHandler.postDelayed(refreshRunnableNotify, 1);
+		} else {
+			refreshHandler.postDelayed(refreshRunnable, delayMillis);
+		}
 	}
 
-	private Runnable refreshRunnable = new Runnable() {	
+	Runnable refreshRunnableNotify = new Runnable() {	
 		@Override
 		public void run() {
-			refreshToken();
+			refreshToken(true);
+		}
+	};
+
+	Runnable refreshRunnable = new Runnable() {	
+		@Override
+		public void run() {
+			refreshToken(false);
 		}
 	};
 	
 	
-	public void refreshToken() {
-		new RefreshTokenTask().execute("");
+	public void refreshToken(boolean notify) {
+		new RefreshTokenTask().execute(notify);
 	}
 		
 	private String getOauth2URL() {
@@ -100,20 +135,22 @@ public class AuthentictionManager extends APICallManager {
 	private void getTokenDetails(String tokenString) throws JSONException {
 		
 		JSONObject tokenObject = new JSONObject(tokenString);
-		
-		NetworkProvider.accessToken = tokenObject.getString("access_token");
-		NetworkProvider.tokenType = tokenObject.getString("token_type");
-		NetworkProvider.expiresIn = tokenObject.getInt("expires_in");
-		NetworkProvider.refreshToken = tokenObject.getString("refresh_token");		
+
+		String accessToken = tokenObject.getString("access_token");
+		String refreshToken = tokenObject.getString("refresh_token");	
+		String tokenType = tokenObject.getString("token_type");
+		int expiresIn = tokenObject.getInt("expires_in");
+
+		credentialsManager.setTokens(accessToken, refreshToken, tokenType, expiresIn);	
 	}
 	    
     class AuthenticateTask extends AsyncTask<String, Void, String> {
 
     	protected String getJSONTokenString(String authorizationCode) throws ClientProtocolException, IOException {
-	           HttpResponse response = doPost(TOKENS_URL, GRANT_TYPE_AUTH, authorizationCode);
-	           String data = getJsonString(response.getEntity().getContent());
+    		HttpResponse response = doPost(TOKENS_URL, GRANT_TYPE_AUTH, authorizationCode);
+    		String data = getJsonString(response.getEntity().getContent());
 	           
-	           return data;
+    		return data;
 		}
     	
     	protected String getAuthorizationCode(String authReturnUrl) {
@@ -159,14 +196,16 @@ public class AuthentictionManager extends APICallManager {
 			else {
 				loginDialog.hide();
 				authInterface.onAuthenticated();
-				createRefreshHandler();
+				createRefreshHandler(false);
 			}
 		}    
     }
     
     
-    class RefreshTokenTask extends AsyncTask<String, Void, String> {
+    class RefreshTokenTask extends AsyncTask<Boolean, Void, String> {
 
+    	boolean notify = false;
+    	
     	protected String getJSONTokenString(String AuthorizationCode) throws ClientProtocolException, IOException {
 	           HttpResponse response = doPost(TOKENS_URL, GRANT_TYPE_REFRESH, AuthorizationCode);
 	           String data = getJsonString(response.getEntity().getContent());
@@ -175,37 +214,38 @@ public class AuthentictionManager extends APICallManager {
 		}
 
 		@Override
-		protected String doInBackground(String... params) {
-			
+		protected String doInBackground(Boolean... params) {
+
+			if (params.length > 0) {
+				notify = params[0];
+			}
+
 			String result = null;
-			
-			if (authorizationCode == null) {
-				return result;
-			} else {
 				try {
 					String jsonTokenString = getJSONTokenString(authorizationCode);
 					getTokenDetails(jsonTokenString);
 					result = "ok";
-					
-					Log.e("refresh", jsonTokenString);
-					
-				} catch (IOException e) {
-					Log.e("", "", e);
-					return result;
 				} 
 				catch (JSONException e) {
 					Log.e("", "", e);
 					return result;
+				} catch (ClientProtocolException e) {
+					Log.e("", "", e);
+					return result;
+				} catch (IOException e) {
+					Log.e("", "", e);
+					return result;
 				}
-			}			
+
 			return result;
 		}
 		
 		@Override
-		protected void onPostExecute(String result) {
-			Log.e("", "refresh result: " + result);
-			
-			createRefreshHandler();
+		protected void onPostExecute(String result) {			
+			createRefreshHandler(false);
+			if (notify) {
+				authInterface.onAuthenticated();
+			}
 		}
     }	
 }

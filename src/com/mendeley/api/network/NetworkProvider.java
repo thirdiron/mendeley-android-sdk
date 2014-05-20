@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
@@ -34,10 +33,13 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mendeley.api.exceptions.HttpResponseException;
+import com.mendeley.api.exceptions.JsonParsingException;
+import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyAPICallsInterface;
+import com.mendeley.api.network.interfaces.MendeleyDocumentsInterface;
 
 public class NetworkProvider {
 
@@ -45,65 +47,15 @@ public class NetworkProvider {
 	protected static String tokenType = null;
 	protected static String accessToken = null;
 	protected static String refreshToken = null;
-	protected static int expiresIn = 0;
+	protected static String expiresAt = null;
+	protected static int expiresIn = -1;
 	
 	AuthenticationInterface authInterface;
-	MendeleyAPICallsInterface appInterface;
 	
-	NetworkProvider(AuthenticationInterface authInterface, MendeleyAPICallsInterface appInterface) {
+	NetworkProvider(AuthenticationInterface authInterface) {
 		this.authInterface = authInterface;
-		this.appInterface = appInterface;
 	}
-	
-	protected void doDeleteDocument(String url, String id) throws IOException {
-		 new DeleteDocumentTask().execute(url + id, id);
-	}
-	
-	protected void doPostDocument(String url, Document document) throws IOException {
 
-		JasonParser parser = new JasonParser();
-		try {
-			new PostDocumentTask().execute(url, parser.jsonFromDocument(document));			
-		} catch (JSONException e) {
-			Log.e("", "", e);
-		}
-	}
-	
-	protected void doPostTrashDocument(String url, String id) throws IOException {
-		 new PostTrashDocumentTask().execute(url + id + "/trash", id);
-	}
-	
-	protected void doGetDocument(String url, String id) throws IOException {
-		 new GetDocumentTask().execute(url + id);
-	}
-	
-	protected void doGetDocuments(String url) throws IOException {
-		new GetDocumentsTask().execute(url + "?limit=" + documentsLimit);		  
-	}
-	
-	private String formatDate(Date date) {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-        return df.format(date);
-	}
-	
-	protected void doPatchDocument(String url, String id, Date date, Document document) throws IOException {
-
-		String dateString = null;
-		
-		if (date != null) {
-			dateString = formatDate(date);
-		}
-		
-		JasonParser parser = new JasonParser();
-		try {
-			document.title += " patched!";
-			new PatchDocumentTask().execute(url+id, id, dateString, parser.jsonFromDocument(document));
-			
-		} catch (JSONException e) {
-			Log.e("", "", e);
-		}
-	}
-	
 	public static class HttpPatch extends HttpEntityEnclosingRequestBase {
 
 	    public final static String METHOD_NAME = "PATCH";
@@ -128,332 +80,7 @@ public class NetworkProvider {
 	    }
 	}
 	
-	protected class PatchDocumentTask extends AsyncTask<String, Void, String> {
-
-		MendeleyResponse response;
-		String documentId = null;
-		
-		@Override
-		protected String doInBackground(String... params) {
-			
-			String url = params[0];
-			String id = params[1];
-			String date = params[2];
-			String jsonString = params[3];
-
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatch(url, date);
-
-	        try {
-	        	
-	        	httpPatch.setEntity(new StringEntity(jsonString));
-
-	        	HttpResponse response = httpclient.execute(httpPatch);				
-				int responseCode = response.getStatusLine().getStatusCode();	        	
-				
-				if (responseCode != 204) {
-					return "callError";
-				} else {
-					
-					documentId = id;
-					return "ok";
-				}
-			} catch (IOException e) {
-				Log.e("", "", e);
-				return null;
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {
-					appInterface.onDocumentPatched(documentId);
-				}
-			}
-		}
-		
-	}
-	
-	protected class DeleteDocumentTask extends AsyncTask<String, Void, String> {
-
-		String documentId = null;
-		
-		@Override
-		protected String doInBackground(String... params) {
-			
-			String url = params[0];
-			String id = params[1];
-
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			try {
-				con = getConnection(url, "DELETE");
-				con.connect();
-				
-				int responseCode = con.getResponseCode();
-
-				if (responseCode != 204) {
-					return "callError";
-				} else {
-
-					is = con.getInputStream();			
-					is.close();
-					
-					documentId = id;
-					return "ok";
-				}
-				
-			}	catch (IOException e) {
-				Log.e("", "", e);
-				return null;
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						Log.e("", "", e);
-					}
-				}
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {
-					appInterface.onDocumentDeleted(documentId);
-				}
-			}
-		}
-		
-	}
-	
-	protected class PostTrashDocumentTask extends AsyncTask<String, Void, String> {
-
-		String documentId = null;
-		
-		@Override
-		protected String doInBackground(String... params) {
-
-			String url = params[0];
-			String id = params[1];
-
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			try {
-				con = getConnection(url, "POST");
-				con.connect();
-				
-				int responseCode = con.getResponseCode();
-
-				if (responseCode != 204) {
-					return "callError";
-				} else {
-
-					is = con.getInputStream();			
-					is.close();
-					
-					documentId = id;
-					return "ok";
-				}
-				
-			}	catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						Log.e("", "", e);
-					}
-				}
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {
-					appInterface.onDocumentTrashed(documentId);
-				}
-			}
-		}
-	}
-	
-	protected class PostDocumentTask extends AsyncTask<String, Void, String> {
-
-		Document document;
-		
-		@Override
-		protected String doInBackground(String... params) {
-			
-			String url = params[0];
-			String jsonString = params[1];
-
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			OutputStream os = null;
-			
-			try {
-				con = getConnection(url, "POST");
-				con.connect();
-	
-				os = con.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(
-				        new OutputStreamWriter(os, "UTF-8"));
-				writer.write(jsonString);
-				writer.flush();
-				writer.close();
-				os.close();
-				
-				int responseCode = con.getResponseCode();
-
-				if (responseCode != 201) {
-					return "callError";
-				} else {
-
-					is = con.getInputStream();
-					String responseString = getJsonString(is);					
-					is.close();
-					
-					JasonParser parser = new JasonParser();
-					document = parser.parseDocument(responseString);
-					
-					return "ok";
-				}
-				
-			}	catch (IOException | JSONException e) {
-				e.printStackTrace();
-				return null;
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						Log.e("", "", e);
-					}
-				}
-				if (os != null) {
-					try {
-						os.close();
-						os = null;
-					} catch (IOException e) {
-						Log.e("", "", e);
-					}
-				}
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {
-					appInterface.onDocumentPosted(document);
-				}
-			}
-		}
-	}
-	
-	protected class GetDocumentTask extends AsyncTask<String, Void, String> {
-
-		MendeleyResponse response;
-		Document document;
-		String date;
-		
-		@Override
-		protected String doInBackground(String... params) {
-
-				String url = params[0];
-
-				HttpsURLConnection con = null;
-
-				InputStream is = null;
-				try {
-					con = getConnection(url, "GET");
-					con.connect();
-		
-
-					response = getResponse(con);
-					
-					if (response.responseCode != 200) {
-						return "callError";
-					} else {
-
-						is = con.getInputStream();
-						String jsonString = getJsonString(is);					
-						is.close();
-						
-						JasonParser parser = new JasonParser();
-						document = parser.parseDocument(jsonString);
-						
-						return "ok";
-					}
-					
-				}	catch (IOException | JSONException e) {
-					e.printStackTrace();
-					return null;
-				} finally {
-					if (is != null) {
-						try {
-							is.close();
-							is = null;
-						} catch (IOException e) {
-							Log.e("", "", e);
-						}
-					}
-				}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {
-					appInterface.onDocumentReceived(document);
-					
-				}
-			}
-		}
-	}
-	
-	private MendeleyResponse getResponse(HttpsURLConnection con) throws IOException {
+	protected MendeleyResponse getResponse(HttpsURLConnection con) throws IOException {
 		
 		int responseCode = con.getResponseCode();
 		Map<String, List<String>> headersMap = con.getHeaderFields();
@@ -489,6 +116,8 @@ public class NetworkProvider {
 						response.contentEncoding = headersMap.get(key).get(0);	
 						break;
 				}
+			} else {
+				response.header = headersMap.get(key).get(0);	
 			}
 		}
 
@@ -496,73 +125,7 @@ public class NetworkProvider {
 		
 	}
 	
-
-	protected class GetDocumentsTask extends AsyncTask<String, Void, String> {
-
-		List<Document> documents;
-		MendeleyResponse response = null;
-
-		@Override
-		protected String doInBackground(String... params) {
-			
-			String url = params[0];
-
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			try {
-				con = getConnection(url, "GET");
-				con.connect();
-				
-				response = getResponse(con);				
-
-				if (response.responseCode != 200) {
-					return "callError";
-				} else {			
-				
-					is = con.getInputStream();
-					String jsonString = getJsonString(is);					
-					is.close();
-			
-						
-					JasonParser parser = new JasonParser();
-					documents = parser.parseDocumentList(jsonString);
-					
-					return "ok";
-				}
-				 
-			}	catch (IOException | JSONException e) {
-				Log.e("", "", e);
-				return null;
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						Log.e("", "", e);
-					}
-				}
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result) {
-			
-			if (result == null) {
-				authInterface.onAPICallFail();
-			} else {
-				if (result.equals("callError")) {
-					authInterface.onAuthenticationFail();
-				}
-				else {				
-					appInterface.onDocumentsReceived(documents);					
-				}
-			}
-		}
-	}
-	
-	private HttpPatch getHttpPatch(String url, String date) {
+	protected HttpPatch getHttpPatch(String url, String date) {
 		HttpPatch httpPatch = new HttpPatch(url);
 		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
 		httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
@@ -574,7 +137,7 @@ public class NetworkProvider {
 		return httpPatch;
 	}
 	
-	private HttpsURLConnection getConnection(String newUrl, String method) throws IOException {
+	protected HttpsURLConnection getConnection(String newUrl, String method) throws IOException {
 		HttpsURLConnection con = null;
 		URL url = new URL(newUrl);
 		con = (HttpsURLConnection) url.openConnection();
@@ -585,9 +148,37 @@ public class NetworkProvider {
 		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
 		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
 		con.addRequestProperty("Accept", "application/vnd.mendeley-document.1+json");
+
+		return con;
+	}
+	
+	private HttpsURLConnection getPatchConnection(String newUrl) throws IOException {
+		HttpsURLConnection con = null;
+		URL url = new URL(newUrl);
+		con = (HttpsURLConnection) url.openConnection();
+		con.setReadTimeout(10000);
+		con.setRequestMethod("POST");
+		con.setConnectTimeout(15000 );
+		con.setDoInput(true);
+		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
+		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
+		con.addRequestProperty("Accept", "application/vnd.mendeley-document.1+json");
+		con.addRequestProperty("x-method-override", "PATCH");
+		
+		
+		//PATCH /documents/46f5e4a8-d333-34aa-a028-4deea5064395 HTTP/1.1
+
+				
+		Map<String, List<String>> h = con.getRequestProperties();
+
+		
+		for (String key : h.keySet()) {
+			Log.e("request", " R -> "+key+":"+h.get(key).get(0));
+		}
 		
 		return con;
 	}
+
 	
 	protected String getJsonString(InputStream stream) throws IOException {
 
@@ -639,14 +230,13 @@ public class NetworkProvider {
 	
 	
 	
-	
 	//Testing
 	
 	public NetworkProvider() {
 		
 	}
-
-	public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	
+public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		Object result = null;
 		
@@ -680,5 +270,6 @@ public class NetworkProvider {
 
 		return result;
 	}
+
 
 }
