@@ -5,7 +5,7 @@ import java.util.List;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 
-public interface MendeleyDocumentsInterface {
+public interface MendeleyDocumentInterface extends MendeleyInterface {
 
 	public void onDocumentsReceived(List<Document> documents, MendeleyException exception);
 	

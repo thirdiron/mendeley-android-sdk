@@ -1,37 +1,50 @@
 package com.mendeley.api.network;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.http.client.ClientProtocolException;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.Folder;
+import com.mendeley.api.network.components.DocumentRequestParameters;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyDocumentsInterface;
-import com.mendeley.api.network.interfaces.MendeleyFoldersInterface;
+import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
+import com.mendeley.api.network.interfaces.MendeleyFileInterface;
+import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
+import com.mendeley.api.network.interfaces.MendeleyInterface;
+import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 import com.mendeley.api.util.Utils;
 
+/**
+ * 
+ * @author Elad
+ *
+ * This class should be instantiated with the calling activity context.
+ * The class provides public methods for network calls which are forwarded to the relevant network providers.
+ * It also calls the AuthenticationMAnager for retrieving a valid access token and store the credentials. 
+ * The context is used for displaying the authentication WebView, storing credentials in SharedPreferences 
+ * and is also checked to see which interfaces the activity implements for sending callbacks once a network task has finished.
+ */
 public class MendeleySDK implements AuthenticationInterface {
-
-	static boolean authenticated = false;
-	private static String apiUrl = "https://mix.mendeley.com:443/";
-	private static String documentsUrl = apiUrl + "documents/";
 	
-	Context appContext;
-	AuthentictionManager authentictionManager;
-	MethodtoInvoke methodToInvoke;
+	protected Context appContext;
+	protected AuthentictionManager authentictionManager;
+	protected MethodtoInvoke methodToInvoke;
 	
-	DocumentsNetworkProvider documentdNetworkProvider;
+	protected DocumentNetworkProvider documentdNetworkProvider;
+	protected FileNetworkProvider fileNetworkProvider;
+	protected ProfileNetworkProvider profileNetworkProvider;
+	protected FolderNetworkProvider folderNetworkProvider;
 	
-	MendeleyDocumentsInterface documentsInterface;
-	MendeleyFoldersInterface foldersInterface;
+	protected MendeleyDocumentInterface documentInterface;
+	protected MendeleyFolderInterface folderInterface;
+	protected MendeleyFileInterface fileInterface;
+	protected MendeleyProfileInterface profileInterface;
 
 	public MendeleySDK(Context appContext) {
 		this.appContext = appContext;
@@ -41,28 +54,59 @@ public class MendeleySDK implements AuthenticationInterface {
 		
 		hasCredentials();
 	}
+	
+	/**
+	 * Checking the given context to see which interfaces are implemented by the calling activity
+	 * and initialising the relevant objects for sending callbacks.
+	 * 
+	 * @param context the calling activity context.
+	 */
+	private void initialiseInterfaces(Context context) {
+		
+		if (context instanceof MendeleyDocumentInterface) {
+			documentInterface = (MendeleyDocumentInterface) context;
+		}
+		
+		if (context instanceof MendeleyFolderInterface) {
+			folderInterface = (MendeleyFolderInterface) context;
+		}
+		
+		if (context instanceof MendeleyFileInterface) {
+			fileInterface = (MendeleyFileInterface) context;
+		}
+		
+		if (context instanceof MendeleyProfileInterface) {
+			profileInterface = (MendeleyProfileInterface) context;
+		}
+		
+		documentdNetworkProvider = new DocumentNetworkProvider(documentInterface);
+		fileNetworkProvider = new FileNetworkProvider(fileInterface);
+		profileNetworkProvider = new ProfileNetworkProvider(profileInterface);
+		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
+	} 
+	
 
+	/**
+	 * public method to call hasCredentials method on the protected AuthenticationManager
+	 * 
+	 * @return true if credentials are stored already in SharedPreferences.
+	 */
 	public boolean hasCredentials() {
 		return authentictionManager.hasCredentials();
 	}
 	
+	/**
+	 * public method to call clearCredentials method on the protected AuthenticationManager
+	 */
 	public void clearCredentials() {
 		authentictionManager.clearCredentials();
 	}
 	
-	private void initialiseInterfaces(Context context) {
-		
-		if (context instanceof MendeleyDocumentsInterface) {
-			documentsInterface = (MendeleyDocumentsInterface) context;
-		}
-		
-		if (context instanceof MendeleyFoldersInterface) {
-			foldersInterface = (MendeleyFoldersInterface) context;
-		}
-		
-		documentdNetworkProvider = new DocumentsNetworkProvider(this, documentsInterface);
-	} 
-	
+	/**
+	 * Checking if the current access token has expired
+	 * 
+	 * @return true if access token has expired.
+	 */
 	private boolean isAuthenticated() {
 
 		boolean isAuthenticated = false;
@@ -85,70 +129,319 @@ public class MendeleySDK implements AuthenticationInterface {
 
 		return isAuthenticated;
 	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param groupId group id for which to get folders
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getFolders(String groupId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class}, 
+			 				 new Object[]{groupId})) {
+			folderNetworkProvider.doGetFolders(groupId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId id of the folder to get
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getFolder(String folderId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class}, 
+			 				 new Object[]{folderId})) {
+			folderNetworkProvider.doGetFolder(folderId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId id of the folder for which to get the document ids
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getFolderDocumentIds(String folderId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class}, 
+			 				 new Object[]{folderId})) {
+			folderNetworkProvider.doGetFolderDocumentIds(folderId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folder the folder object to post
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void postFolder(Folder folder) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{Folder.class}, 
+			 				 new Object[]{folder})) {
+			folderNetworkProvider.doPostFolder(folder);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId the id of the folder
+	 * @param documentId the id of the document to add to the folder
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void postDocumentToFolder(String folderId, String documentId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class,String.class}, 
+			 				 new Object[]{folderId, documentId})) {
+			folderNetworkProvider.doPostDocumentToFolder(folderId, documentId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId the id of the folder to delete
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void deleteFolder(String folderId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class}, 
+			 				 new Object[]{folderId})) {
+			folderNetworkProvider.doDeleteFolder(folderId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId the id of the folder
+	 * @param documentId the id of the document to delete
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void deleteDocumentFromFolder(String folderId, String documentId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class, String.class}, 
+			 				 new Object[]{folderId, documentId})) {
+			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * 
+	 * @param folderId the id of the folder to patch
+	 * @param folder the folder object that holds the new name and parent data 
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void patchFolder(String folderId, Folder folder) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(folderInterface,
+			 				 new Class[]{String.class, Folder.class}, 
+			 				 new Object[]{folderId, folder})) {
+			folderNetworkProvider.doPatchFolder(folderId, folder);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
+	 * 
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getMyProfile() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(profileInterface,
+			 				 null, null)) {
+			profileNetworkProvider.doGetMyProfile();
+		}
+	}
 
-	public void getDocuments() throws ClientProtocolException, IOException, InterfaceNotImplementedException {
-		if (documentsInterface == null) {
-			throw new InterfaceNotImplementedException(MendeleyDocumentsInterface.class + " is not implemented ");
-		}
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName());
-			authentictionManager.authenticate();
-		}
-		else {
-			documentdNetworkProvider.doGetDocuments(documentsUrl);
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
+	 * 
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getProfile(String profileId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(profileInterface,
+			 				 new Class[]{String.class}, 
+			 				 new Object[]{profileId})) {
+			profileNetworkProvider.doGetProfile(profileId);
 		}
 	}
 	
-	public void getDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
-			authentictionManager.authenticate();
-		}
-		else {
-			documentdNetworkProvider.doGetDocument(documentsUrl, documentId);
-		}
-	}
-	
-	public void trashDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
-			authentictionManager.authenticate();
-		}
-		else {
-			documentdNetworkProvider.doPostTrashDocument(documentsUrl, documentId);
+	/**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 *  
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getFiles(String documentId, String groupId, String addedSince, String deletedSince) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 new Class[]{String.class,String.class,String.class,String.class}, 
+		 				 	 new Object[]{documentId,groupId,addedSince,deletedSince})) {
+			fileNetworkProvider.doGetFiles(documentId, groupId, addedSince, deletedSince);
 		}
 	}
 	
-	public void deleteDocument(String documentId) throws ClientProtocolException, IOException {
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{documentId.getClass()}, new Object[]{documentId});
-			authentictionManager.authenticate();
-		}
-		else {
-			documentdNetworkProvider.doDeleteDocument(documentsUrl, documentId);
+	/**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 *  
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getFile(String fileId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 new Class[]{String.class}, 
+		 				 	 new Object[]{fileId})) {
+			fileNetworkProvider.doGetFile(fileId);
 		}
 	}
 	
-	public void postDocument(Document document) throws ClientProtocolException, IOException {
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{document.getClass()}, new Object[]{document});
-			authentictionManager.authenticate();
+	/**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 *  
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void deleteFile(String fileId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 new Class[]{String.class}, 
+		 				 	 new Object[]{fileId})) {
+			fileNetworkProvider.doDeleteFile(fileId);
 		}
-		else {
-			documentdNetworkProvider.doPostDocument(documentsUrl, document);
+	}
+	
+	/**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 *  
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void postFile(String contentDisposition, String contentType, String link, byte[] fileData) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 new Class[]{String.class, String.class, String.class, byte[].class}, 
+		 				 	 new Object[]{contentDisposition, contentType, link, fileData})) {
+			fileNetworkProvider.doPostFile(contentDisposition, contentType, link, fileData);
+		}
+	}
+	
+	/**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 *  
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{DocumentRequestParameters.class}, 
+									 new Object[]{parameters})) {
+			documentdNetworkProvider.doGetDocuments(parameters);
 		}
 	}
 
-	public void patchDocument(String id, Date date, Document document) throws ClientProtocolException, IOException {
-		if (!isAuthenticated()) {
-			methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[0].getMethodName(), new Class[]{id.getClass(), date.getClass(), document.getClass()}, new Object[]{id, date, document});
-			authentictionManager.authenticate();
+	/**
+	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param documentId the document id to get
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getDocument(String documentId, DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{String.class,DocumentRequestParameters.class}, 
+									 new Object[]{documentId, parameters})) {
+			documentdNetworkProvider.doGetDocument(documentId, parameters);
 		}
-		else {
-			documentdNetworkProvider.doPatchDocument(documentsUrl, id, date, document);
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param documentId the document id to be trashed
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void trashDocument(String documentId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{String.class}, 
+							 		 new Object[]{documentId})) {
+			documentdNetworkProvider.doPostTrashDocument(documentId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param documentId the document id to be deleted
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void deleteDocument(String documentId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{String.class},
+									 new Object[]{documentId})) {
+			documentdNetworkProvider.doDeleteDocument(documentId);
+		}
+	}
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param document the document object to be posted
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void postDocument(Document document) throws InterfaceNotImplementedException {		
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{Document.class}, 
+									 new Object[]{document})) {
+			documentdNetworkProvider.doPostDocument(document);
 		}
 	}
 
+	
+	/**
+	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param documentId the id of the document to be patched
+	 * @param date for the api condition if unmodified since.
+	 * @param document the document object
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void patchDocument(String documentId, Date date, Document document) throws InterfaceNotImplementedException {		
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{String.class, Date.class, Document.class}, 
+									 new Object[]{documentId, date, document})) {
+			documentdNetworkProvider.doPatchDocument(documentId, date, document);
+		}
+	}
+	
+	
+	/**
+	 * First checking that the MendeleyInterface has been instantiated for sending callbacks to the application, if not throwing InterfaceNotImplementedException.
+	 * Then checking if client is authenticated, if false initialising the MethodToInvoke object with the calling method name and its arguments
+	 * and calling authenticate on the AuthenticationManager, else returns true.
+	 * 
+	 * @param mendeleyInterface the instance of MendeleyInterface that will be used for the callbacks
+	 * @param classes of the arguments of the calling method
+	 * @param values of the arguments of the calling method
+	 * @return true if network call can be executed
+	 * @throws InterfaceNotImplementedException
+	 */
+	private boolean checkNetworkCall(MendeleyInterface mendeleyInterface, @SuppressWarnings("rawtypes") Class[] classes, Object[] values) throws InterfaceNotImplementedException {
+		if (mendeleyInterface == null) {
+			throw new InterfaceNotImplementedException("The required MendeleyInterface is not implemented by the calling class");
+		}
+		if (!isAuthenticated()) {
+			if (classes == null) {
+				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
+				authentictionManager.authenticate();
+			} else {
+				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
+				authentictionManager.authenticate();
+			}
+		} else {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Invoking the method stored in the MethodToInvoke object.
+	 */
 	private void invokeMethod() {
 		
 		try {
@@ -168,12 +461,27 @@ public class MendeleySDK implements AuthenticationInterface {
 		}
 	}
 
+	/**
+	 * A callback method that is called from AuthenticationManager when client has been authenticated. 
+	 */
 	@Override
 	public void onAuthenticated() {
-		authenticated = true;
 		invokeMethod();
 	}
 	
+
+	/**
+	 * A callback method that is called from AuthenticationManager when client has failed to be authenticated. 
+	 */
+	@Override
+	public void onAuthenticationFail() {
+		Log.e("", "onAuthenticationFail");
+	}
+	
+	/**
+	 * Inner class that holds details of the method and arguments to be called once the client has been authenticated.
+	 *
+	 */
 	protected class MethodtoInvoke {
 		
 		String methodName;
@@ -194,22 +502,11 @@ public class MendeleySDK implements AuthenticationInterface {
 		}
 	}
 
-	@Override
-	public void onAuthenticationFail() {
-		Log.e("", "onAuthenticationFail");
-	}
-
-
-	@Override
-	public void onAPICallFail() {
-		Log.e("", "onAPICallFail");
-	}
-
 	
-	// Testing
-	
+	/**
+	 * public default constructor for junit testing.
+	 */
 	public MendeleySDK() {
-		
 	}
 	
 }

@@ -23,6 +23,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -39,23 +40,29 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyDocumentsInterface;
+import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
+/**
+ * This class provides common functionality for the other network providers that subclass it.
+ * 
+ * @author Elad
+ *
+ */
 public class NetworkProvider {
 
+	protected static String apiUrl = "https://mix.mendeley.com:443/";
+	
 	public static int documentsLimit = 100;
 	protected static String tokenType = null;
 	protected static String accessToken = null;
 	protected static String refreshToken = null;
 	protected static String expiresAt = null;
 	protected static int expiresIn = -1;
-	
-	AuthenticationInterface authInterface;
-	
-	NetworkProvider(AuthenticationInterface authInterface) {
-		this.authInterface = authInterface;
-	}
 
+	/**
+	 * Inner class that extends HttpEntityEnclosingRequestBase to provide PATCH request method.
+	 *
+	 */
 	public static class HttpPatch extends HttpEntityEnclosingRequestBase {
 
 	    public final static String METHOD_NAME = "PATCH";
@@ -80,6 +87,13 @@ public class NetworkProvider {
 	    }
 	}
 	
+	/**
+	 * Extracting the headers from the given HttpsURLConnection object.
+	 * 
+	 * @param con
+	 * @return MemdeleyResponse object holding the the headers data
+	 * @throws IOException
+	 */
 	protected MendeleyResponse getResponse(HttpsURLConnection con) throws IOException {
 		
 		int responseCode = con.getResponseCode();
@@ -125,6 +139,14 @@ public class NetworkProvider {
 		
 	}
 	
+	/**
+	 * Creating HttpPatch object with the given url and and date string.
+	 * Also adding the access token and other required headers.
+	 * 
+	 * @param url the call url
+	 * @param date the required date string
+	 * @return the HttpPatch object
+	 */
 	protected HttpPatch getHttpPatch(String url, String date) {
 		HttpPatch httpPatch = new HttpPatch(url);
 		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
@@ -137,7 +159,54 @@ public class NetworkProvider {
 		return httpPatch;
 	}
 	
-	protected HttpsURLConnection getConnection(String newUrl, String method) throws IOException {
+	protected HttpPatch getHttpPatch(String url) {
+		HttpPatch httpPatch = new HttpPatch(url);
+		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+		httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
+		httpPatch.setHeader("Accept", "application/json");		
+		return httpPatch;
+	}
+	
+	
+	protected HttpGet getHttpGet(String url) {
+		HttpGet httpGet = new HttpGet(url);
+		httpGet.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+		httpGet.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
+//		httpGet.setHeader("Accept", "application/vnd.mendeley-document.1+json");
+		
+		return httpGet;
+	}
+	
+	/**
+	 * Creating HttpsURLConnection object with the given url and request method.
+	 * Also adding the access token and other required request properties.
+	 * 
+	 * @param url the call url
+	 * @param method the required request method
+	 * @return the HttpsURLConnection object
+	 * @throws IOException
+	 */
+	protected HttpsURLConnection getConnection(String url, String method) throws IOException {
+		HttpsURLConnection con = null;
+		URL callUrl = new URL(url);
+		con = (HttpsURLConnection) callUrl.openConnection();
+		con.setReadTimeout(10000);
+		con.setConnectTimeout(15000);
+		con.setRequestMethod(method);
+		con.setDoInput(true);
+//		con.setDoOutput(true);
+		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
+		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
+
+		
+		
+//		con.addRequestProperty("Accept", "application/vnd.mendeley-document.1+json");
+
+		return con;
+	}
+	
+	//TODO: fix method
+	protected HttpsURLConnection getFileConnection(String newUrl, String method) throws IOException {
 		HttpsURLConnection con = null;
 		URL url = new URL(newUrl);
 		con = (HttpsURLConnection) url.openConnection();
@@ -146,12 +215,19 @@ public class NetworkProvider {
 		con.setRequestMethod(method);
 		con.setDoInput(true);
 		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
-		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-		con.addRequestProperty("Accept", "application/vnd.mendeley-document.1+json");
+
+		
+//		con.addRequestProperty("Vary", "Accept-Encoding, User-Agent");
+//		con.addRequestProperty("Accept-Encoding", "gzip,deflate,sdch");
+//		con.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
+//		con.addRequestProperty("Connection", "keep-alive");
+//		con.addRequestProperty("Cache-Control", "must-revalidate,no-cache,no-store");
+//
 
 		return con;
 	}
 	
+	//TODO: fix method
 	private HttpsURLConnection getPatchConnection(String newUrl) throws IOException {
 		HttpsURLConnection con = null;
 		URL url = new URL(newUrl);
@@ -179,7 +255,14 @@ public class NetworkProvider {
 		return con;
 	}
 
-	
+
+	/**
+	 * Extracting json String from the given InputStream object.
+	 * 
+	 * @param stream the InputStream holding the json string
+	 * @return the json string
+	 * @throws IOException
+	 */
 	protected String getJsonString(InputStream stream) throws IOException {
 
 		StringBuffer data = new StringBuffer();
@@ -204,6 +287,7 @@ public class NetworkProvider {
 		return data.toString();
 	}
 	
+	//TODO: not used for now
 	public static class HttpClientFactory {
 
 	    private static DefaultHttpClient client;
@@ -229,14 +313,26 @@ public class NetworkProvider {
 	
 	
 	
-	
-	//Testing
-	
+	/**
+	 * public default constructor for testing.
+	 */
 	public NetworkProvider() {
 		
 	}
 	
-public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * Creating and invoking a method from the given parameters.
+	 * Used for testing private methods.
+	 * 
+	 * @param methodName the method to invoke
+	 * @param args the method's arguments
+	 * @return the result of the invoked method
+	 * @throws NoSuchMethodException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		Object result = null;
 		

@@ -39,13 +39,11 @@ public class Document {
 	public String chapter;
 	public ArrayList<Person> editors;
 	
-	public ArrayList<DocumentFile> files;
 	public boolean downloaded;
 		
 	public Document() {
 		authors = new ArrayList<Person>();
 		editors = new ArrayList<Person>();
-		files = new ArrayList<DocumentFile>();
 		identifiers = new HashMap<String, String>();
 	}
 	

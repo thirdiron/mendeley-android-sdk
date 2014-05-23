@@ -10,8 +10,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
+import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.Education;
+import com.mendeley.api.model.Employment;
+import com.mendeley.api.model.File;
+import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Person;
+import com.mendeley.api.model.Photo;
+import com.mendeley.api.model.Profile;
 
 public class JasonParser {
 	
@@ -34,13 +43,283 @@ public class JasonParser {
 		jDocument.put("id", document.id);
 		
 		return jDocument.toString();
+	}
+	
+	protected String jsonFromFolder(Folder folder) throws JSONException {
+
+		JSONObject jFolder = new JSONObject();
 		
+		jFolder.put("name", folder.name);
+		jFolder.put("parent", folder.parent);
+		jFolder.put("id", folder.id);
+		jFolder.put("group_id", folder.groupId);
+		jFolder.put("added", folder.added);
+		
+		return jFolder.toString();
+	}
+	
+	protected String jsonFromDocumentId(String documentId) throws JSONException {
+		JSONObject jDocument = new JSONObject();		
+		jDocument.put("document", documentId);		
+		return jDocument.toString();
+	}
+	
+	protected List<String> parseDocumentIds(String jsonString) throws JSONException {
+		List<String> documentIds = new ArrayList<String>();
+		JSONObject jsonObjet = new JSONObject(jsonString);
+		JSONArray jsonArray = jsonObjet.getJSONArray("document_ids");
+		for (int i = 0; i < jsonArray.length(); i++) {
+			documentIds.add(jsonArray.getString(i));
+		}
+		
+		return documentIds;
 	}
 
-	protected Document parseDocument(String jsonString) throws JSONException {
+	protected File parseFile(String jsonString) throws JSONException {
+		File mendeleyFile = new File();
 		
-		Document mendeleyDocument = new Document();
+		JSONObject documentObject = new JSONObject(jsonString);
+		
+		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
+				 documentObject.keys(); keysIter.hasNext();) {
+		  
+			String key = keysIter.next();
+			switch (key) {			  
+				case "id":
+					mendeleyFile.id = documentObject.getString(key);
+					break;
+				case "document_id":
+					mendeleyFile.documentId = documentObject.getString(key);
+					break;
+				case "mime_type":
+					mendeleyFile.mimeType = documentObject.getString(key);
+					break;
+				case "file_name":
+					mendeleyFile.fileName = documentObject.getString(key);
+					break;
+				case "filehash":
+					mendeleyFile.fileHash = documentObject.getString(key);
+					break;
+			}
+		}
+		
+		return mendeleyFile;
+	}
+	
+	protected List<Folder> parseFolderList(String jsonString) throws JSONException {
+		
+		List<Folder> folders = new ArrayList<Folder>();
+		
+		JSONArray jsonarray = new JSONArray(jsonString);
+		
+		for (int i = 0; i < jsonarray.length(); i++) {
+			folders.add(parseFolder(jsonarray.getString(i)));
+		}
+		
+		return folders;
+	}
+	
+	protected Folder parseFolder(String jsonString) throws JSONException {
+		
+		JSONObject folderObject = new JSONObject(jsonString);
+		
+		String folderName = folderObject.getString("name");
+		Folder folder = new Folder(folderName);
+		
+		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
+				folderObject.keys(); keysIter.hasNext();) {
+		  
+			String key = keysIter.next();
+			switch (key) {
+			  
+				case "parent":
+					folder.parent = folderObject.getString(key);
+					break;
+				case "id":
+					folder.id = folderObject.getString(key);
+					break;
+				case "group_id":
+					folder.groupId = folderObject.getString(key);
+					break;
+				case "added":
+					folder.added = folderObject.getString(key);
+					break;
+			}
+		}
+		
+		return folder;
+	}
+	
+	protected Profile parseProfile(String jsonString) throws JSONException {
+		
+		Profile profile  = new Profile();
+		JSONObject profileObject = new JSONObject(jsonString);
+		 
+		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
+				profileObject.keys(); keysIter.hasNext();) {
+		  
+			String key = keysIter.next();
+			switch (key) {
+			  
+				case "location":
+					profile.location = profileObject.getString(key);
+					break;
+				case "id":
+					profile.id = profileObject.getString(key);
+					break;
+				case "display_name":
+					profile.displayName = profileObject.getString(key);
+					break;
+				case "user_type":
+					profile.userType = profileObject.getString(key);
+					break;
+				case "url":
+					profile.url = profileObject.getString(key);
+					break;
+				case "email":
+					profile.email = profileObject.getString(key);
+					break;
+				case "first_name":
+					profile.firstName = profileObject.getString(key);
+					break;
+				case "last_name":
+					profile.lastName = profileObject.getString(key);
+					break;
+				case "research_interests":
+					profile.researchInterests = profileObject.getString(key);
+					break;
+				case "academic_status":
+					profile.academicStatus = profileObject.getString(key);
+					break;
+				case "verified":
+					profile.verified = profileObject.getBoolean(key);
+					break;
+				case "created_at":
+					profile.createdAt = profileObject.getString(key);
+					break;
+				case "discipline":
+					JSONObject disciplineObject = profileObject.getJSONObject(key);
+					Discipline discipline = new Discipline();
+					if (disciplineObject.has("name")) {
+						discipline.name = disciplineObject.getString("name");
+					}
+					profile.discipline = discipline;
+					break;
+				case "photo":
+					JSONObject photoObject = profileObject.getJSONObject(key);
+					Photo photo = new Photo();
+					if (photoObject.has("standard")) {
+						photo.standard = photoObject.getString("standard");
+					}
+					if (photoObject.has("square")) {
+						photo.square = photoObject.getString("square");
+					}
+					
+					profile.photo  = photo;
+					break;
+				case "education":					  
+					JSONArray educationArray = profileObject.getJSONArray(key);
+					
+		            for (int i = 0; i < educationArray.length(); i++) {
+		            	
+		            	JSONObject educationObject = educationArray.getJSONObject(i);		            	
+		            	Education education = new Education();
+		            	
+		            	for (@SuppressWarnings("unchecked") Iterator<String> educationIter = 
+		            			educationObject.keys(); educationIter.hasNext();) {
+		        		  
+		        			String educationKey = educationIter.next();
+		        			switch (educationKey) {
+			        			case "id":
+			        				education.id = educationObject.getInt(educationKey);
+			    					break;
+			        			case "last_modified":
+			        				education.lastModified = educationObject.getString(educationKey);
+			    					break;
+			        			case "created":
+			        				education.created = educationObject.getString(educationKey);
+			    					break;
+			        			case "degree":
+			        				education.degree = educationObject.getString(educationKey);
+			    					break;
+			        			case "institution":
+			        				education.institution = educationObject.getString(educationKey);
+			    					break;
+			        			case "start_date ":
+			        				education.startDate = educationObject.getString(educationKey);
+			    					break;
+			        			case "end_date":
+			        				education.endDate = educationObject.getString(educationKey);
+			    					break;
+			        			case "website":
+			        				education.website = educationObject.getString(educationKey);
+			    					break;
+		        			}
+		            	}
+		            	profile.education.add(education);
+		            	
+		            }
+		            break;
+				case "employment":					  
+					JSONArray employmentArray = profileObject.getJSONArray(key);
 
+		            for (int i = 0; i < employmentArray.length(); i++) {
+		            	
+		            	JSONObject employmentObject = employmentArray.getJSONObject(i);		            	
+		            	Employment employment = new Employment();
+
+		            	for (@SuppressWarnings("unchecked") Iterator<String> employmentIter = 
+		            			employmentObject.keys(); employmentIter.hasNext();) {
+		        		  
+		        			String employmentKey = employmentIter.next();
+
+		        			switch (employmentKey) {
+			        			case "id":
+			        				employment.id = employmentObject.getInt(employmentKey);
+			    					break;
+			        			case "last_modified":
+			        				employment.lastModified = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "position":
+			        				employment.position = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "created":
+			        				employment.created = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "institution":
+			        				employment.institution = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "start_date ":
+			        				employment.startDate = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "end_date":
+			        				employment.endDate = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "website":
+			        				employment.website = employmentObject.getString(employmentKey);
+			    					break;
+			        			case "is_main_employment":
+			        				employment.mainEmployment = employmentObject.getBoolean(employmentKey);
+			    					break;
+			        			case "classes":
+			        				JSONArray classesArray = employmentObject.getJSONArray(key);
+			        				for (int j= 0; j < classesArray.length(); j++) {
+			        					employment.classes.add(classesArray.getString(j));
+			        				}
+			    					break;
+		        			}
+		            	}
+		            	profile.employment.add(employment);		            	
+		            }
+		            break;
+			}
+		}
+		
+		return profile;
+	}
+
+	protected Document parseDocument(String jsonString) throws JSONException {		
+		Document mendeleyDocument = new Document();
 		JSONObject documentObject = new JSONObject(jsonString);
 		 
 		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
@@ -169,6 +448,19 @@ public class JasonParser {
 		  }
 		  
 		 return mendeleyDocument;
+	}
+	
+	protected List<File> parseFileList(String jsonString) throws JSONException {
+		
+		List<File> files = new ArrayList<File>();
+		
+		JSONArray jsonarray = new JSONArray(jsonString);
+		
+		for (int i = 0; i < jsonarray.length(); i++) {
+			files.add(parseFile(jsonarray.getString(i)));
+		}
+		
+		return files;
 	}
 	
 	protected List<Document> parseDocumentList(String jsonString) throws JSONException {

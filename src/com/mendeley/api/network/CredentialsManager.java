@@ -44,9 +44,7 @@ public class CredentialsManager {
 			} catch (Exception e) {
 				Log.e("", "", e);
 			}
-		} else {
-			Log.e("", "keys exist");
-		}
+		} 
 	}
 	
 	protected void setTokens(String accessToken, String refreshToken, String tokenType, int expiresIn) {

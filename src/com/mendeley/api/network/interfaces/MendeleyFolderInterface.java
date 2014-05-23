@@ -6,13 +6,15 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 
-public interface MendeleyFoldersInterface {
+public interface MendeleyFolderInterface extends MendeleyInterface{
 
-	public void onFoldersReceived(List<Folder> Folder, MendeleyException exception);
+	public void onFoldersReceived(List<Folder> folders, MendeleyException exception);
+	
+	public void onFolderReceived(Folder folder, MendeleyException exception);
 		
 	public void onFolderDocumentIdsReceived(List<String> documentIds, MendeleyException exception);
 	
-	public void onFolderPosted(String folderId, MendeleyException exception);
+	public void onFolderPosted(Folder folder, MendeleyException exception);
 	
 	public void onDocumentPostedToFolder(String folderId, MendeleyException exception);
 	
