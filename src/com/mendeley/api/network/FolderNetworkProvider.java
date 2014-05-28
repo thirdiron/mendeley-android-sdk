@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -23,60 +21,91 @@ import android.util.Log;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.network.DocumentNetworkProvider.PatchDocumentTask;
-import com.mendeley.api.network.NetworkProvider.HttpPatch;
+import com.mendeley.api.network.components.FolderRequestParameters;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
 /**
  * NetworkProvider class for Folder API calls
- * 
- * @author Elad
  *
  */
 public class FolderNetworkProvider extends NetworkProvider{
 	
-	private static String foldersUrl = apiUrl + "folders/";
+	private static String foldersUrl = apiUrl + "folders";
 	MendeleyFolderInterface appInterface;
 	
+	/**
+	 * Constructor that takes MendeleyFolderInterface instance which will be used to send callbacks to the application
+	 * 
+	 * @param appInterface the instance of MendeleyFolderInterface
+	 */
 	FolderNetworkProvider(MendeleyFolderInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
 	/**
-	 *  Building the url string with the parameters and executes the GetFoldersTask
+	 * Building the url for get folders
 	 * 
-	 * @param fileId
+	 * @param params folder request parameters object
+	 * @return the url string
 	 */
-	protected void doGetFolders(String groupId) {
+	protected String getGetFoldersUrl(FolderRequestParameters params) {
 		String url = foldersUrl;
-		if (groupId != null && !groupId.isEmpty()) {
-			url += "?group_id="+groupId;
+		if (params != null) {
+			if (params.groupId != null) {
+				url += "?group_id="+params.groupId;
+			}
 		}
 		
-		new GetFoldersTask().execute(url);		  
+		return url.toString();
 	}
 
 	/**
-	 *  Building the url string with the parameters and executes the GetFolderTask
+	 * Getting the appropriate url string and executes the GetFoldersTask
 	 * 
-	 * @param fileId
+	 * @param params folder request parameters object
 	 */
-	protected void doGetFolder(String folderId) {
-		new GetFolderTask().execute(foldersUrl+folderId);		  
+	protected void doGetFolders(FolderRequestParameters params) {
+		new GetFoldersTask().execute(getGetFoldersUrl(params));		  
+	}
+
+	/**
+	 * Building the url for get folder
+	 * 
+	 * @param folderId the folder id to get
+	 * @return the url string
+	 */
+	protected String getGetFolderUrl(String folderId) {
+		return foldersUrl+"/"+folderId;
 	}
 	
+	/**
+	 * Getting the appropriate url string and executes the GetFolderTask
+	 * 
+	 * @param folderId the folder id to get
+	 */
+	protected void doGetFolder(String folderId) {
+		new GetFolderTask().execute(getGetFolderUrl(folderId));		  
+	}
+	
+	/**
+	 * Building the url for get folder document ids
+	 * 
+	 * @param folderId the folder id
+	 * @return the url string
+	 */
+	protected String getGetFolderDocumentIdsUrl(String folderId) {
+		return foldersUrl + "/"+folderId + "/documents";
+	}
 
 	/**
-	 *  Building the url string with the parameters and executes the GetFolderDocumentIdsTask
+	 * Getting the appropriate url string and executes the GetFolderDocumentIdsTask
 	 * 
-	 * @param fileId
+	 * @param folderId the folder id
 	 */
 	protected void doGetFolderDocumentIds(String folderId) {
-		String url = foldersUrl + folderId + "/documents";
-		new GetFolderDocumentIdsTask().execute(url);		  
+		new GetFolderDocumentIdsTask().execute(getGetFolderDocumentIdsUrl(folderId));		  
 	}
 	
 	/**
@@ -95,13 +124,22 @@ public class FolderNetworkProvider extends NetworkProvider{
 	}
 	
 	/**
-	 * Building the url string with the parameters and executes the PostDocumentToFolderTask.
+	 * Building the url for post document to folder
+	 * 
+	 * @param folderId the folder id
+	 * @return the url string
+	 */
+	protected String getPostDocumentToFolderUrl(String folderId) {
+		return foldersUrl + "/"+folderId + "/documents";
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the PostDocumentToFolderTask.
 	 * 
 	 * @param folderId the folder id
 	 * @param documentId the id of the document to add to the folder
 	 */
 	protected void doPostDocumentToFolder(String folderId, String documentId) {
-		String url = foldersUrl + folderId + "/documents";
 		String documentString = null;
 		if (documentId != null && !documentId.isEmpty()) {
 			JasonParser parser = new JasonParser();
@@ -111,36 +149,63 @@ public class FolderNetworkProvider extends NetworkProvider{
 				appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
 			}
 		}	
-		new PostDocumentToFolderTask().execute(url, documentString, folderId);	
+		new PostDocumentToFolderTask().execute(getPostDocumentToFolderUrl(folderId), documentString, folderId);	
 	}
 	
 	/**
-	 * Building the url string with the parameters and executes the DeleteFolderTask.
+	 * Building the url for delete folder
+	 * 
+	 * @param folderId the folder id
+	 * @return the url string
+	 */
+	protected String getDeleteFolderUrl(String folderId) {
+		return foldersUrl + "/"+folderId;
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the DeleteFolderTask.
 	 * 
 	 * @param folderId the id of the folder to delete
 	 */
 	protected void doDeleteFolder(String folderId) {
-		new DeleteFolderTask().execute(foldersUrl+folderId, folderId);	
+		new DeleteFolderTask().execute(getDeleteFolderUrl(folderId), folderId);	
 	}
 	
 	/**
-	 * Building the url string with the parameters and executes the DeleteDocumentFromFolderTask.
+	 * Building the url for delete document from folder
+	 * 
+	 * @param folderId the id of the folder
+	 * @param documentId the id of the document to delete
+	 */
+	protected String getDeleteDocumentFromFolderUrl(String folderId, String documentId) {
+		return foldersUrl+"/"+folderId+"/documents"+documentId;
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the DeleteDocumentFromFolderTask.
 	 * 
 	 * @param folderId the id of the folder
 	 * @param documentId the id of the document to delete
 	 */
 	protected void doDeleteDocumentFromFolder(String folderId, String documentId) {
-		String url = foldersUrl+folderId+"/documents"+documentId;
-		
-		new DeleteDocumentFromFolderTask().execute(url, documentId);	
+		new DeleteDocumentFromFolderTask().execute(getDeleteDocumentFromFolderUrl(folderId, documentId), documentId);	
 	}
 	
 	/**
-	 * Building the url string with the parameters and executes the PatchDocumentTask.
+	 * Building the url for patch folder
 	 * 
-	 * @param documentId the document id to be patched
-	 * @param date the date object
-	 * @param document the Document to patch
+	 * @param folderId the folder id to patch
+	 * @return the url string
+	 */
+	protected String getPatchFolderUrl(String folderId) {
+		return foldersUrl + "/"+folderId;
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the PatchFolderTask.
+	 * 
+	 * @param folderId the folder id to patch
+	 * @param folder the Folder object
 	 */
 	protected void doPatchFolder(String folderId, Folder folder) {
 		JasonParser parser = new JasonParser();
@@ -151,7 +216,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
 		}
 		
-		new PatchFolderTask().execute(foldersUrl+folderId, folderId, folderString);	
+		new PatchFolderTask().execute(getPatchFolderUrl(folderId), folderId, folderString);	
 	}
 	
 	/**
@@ -159,11 +224,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class PatchFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
-		MendeleyResponse response;
+		MendeleyResponse response = new MendeleyResponse();
 		String folderId = null;
 		int expectedResult = 200;
 		
@@ -173,9 +238,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 			String url = params[0];
 			String id = params[1];
 			String jsonString = params[2];
-
+			
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatch(url);
+			HttpPatch httpPatch = getFolderHttpPatch(url);
 
 	        try {
 	        	
@@ -198,7 +263,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			appInterface.onFolderPatched(folderId, result);
+			response.mendeleyException = result;
+			appInterface.onFolderPatched(folderId, response);
 		}
 	}
 	
@@ -206,12 +272,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Executing the api call for deleting a document from folder in the background.
 	 * sending the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class DeleteDocumentFromFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
 		String documentId = null;
-		MendeleyResponse response;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 204;
 		
 		@Override
@@ -225,7 +291,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response = getResponse(con);
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -245,7 +312,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			appInterface.onFolderDocumentDeleted(documentId, result);
+			response.mendeleyException = result;
+			appInterface.onFolderDocumentDeleted(documentId, response);
 		}
 	}
 	
@@ -253,12 +321,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Executing the api call for deleting a folder in the background.
 	 * sending the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class DeleteFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
 		String folderId = null;
-		MendeleyResponse response;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 204;
 		
 		@Override
@@ -272,7 +340,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response = getResponse(con);
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -291,7 +360,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			appInterface.onFolderDeleted(folderId, result);
+			response.mendeleyException = result;
+			appInterface.onFolderDeleted(folderId, response);
 		}
 	}
 	
@@ -299,12 +369,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Executing the api call for posting a document to a folder in the background.
 	 * sending the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class PostDocumentToFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
 		String folderId;
-		MendeleyResponse response;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 201;
 		
 		@Override
@@ -317,11 +387,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 			OutputStream os = null;
 			
-			Log.e("", "url: " + url);
-			Log.e("", "jsonString: " + jsonString);
-			
 			try {
-				con = getConnection(url, "POST");				
+				con = getConnection(url, "POST");		
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-add-document.1+json");
 				con.connect();
 	
 				os = con.getOutputStream();
@@ -332,7 +400,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response = getResponse(con);
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -361,7 +430,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			appInterface.onDocumentPostedToFolder(folderId, result);
+			response.mendeleyException = result;
+			appInterface.onDocumentPostedToFolder(folderId, response);
 		}
 	}
 	
@@ -369,12 +439,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Executing the api call for posting a folder in the background.
 	 * sending the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class PostFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
 		Folder folder;
-		MendeleyResponse response;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 201;
 		
 		@Override
@@ -387,12 +457,10 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 			InputStream is = null;
 			OutputStream os = null;
-			
-			Log.e("", url);
-			Log.e("", jsonString);
-			
+
 			try {
-				con = getConnection(url, "POST");				
+				con = getConnection(url, "POST");		
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 	
 				os = con.getOutputStream();
@@ -403,7 +471,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response = getResponse(con);
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -446,7 +515,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			appInterface.onFolderPosted(folder, result);
+			response.mendeleyException = result;
+			appInterface.onFolderPosted(folder, response);
 		}
 	}
 	
@@ -455,12 +525,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Calling the appropriate JsonParser method to parse the json string to object
 	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetFolderDocumentIdsTask extends AsyncTask<String, Void, MendeleyException> {
 
 		List<String> documentIds;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 200;
 		InputStream is = null;
 
@@ -473,9 +543,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 			try {
 				con = getConnection(url, "GET");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-documentids.1+json");
 				con.connect();
 				
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -509,8 +581,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFolderDocumentIdsReceived(documentIds, result);
+		protected void onPostExecute(MendeleyException result) {	
+			response.mendeleyException = result;
+			appInterface.onFolderDocumentIdsReceived(documentIds, response);
 		}
 	}
 	
@@ -519,12 +592,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * Calling the appropriate JsonParser method to parse the json string to object
 	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetFolderTask extends AsyncTask<String, Void, MendeleyException> {
 
 		Folder folder;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 200;
 		InputStream is = null;
 
@@ -537,9 +610,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 			try {
 				con = getConnection(url, "GET");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);					
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -574,22 +649,22 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFolderReceived(folder, result);
+		protected void onPostExecute(MendeleyException result) {		
+			response.mendeleyException = result;
+			appInterface.onFolderReceived(folder, response);
 		}
 	}
 	
 	/**
 	 * Executing the api call for getting folders in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to object
-	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
+	 * and send the dresponsehe call response code is different than expected or an exception is being thrown in the process
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
 	protected class GetFoldersTask extends AsyncTask<String, Void, MendeleyException> {
 
 		List<Folder> folders;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 200;
 		InputStream is = null;
 
@@ -602,9 +677,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 			try {
 				con = getConnection(url, "GET");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);					
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -639,9 +716,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFoldersReceived(folders, result);
+		protected void onPostExecute(MendeleyException result) {	
+			response.mendeleyException = result;
+			appInterface.onFoldersReceived(folders, response);
 		}
 	}
 
+	//Testing
+	public FolderNetworkProvider() {}
 }

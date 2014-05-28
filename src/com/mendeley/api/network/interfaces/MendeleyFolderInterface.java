@@ -2,26 +2,29 @@ package com.mendeley.api.network.interfaces;
 
 import java.util.List;
 
-import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.network.components.MendeleyResponse;
 
+/**
+ * Interface that should be implemented by the application for receiving callbacks from folder network calls.
+ *
+ */
 public interface MendeleyFolderInterface extends MendeleyInterface{
 
-	public void onFoldersReceived(List<Folder> folders, MendeleyException exception);
+	public void onFoldersReceived(List<Folder> folders, MendeleyResponse mendeleyResponse);
 	
-	public void onFolderReceived(Folder folder, MendeleyException exception);
+	public void onFolderReceived(Folder folder, MendeleyResponse mendeleyResponse);
 		
-	public void onFolderDocumentIdsReceived(List<String> documentIds, MendeleyException exception);
+	public void onFolderDocumentIdsReceived(List<String> documentIds, MendeleyResponse mendeleyResponse);
 	
-	public void onFolderPosted(Folder folder, MendeleyException exception);
+	public void onFolderPosted(Folder folder, MendeleyResponse mendeleyResponse);
 	
-	public void onDocumentPostedToFolder(String folderId, MendeleyException exception);
+	public void onDocumentPostedToFolder(String folderId, MendeleyResponse mendeleyResponse);
 	
-	public void onFolderDeleted(String folderId, MendeleyException exception);
+	public void onFolderDeleted(String folderId, MendeleyResponse mendeleyResponse);
 	
-	public void onFolderDocumentDeleted(String documentId, MendeleyException exception);
+	public void onFolderDocumentDeleted(String documentId, MendeleyResponse mendeleyResponse);
 	
-	public void onFolderPatched(String folderId, MendeleyException exception);
+	public void onFolderPatched(String folderId, MendeleyResponse mendeleyResponse);
 	
 }

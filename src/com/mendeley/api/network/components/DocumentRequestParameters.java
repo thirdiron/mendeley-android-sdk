@@ -3,8 +3,6 @@ package com.mendeley.api.network.components;
 /**
  * This class represents parameters for document SDK requests
  * Uninitialised properties will be ignored.
- * 
- * @author Elad
  *
  */
 public class DocumentRequestParameters extends MendeleyRequest {

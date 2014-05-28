@@ -5,14 +5,9 @@ import java.io.InputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
-import android.util.Log;
-
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -22,8 +17,6 @@ import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
 /**
  * NetworkProvider class for Profile API calls
- * 
- * @author Elad
  *
  */
 public class ProfileNetworkProvider extends NetworkProvider {
@@ -62,7 +55,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	protected class GetProfileTask extends AsyncTask<String, Void, MendeleyException> {
 
 		Profile profile;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 200;
 		String id;
 
@@ -80,9 +73,11 @@ public class ProfileNetworkProvider extends NetworkProvider {
 			try {
 				
 				con = getConnection(url, "GET");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-profiles.1+json");
 				con.connect();
 
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -119,10 +114,11 @@ public class ProfileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
+			response.mendeleyException = result;
 			if (id.equals("me")) {
-				appInterface.onMyProfileReceived(profile, result);	
+				appInterface.onMyProfileReceived(profile, response);	
 			} else {
-				appInterface.onProfileReceived(profile, result);	
+				appInterface.onProfileReceived(profile, response);	
 			}		
 		}
 	}

@@ -2,8 +2,6 @@ package com.mendeley.api.network.components;
 
 /**
  * Superclass of RequestParameters objects
- * 
- * @author Elad
  *
  */
 public class MendeleyRequest {

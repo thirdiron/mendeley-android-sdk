@@ -20,4 +20,23 @@ public class Folder {
 			   ", groupId: " + groupId + 
 			   ", added: " + added;
 	}
+	
+	@Override
+	public boolean equals(Object object) {
+		
+		Folder other;
+		
+		try {
+			other = (Folder) object;
+		}
+		catch (ClassCastException e) {
+			return false;
+		}
+		
+		if (other == null) {
+			return false;
+		} else {
+			return other.id.equals(this.id);
+		}
+	}
 }

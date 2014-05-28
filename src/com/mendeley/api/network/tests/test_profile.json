@@ -1,0 +1,34 @@
+{
+  "id": "test-id",
+  "first_name": "test-first_name",
+  "last_name": "test-last_name",
+  "display_name": "test-display_name",
+  "email": "test-email",
+  "link": "test-link",
+  "academic_status": "test-academic_status",
+  "discipline": {
+    "name": "test-name"
+  },
+  "photo": {
+    "standard": "test-standard",
+    "square": "test-square"
+  },
+  "verified": true,
+  "user_type": "test-user_type",
+  "created_at": "2014-04-28T15:37:51.000Z",
+  "education": [
+    {
+      "institution": "test-education_institution",
+      "start_date": "2002-01-01",
+      "end_date": "2004-01-01"
+    }
+  ],
+  "employment": [
+    {
+      "institution": "test-employment_institution",
+      "position": "test-position",
+      "start_date": "2008-06-01",
+      "is_main_employment": true
+    }
+  ]
+}

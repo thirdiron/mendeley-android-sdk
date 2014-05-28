@@ -11,6 +11,7 @@ public class Profile {
 	public String userType;
 	public String url;
 	public String email;
+	public String link;
 	public String firstName;
 	public String lastName;
 	public String researchInterests;
@@ -49,6 +50,7 @@ public class Profile {
 				", userType: " + userType + 
 				", url: " + url + 
 				", email: " + email + 
+				", link: " + link +
 				", firstName: " + firstName + 
 				", lastName: " + lastName + 
 				", researchInterests: " + researchInterests + 

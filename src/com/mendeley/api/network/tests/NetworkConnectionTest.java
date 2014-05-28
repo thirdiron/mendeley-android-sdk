@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -25,10 +27,9 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.network.JasonParser;
 import com.mendeley.api.network.MendeleySDK;
 import com.mendeley.api.network.NetworkProvider;
-import com.mendeley.api.network.components.MendeleyResponse;
 
 
-public class MendeleySDKTest extends TestCase {
+public class NetworkConnectionTest extends TestCase {
 
 	static String testDocumentId = "test_id";
 	
@@ -79,8 +80,9 @@ public class MendeleySDKTest extends TestCase {
 		ArrayList<Object> values = new ArrayList<Object>();		
 		values.add(testUrl);
 		values.add(endPoint);		
-		con = (HttpsURLConnection) provider.getMethodToTest(methodName, values);	
+		con = (HttpsURLConnection) provider.getResultFromMethod(methodName, values);	
 		con.setDoOutput(true);
+		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
 		
 		return con;
 	}
@@ -91,7 +93,7 @@ public class MendeleySDKTest extends TestCase {
 		values.add(url);
 		values.add(date);
 		
-		NetworkProvider.HttpPatch httpPatch = (NetworkProvider.HttpPatch) provider.getMethodToTest(methodName, values);	
+		NetworkProvider.HttpPatch httpPatch = (NetworkProvider.HttpPatch) provider.getResultFromMethod(methodName, values);	
 		
 		return httpPatch;
 		
@@ -115,19 +117,14 @@ public class MendeleySDKTest extends TestCase {
 		
 		getConnection.addRequestProperty(testProprty, testValue);
 		getConnection.connect();
-		
-		ArrayList<Object> values = new ArrayList<Object>();		
-		values.add(getConnection);
-		String methodName = "getResponse";
-		
-		MendeleyResponse response = (MendeleyResponse) provider.getMethodToTest(methodName, values);	
 
+		ArrayList<Object> values = new ArrayList<Object>();	
 		InputStream is = getConnection.getInputStream();
 		values = new ArrayList<Object>();		
 		values.add(is);
-		methodName = "getJsonString";
+		String methodName = "getJsonString";
 		
-		String responseString = (String) provider.getMethodToTest(methodName, values);	
+		String responseString = (String) provider.getResultFromMethod(methodName, values);	
 		
 		JSONObject reponseJson = new JSONObject(responseString);
 		JSONObject headersJson = reponseJson.getJSONObject("headers");
@@ -135,7 +132,7 @@ public class MendeleySDKTest extends TestCase {
 		String responseValue = headersJson.getString(testProprty);
 		
 		assertEquals("Request propery with wrong value", testValue, responseValue);
-		assertEquals("Response code != 200", 200, response.responseCode);
+		assertEquals("Response code != 200", 200, getConnection.getResponseCode());
 	}
 
 	@Test
@@ -157,18 +154,12 @@ public class MendeleySDKTest extends TestCase {
 		writer.flush();
 		writer.close();
 		os.close();
-		
-		values = new ArrayList<Object>();		
-		values.add(getConnection);
-		methodName = "getResponse";
-		
-		MendeleyResponse response = (MendeleyResponse) provider.getMethodToTest(methodName, values);	
 
 		InputStream is = postConnection.getInputStream();
 		values = new ArrayList<Object>();		
 		values.add(is);
 		methodName = "getJsonString";
-		String responseString = (String) provider.getMethodToTest(methodName, values);	
+		String responseString = (String) provider.getResultFromMethod(methodName, values);	
 		is.close();
 		
 		JSONObject reponseJson = new JSONObject(responseString);
@@ -179,7 +170,7 @@ public class MendeleySDKTest extends TestCase {
 		methodName = "parseDocument";
 		Document responseDocument = (Document) parser.getMethodToTest(methodName, values);	
 		
-		assertEquals("Response code != 200", 200, response.responseCode);
+		assertEquals("Response code != 200", 200, postConnection.getResponseCode());
 		assertEquals("Posted and returned documents are not equal", testDocument, responseDocument);
 	}
 	
@@ -188,13 +179,7 @@ public class MendeleySDKTest extends TestCase {
 		
 		deleteConnection.connect();
 		
-		ArrayList<Object> values = new ArrayList<Object>();		
-		values.add(deleteConnection);
-		String methodName = "getResponse";
-
-		MendeleyResponse response = (MendeleyResponse) provider.getMethodToTest(methodName, values);	
-		
-		assertEquals("Response code != 200", 200, response.responseCode);
+		assertEquals("Response code != 200", 200, deleteConnection.getResponseCode());
 	}
 	
 	@Test
@@ -217,13 +202,13 @@ public class MendeleySDKTest extends TestCase {
     	
 		values = new ArrayList<Object>();		
 		values.add(deleteConnection);
-		methodName = "getResponse";
+		methodName = "getResponseHeaders";
     	InputStream is = response.getEntity().getContent();
 		values = new ArrayList<Object>();		
 		values.add(is);
 		methodName = "getJsonString";
 		
-		String responseString = (String) provider.getMethodToTest(methodName, values);	
+		String responseString = (String) provider.getResultFromMethod(methodName, values);	
 
 		JSONObject reponseJson = new JSONObject(responseString);
 		JSONObject jsonObject = reponseJson.getJSONObject("json");
@@ -236,5 +221,6 @@ public class MendeleySDKTest extends TestCase {
 		assertEquals("Response code != 200", 200, responseCode);
 		assertEquals("Posted and returned documents are not equal", testDocument, responseDocument);
 	}
+	
 	
 }

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,12 +23,22 @@ import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
 import com.mendeley.api.model.Profile;
 
+/**
+ * This class hold methods to parse json strings to model objects 
+ * as well as create json strings from objects that are used by the NetwrokProvider classes.
+ *
+ */
 public class JasonParser {
 	
+	/**
+	 * Creating a json string from a Document object
+	 * @param document the Document object
+	 * @return the json string
+	 * @throws JSONException
+	 */
 	protected String jsonFromDocument(Document document) throws JSONException {
 
 		JSONArray authors = new JSONArray();
-		
 		for (int i = 0; i < document.authors.size(); i++) {
 			JSONObject author = new JSONObject();
 			author.put("forename", document.authors.get(i).forename);
@@ -35,6 +46,19 @@ public class JasonParser {
 			authors.put(i, author);
 		}
 		
+		JSONArray editors = new JSONArray();
+		for (int i = 0; i < document.editors.size(); i++) {
+			JSONObject editor = new JSONObject();
+			editor.put("forename", document.editors.get(i).forename);
+			editor.put("surname", document.editors.get(i).surname);
+			editors.put(i, editor);
+		}
+		
+		JSONObject identifiers = new JSONObject();
+		for (String key : document.identifiers.keySet()) {
+			identifiers.put(key, document.identifiers.get(key));
+		}
+
 		JSONObject jDocument = new JSONObject();
 		
 		jDocument.put("title", document.title);
@@ -42,9 +66,44 @@ public class JasonParser {
 		jDocument.put("type", document.type);
 		jDocument.put("id", document.id);
 		
+		jDocument.put("last_modified", document.lastModified);
+		jDocument.put("group_id", document.groupId);
+		jDocument.put("profile_id", document.profileId);
+		jDocument.put("read", document.read);
+		jDocument.put("starred", document.starred);
+		jDocument.put("authored", document.authored);
+		jDocument.put("confirmed", document.confirmed);
+		jDocument.put("hidden", document.hidden);
+		jDocument.put("month", document.month);
+		jDocument.put("year", document.year);
+		jDocument.put("day", document.day);
+		jDocument.put("source", document.source);
+		jDocument.put("revision", document.revision);
+		jDocument.put("abstract", document.abstractString);
+		jDocument.put("added", document.added);
+		jDocument.put("pages", document.pages);
+		jDocument.put("volume", document.volume);
+		jDocument.put("issue", document.issue);
+		jDocument.put("website", document.website);
+		jDocument.put("publisher", document.publisher);
+		jDocument.put("city", document.city);
+		jDocument.put("edition", document.edition);
+		jDocument.put("institution", document.institution);
+		jDocument.put("series", document.series);
+		jDocument.put("chapter", document.chapter);
+		jDocument.put("identifiers", identifiers);
+		jDocument.put("editors", editors);
+		
 		return jDocument.toString();
 	}
 	
+	/**
+	 * Creating a json string from a Folder object
+	 * 
+	 * @param folder the Folder object
+	 * @return the json string
+	 * @throws JSONException
+	 */
 	protected String jsonFromFolder(Folder folder) throws JSONException {
 
 		JSONObject jFolder = new JSONObject();
@@ -58,12 +117,26 @@ public class JasonParser {
 		return jFolder.toString();
 	}
 	
+	/**
+	 * Creating a json string from a document id string
+	 * 
+	 * @param documentId the document id string
+	 * @return the json string
+	 * @throws JSONException
+	 */
 	protected String jsonFromDocumentId(String documentId) throws JSONException {
 		JSONObject jDocument = new JSONObject();		
 		jDocument.put("document", documentId);		
 		return jDocument.toString();
 	}
 	
+	/**
+	 * Creating a list of string document ids from a json string
+	 * 
+	 * @param jsonString the json string of the document ids
+	 * @return the list of string document ids
+	 * @throws JSONException
+	 */
 	protected List<String> parseDocumentIds(String jsonString) throws JSONException {
 		List<String> documentIds = new ArrayList<String>();
 		JSONObject jsonObjet = new JSONObject(jsonString);
@@ -75,6 +148,13 @@ public class JasonParser {
 		return documentIds;
 	}
 
+	/**
+	 * Creating a File object from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the File object
+	 * @throws JSONException
+	 */
 	protected File parseFile(String jsonString) throws JSONException {
 		File mendeleyFile = new File();
 		
@@ -106,6 +186,13 @@ public class JasonParser {
 		return mendeleyFile;
 	}
 	
+	/**
+	 * Creating a list of Folder objects from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the list of Folder objects
+	 * @throws JSONException
+	 */
 	protected List<Folder> parseFolderList(String jsonString) throws JSONException {
 		
 		List<Folder> folders = new ArrayList<Folder>();
@@ -119,6 +206,13 @@ public class JasonParser {
 		return folders;
 	}
 	
+	/**
+	 * Creating a Folder object from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the Folder object
+	 * @throws JSONException
+	 */
 	protected Folder parseFolder(String jsonString) throws JSONException {
 		
 		JSONObject folderObject = new JSONObject(jsonString);
@@ -150,6 +244,13 @@ public class JasonParser {
 		return folder;
 	}
 	
+	/**
+	 * Creating a Profile object from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the Profile object
+	 * @throws JSONException
+	 */
 	protected Profile parseProfile(String jsonString) throws JSONException {
 		
 		Profile profile  = new Profile();
@@ -178,6 +279,9 @@ public class JasonParser {
 					break;
 				case "email":
 					profile.email = profileObject.getString(key);
+					break;
+				case "link":
+					profile.link = profileObject.getString(key);
 					break;
 				case "first_name":
 					profile.firstName = profileObject.getString(key);
@@ -245,7 +349,7 @@ public class JasonParser {
 			        			case "institution":
 			        				education.institution = educationObject.getString(educationKey);
 			    					break;
-			        			case "start_date ":
+			        			case "start_date":
 			        				education.startDate = educationObject.getString(educationKey);
 			    					break;
 			        			case "end_date":
@@ -289,7 +393,7 @@ public class JasonParser {
 			        			case "institution":
 			        				employment.institution = employmentObject.getString(employmentKey);
 			    					break;
-			        			case "start_date ":
+			        			case "start_date":
 			        				employment.startDate = employmentObject.getString(employmentKey);
 			    					break;
 			        			case "end_date":
@@ -299,7 +403,7 @@ public class JasonParser {
 			        				employment.website = employmentObject.getString(employmentKey);
 			    					break;
 			        			case "is_main_employment":
-			        				employment.mainEmployment = employmentObject.getBoolean(employmentKey);
+			        				employment.isMainEmployment = employmentObject.getBoolean(employmentKey);
 			    					break;
 			        			case "classes":
 			        				JSONArray classesArray = employmentObject.getJSONArray(key);
@@ -318,6 +422,13 @@ public class JasonParser {
 		return profile;
 	}
 
+	/**
+	 * Creating a Document object from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the Document object
+	 * @throws JSONException
+	 */
 	protected Document parseDocument(String jsonString) throws JSONException {		
 		Document mendeleyDocument = new Document();
 		JSONObject documentObject = new JSONObject(jsonString);
@@ -435,7 +546,7 @@ public class JasonParser {
 		            }
 		            break;
 				case "identifiers":
-					JSONObject identifiersObject = new JSONObject (documentObject.getString(key));
+					JSONObject identifiersObject = documentObject.getJSONObject(key);
 						 
 					 for (@SuppressWarnings("unchecked") Iterator<String> identifierIter = 
 							 identifiersObject.keys(); identifierIter.hasNext();) {
@@ -450,6 +561,13 @@ public class JasonParser {
 		 return mendeleyDocument;
 	}
 	
+	/**
+	 * Creating a list of File objects from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the list of File objects
+	 * @throws JSONException
+	 */
 	protected List<File> parseFileList(String jsonString) throws JSONException {
 		
 		List<File> files = new ArrayList<File>();
@@ -463,6 +581,13 @@ public class JasonParser {
 		return files;
 	}
 	
+	/**
+	 *  Creating a list of Document objects from a json string
+	 * 
+	 * @param jsonString the json string
+	 * @return the list of Document objects
+	 * @throws JSONException
+	 */
 	protected List<Document> parseDocumentList(String jsonString) throws JSONException {
 		
 		List<Document> documents = new ArrayList<Document>();
@@ -475,19 +600,7 @@ public class JasonParser {
 		
 		return documents;
 	}
-	
-	protected Person parsePerson(String jsonString) {
-		
-		return null;
-	}
-	
-	protected List<Person> parsePersonList(String jsonString) {
-		
-		return null;
-	}
-	
-	
-	
+
 	//testing
 	public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		

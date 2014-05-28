@@ -12,6 +12,8 @@ import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.DocumentRequestParameters;
+import com.mendeley.api.network.components.FileRequestParameters;
+import com.mendeley.api.network.components.FolderRequestParameters;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -22,8 +24,6 @@ import com.mendeley.api.util.Utils;
 
 /**
  * 
- * @author Elad
- *
  * This class should be instantiated with the calling activity context.
  * The class provides public methods for network calls which are forwarded to the relevant network providers.
  * It also calls the AuthenticationMAnager for retrieving a valid access token and store the credentials. 
@@ -133,14 +133,14 @@ public class MendeleySDK implements AuthenticationInterface {
 	/**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
-	 * @param groupId group id for which to get folders
+	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFolders(String groupId) throws InterfaceNotImplementedException {
+	public void getFolders(FolderRequestParameters parameters) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{String.class}, 
-			 				 new Object[]{groupId})) {
-			folderNetworkProvider.doGetFolders(groupId);
+			 				 new Class[]{FolderRequestParameters.class}, 
+			 				 new Object[]{parameters})) {
+			folderNetworkProvider.doGetFolders(parameters);
 		}
 	}
 	
@@ -274,13 +274,14 @@ public class MendeleySDK implements AuthenticationInterface {
 	/**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  
+	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFiles(String documentId, String groupId, String addedSince, String deletedSince) throws InterfaceNotImplementedException {
+	public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{String.class,String.class,String.class,String.class}, 
-		 				 	 new Object[]{documentId,groupId,addedSince,deletedSince})) {
-			fileNetworkProvider.doGetFiles(documentId, groupId, addedSince, deletedSince);
+			 				 new Class[]{FileRequestParameters.class}, 
+		 				 	 new Object[]{parameters})) {
+			fileNetworkProvider.doGetFiles(parameters);
 		}
 	}
 	
@@ -325,7 +326,8 @@ public class MendeleySDK implements AuthenticationInterface {
 	
 	/**
 	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
-	 *  
+	 * 
+	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
@@ -340,6 +342,7 @@ public class MendeleySDK implements AuthenticationInterface {
 	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
 	 * 
 	 * @param documentId the document id to get
+	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocument(String documentId, DocumentRequestParameters parameters) throws InterfaceNotImplementedException {

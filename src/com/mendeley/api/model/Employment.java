@@ -14,7 +14,7 @@ public class Employment {
 	public String startDate;
 	public String endDate;
 	public String website;
-	public Boolean mainEmployment;
+	public Boolean isMainEmployment;
 	
 	public Employment() {
 		classes = new ArrayList<String>();
@@ -36,7 +36,7 @@ public class Employment {
 				", startDate: " + startDate +
 				", endDate: " + endDate +
 				", website: " + website + 
-				", mainEmployment: " + mainEmployment + 
+				", mainEmployment: " + isMainEmployment + 
 				", classes: " + classesString;
 	}
 }

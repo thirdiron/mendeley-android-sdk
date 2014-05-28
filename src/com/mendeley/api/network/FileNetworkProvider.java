@@ -18,83 +18,109 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
+import com.mendeley.api.network.components.FileRequestParameters;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
  * NetworkProvider class for Files API calls
- * 
- * @author Elad
  *
  */
 public class FileNetworkProvider extends NetworkProvider {
 	
-	private static String filesUrl = apiUrl + "files/";
+	private static String filesUrl = apiUrl + "files";
 	MendeleyFileInterface appInterface;
 	
+	/**
+	 * Constructor that takes MendeleyFileInterface instance which will be used to send callbacks to the application
+	 * 
+	 * @param appInterface the instance of MendeleyFileInterface
+	 */
 	FileNetworkProvider(MendeleyFileInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
 	/**
-	 * Building the url string according to the parameters and executes the GetFilesTask
+	 * Building the url for get files
 	 * 
-	 * @param documentId
-	 * @param groupId
-	 * @param addedSince
-	 * @param deletedSince
-	 * @throws IOException
+	 * @param params the file request parameters
+	 * @return the url string
 	 */
-	protected void doGetFiles(String documentId, String groupId, String addedSince, String deletedSince) {
-		
+	protected String getGetFilesUrl(FileRequestParameters params) {
 		boolean firstParam = true;
 		StringBuilder url = new StringBuilder();
 		url.append(filesUrl);
 		
-		if (documentId != null && !documentId.isEmpty()) {
-			url.append(firstParam?"?":"&").append("document_id=").append(documentId);
-			firstParam = false;
+		if (params != null) {
+			if (params.documentId != null) {
+				url.append(firstParam?"?":"&").append("document_id="+params.documentId);
+				firstParam = false;
+			}
+			if (params.groupId != null) {
+				url.append(firstParam?"?":"&").append("group_id="+params.groupId);
+				firstParam = false;
+			}
+			if (params.addedSince != null) {
+				url.append(firstParam?"?":"&").append("added_since="+params.addedSince);
+				firstParam = false;
+			}
+			if (params.deletedSince != null) {
+				url.append(firstParam?"?":"&").append("deleted_since="+params.deletedSince);
+			}
 		}
-		if (groupId != null && !groupId.isEmpty()) {
-			url.append(firstParam?"?":"&").append("group_id=").append(groupId);
-			firstParam = false;
-		}
-		if (addedSince != null && !addedSince.isEmpty()) {
-			url.append(firstParam?"?":"&").append("added_since=").append(addedSince);
-			firstParam = false;
-		}
-		if (deletedSince != null && !deletedSince.isEmpty()) {
-			url.append(firstParam?"?":"&").append("deleted_since=").append(deletedSince);
-			firstParam = false;
-		}
+		
+		return url.toString();
+	}
 
-		new GetFilesTask().execute(url.toString());		  
+	/**
+	 * Getting the appropriate url string and executes the GetFilesTask
+	 * 
+	 * @param params the file request parameters
+	 */
+	protected void doGetFiles(FileRequestParameters params) {
+		new GetFilesTask().execute(getGetFilesUrl(params));		  
 	}
 	
+	/**
+	 * Building the url for get files
+	 * 
+	 * @param fileId the id of the file to get
+	 * @return the url string
+	 */
+	protected String getGetFileUrl(String fileId) {
+		return filesUrl+"/"+fileId;
+	}
 	
 	/**
-	 *  Building the url string with the parameters and executes the GetFileTask
+	 *  Getting the appropriate url string and executes the GetFileTask
 	 * 
-	 * @param fileId
+	 * @param fileId the id of the file to get
 	 */
 	protected void doGetFile(String fileId) {
-		String url = filesUrl+fileId;
 		
-		new GetFileTask().execute(url);		  
+		Log.e(", ", getGetFileUrl(fileId));
+		new GetFileTask().execute(getGetFileUrl(fileId));		  
 	}
 	
 	/**
-	 *  Building the url string with the parameters and executes the DeleteFileTask
+	 * Building the url for delete files
 	 * 
-	 * @param fileId
+	 * @param fileId the id of the file to delete
+	 * @return the url string
+	 */
+	protected String getDeleteFileUrl(String fileId) {
+		return filesUrl+"/"+fileId;
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the DeleteFileTask
+	 * 
+	 * @param fileId the id of the file to delete
 	 */
 	protected void doDeleteFile(String fileId) {
-		String url = filesUrl+fileId;
-		
-		new DeleteFileTask().execute(url, fileId);		  
+		new DeleteFileTask().execute(getDeleteFileUrl(fileId), fileId);		  
 	}
-		
-
+	
 	/**
 	 *  Building the url string with the parameters and executes the PostFilesTask
 	 * 
@@ -109,12 +135,12 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class PostFileTask extends AsyncTask<Object, Void, MendeleyException> {
 
 		File file;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 201;
 
 		@Override
@@ -133,15 +159,16 @@ public class FileNetworkProvider extends NetworkProvider {
 			
 			try {
 				con = getConnection(filesUrl, "POST");
-				
 				con.addRequestProperty("Content-Disposition", contentDisposition);
-				con.addRequestProperty("Content-Type", contentType);
+				con.addRequestProperty("Content-type", contentType);
 				con.addRequestProperty("Link", link);
-				
 				con.connect();
 
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);			
 
+				Log.e("", "post file response code: " + response.responseCode);
+				
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
 				} else {			
@@ -200,8 +227,9 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFilePosted(file, result);			
+		protected void onPostExecute(MendeleyException result) {
+			response.mendeleyException = result;
+			appInterface.onFilePosted(file, response);			
 		}
 	}
 	
@@ -210,12 +238,12 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetFilesTask extends AsyncTask<String, Void, MendeleyException> {
 
 		List<File> files;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 200;
 
 		@Override
@@ -228,9 +256,11 @@ public class FileNetworkProvider extends NetworkProvider {
 			InputStream is = null;
 			try {
 				con = getConnection(url, "GET");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-file.1+json");
 				con.connect();
-				
-				response = getResponse(con);				
+
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -266,8 +296,9 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFilesReceived(files, result);			
+		protected void onPostExecute(MendeleyException result) {		
+			response.mendeleyException = result;
+			appInterface.onFilesReceived(files, response);			
 		}
 	}
 	
@@ -276,12 +307,12 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * Calling the appropriate JsonParser method to parse the json string to object
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetFileTask extends AsyncTask<String, Void, MendeleyException> {
 
 		List<File> files;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 303;
 		byte[] fileData;
 		InputStream is = null;
@@ -294,14 +325,22 @@ public class FileNetworkProvider extends NetworkProvider {
 			HttpsURLConnection con = null;
 
 			try {
-				con = getConnection(url, "GET");
+				con = getFileConnection(url, "GET");
 				con.connect();
 				
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);			
 
-				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
-				} else {			
+				Log.e("", "url: " + url);
+				
+				Log.e("", "response.responseCode: " + response.responseCode);
+				
+				
+//				if (response.responseCode != expectedResponse) {
+//					return new HttpResponseException("Response code: " + response.responseCode);
+//				} else 
+//				
+				{			
 				
 					is = con.getInputStream();
 
@@ -314,6 +353,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				}
 				 
 			}	catch (IOException e) {
+				
+				Log.e("", "", e);
+				
 				return new JsonParsingException(e.getMessage());
 			} finally {
 				if (is != null) {
@@ -331,8 +373,9 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFileReceived(fileData, result);
+		protected void onPostExecute(MendeleyException result) {		
+			response.mendeleyException = result;
+			appInterface.onFileReceived(fileData, response);
 		}
 	}
 	
@@ -340,12 +383,12 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * Executing the api call for deleting a file in the background.
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class DeleteFileTask extends AsyncTask<String, Void, MendeleyException> {
 
 		List<File> files;
-		MendeleyResponse response = null;
+		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse = 204;
 		
 		String fileId;
@@ -362,7 +405,8 @@ public class FileNetworkProvider extends NetworkProvider {
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response = getResponse(con);				
+				response.responseCode = con.getResponseCode();
+				getResponseHeaders(con.getHeaderFields(), response);			
 
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException("Response code: " + response.responseCode);
@@ -383,9 +427,14 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {			
-			appInterface.onFileDeleted(fileId, result);
+		protected void onPostExecute(MendeleyException result) {	
+			response.mendeleyException = result;
+			appInterface.onFileDeleted(fileId, response);
 		}
 	}
 
+	// Testing
+	
+	public FileNetworkProvider() {}
+	
 }
