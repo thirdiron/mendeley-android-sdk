@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing discipline json object.
+ *
+ */
 public class Discipline {
 
 	public String name;

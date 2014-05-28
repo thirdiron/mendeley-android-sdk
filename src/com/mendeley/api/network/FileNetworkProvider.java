@@ -97,8 +97,6 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to get
 	 */
 	protected void doGetFile(String fileId) {
-		
-		Log.e(", ", getGetFileUrl(fileId));
 		new GetFileTask().execute(getGetFileUrl(fileId));		  
 	}
 	
@@ -170,7 +168,13 @@ public class FileNetworkProvider extends NetworkProvider {
 				Log.e("", "post file response code: " + response.responseCode);
 				
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					is = con.getErrorStream();
+					String responseString = "";
+					if (is != null) {
+						responseString = getJsonString(is);
+						Log.e("", "---> "+responseString);
+					}
+					return new HttpResponseException("Response code: " + response.responseCode + " " +responseString);
 				} else {			
 				
 					os = con.getOutputStream();
@@ -336,18 +340,25 @@ public class FileNetworkProvider extends NetworkProvider {
 				Log.e("", "response.responseCode: " + response.responseCode);
 				
 				
-//				if (response.responseCode != expectedResponse) {
-//					return new HttpResponseException("Response code: " + response.responseCode);
-//				} else 
-//				
-				{			
+				if (response.responseCode != expectedResponse) {
+					is = con.getErrorStream();
+					String responseString = "";
+					if (is != null) {
+						responseString = getJsonString(is);
+						Log.e("", "---> "+responseString);
+					}
+					return new HttpResponseException("Response code: " + response.responseCode + " " + responseString);
+				} else 
 				
-					is = con.getInputStream();
+				{			
 
-					fileData = new byte[Integer.parseInt(response.contentLength)];
-					DataInputStream dis = new DataInputStream(is);
-					dis.readFully(fileData);
-					dis.close();
+//
+//					fileData = new byte[Integer.parseInt(response.contentLength)];
+//					DataInputStream dis = new DataInputStream(is);
+//					dis.readFully(fileData);
+//					dis.close();
+//					
+//					is.close();
 					
 					return null;
 				}
@@ -363,6 +374,7 @@ public class FileNetworkProvider extends NetworkProvider {
 						is.close();
 						is = null;
 					} catch (IOException e) {
+						Log.e("", "", e);
 						return new JsonParsingException(e.getMessage());
 					}
 				}

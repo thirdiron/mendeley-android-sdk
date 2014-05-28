@@ -38,6 +38,11 @@ import com.mendeley.api.R;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.util.Utils;
 
+/**
+ * This class is responsible for authenticating the user, 
+ * using a WebView for displaying the authentication web page.  
+ *
+ */
 public class AuthentictionManager {
 	
 	WebView webView;	
@@ -57,20 +62,42 @@ public class AuthentictionManager {
 	CredentialsManager credentialsManager;	
 	AuthenticationInterface authInterface;
 	
+	/**
+	 *  The constructor takes context which will be used for displaying the WebView
+	 *  and an instance of AuthenticationInterface which will be used for callbacks, 
+	 *  once user has been authentication, or authentication has failed.
+	 *  
+	 * @param context the context object
+	 * @param authInterface the AuthenticationInterface instance for callbacks
+	 */
 	protected AuthentictionManager (Context context, AuthenticationInterface authInterface) {
 		this.context = context;
 		this.authInterface = authInterface;
 		credentialsManager = new CredentialsManager(context);
 	}
 	
+	/**
+	 * Querying the CredentialManager if credentials are already stored on the device.
+	 * 
+	 * @return true if credentials exists, false otherwise.
+	 */
 	protected boolean hasCredentials() {
 		return credentialsManager.hasCredentials();
 	}
 	
+	/**
+	 * Forwarding a call to the AuthenticationManager to clear user credentials from the device.
+	 */
 	protected void clearCredentials() {
 		credentialsManager.clearCredentials();
 	}
 	
+	/**
+	 * Authenticating the User. 
+	 * If credentials exist already, creating a RefreshHandler for refreshing the access token,
+	 * otherwise displaying a WebView with the authentication web page, in which the user will have to
+	 * enter his username and password.
+	 */
 	public void authenticate() {
 		if (hasCredentials()) {
 			createRefreshHandler(true);
@@ -82,7 +109,10 @@ public class AuthentictionManager {
 		    loginDialog.show();
 		}
 	}
-		
+	
+	/**
+	 * Creating the dialog box with a cancel button, in which the WebView will be displayed.
+	 */
 	private void createDialog() {
 		loginDialog = new Dialog(context);
 		loginDialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
@@ -103,26 +133,44 @@ public class AuthentictionManager {
 		});
     } 
 	  
-	private void createRefreshHandler(final boolean notify) {
+	/**
+	 * Creating a RefreshHandler which will refresh the access token before it expires.
+	 * If immediateExecution is true, the delay of the execution will be set to 0 and the refresh
+	 * will execute immediately (called from authenticate() if credentials exist already), else 
+	 * will set the execution to happen before the access token is expired.
+	 * 
+	 * @param immediateExecution indicates whether the refresh of access token should happen immediately or not.
+	 */
+	private void createRefreshHandler(final boolean immediateExecution) {
 
 		Runnable runnableNotify = new Runnable() {	
 			@Override
 			public void run() {
-				refreshToken(notify);
+				refreshToken(immediateExecution);
 			}
 		};
 		
-		long delayMillis = notify ? 0 : (long)((NetworkProvider.expiresIn * 0.9) * 1000);
+		long delayMillis = immediateExecution ? 0 : (long)((NetworkProvider.expiresIn * 0.9) * 1000);
 		refreshHandler = new Handler();
 		
 		refreshHandler.postDelayed(runnableNotify, delayMillis);
 	}
 	
 	
-	public void refreshToken(boolean notify) {
-		new RefreshTokenTask().execute(notify);
+	/**
+	 * Convenience method to start the RefreshTokenTask
+	 * 
+	 * @param immediateExecution
+	 */
+	public void refreshToken(boolean immediateExecution) {
+		new RefreshTokenTask().execute(immediateExecution);
 	}
 		
+	/**
+	 * Creating and return the Oauth2 url string.
+	 * 
+	 * @return the url string
+	 */
 	private String getOauth2URL() {
 		
 		StringBuffer urlString = new StringBuffer(OUATH2_URL);
@@ -136,7 +184,11 @@ public class AuthentictionManager {
 		
 		return urlString.toString();
 	}
-		
+	
+	/**
+	 * A WebViewClient that starts the AuthenticationTask when a new url is loaded.
+	 *
+	 */
     private class MendeleyWebViewClient extends WebViewClient {
     	
     	@Override
@@ -147,6 +199,12 @@ public class AuthentictionManager {
     	}
     }
         
+    /**
+     * Extracting the token details from the token string and sending them to the CredentialManager.
+     * 
+     * @param tokenString
+     * @throws JSONException
+     */
 	private void getTokenDetails(String tokenString) throws JSONException {
 		
 		JSONObject tokenObject = new JSONObject(tokenString);
@@ -159,6 +217,11 @@ public class AuthentictionManager {
 		credentialsManager.setTokens(accessToken, refreshToken, tokenType, expiresIn);	
 	}
 	    
+	/**
+	 * AsyncTask class that carry out the authentication task and send a callback 
+	 * to the AuthenticationInterface instance upon successful or failed authentication.
+	 *
+	 */
     class AuthenticateTask extends AsyncTask<String, Void, String> {
 
     	protected String getJSONTokenString(String authorizationCode) throws ClientProtocolException, IOException {
@@ -217,6 +280,11 @@ public class AuthentictionManager {
     }
     
     
+	/**
+	 * AsyncTask class that carry out the refreshing of access token.
+	 * If passed a true argument, it calls the onAuthenticated() method of the AuthenticationInterface instance
+	 *
+	 */
     class RefreshTokenTask extends AsyncTask<Boolean, Void, String> {
 
     	boolean notify = false;
@@ -263,6 +331,13 @@ public class AuthentictionManager {
 		}
     }	
     
+    /**
+     * Helper method for getting jeson string from an InputStream object
+     * 
+     * @param stream the InputStream object
+     * @return the json String object
+     * @throws IOException
+     */
 	String getJsonString(InputStream stream) throws IOException {
 		
 		StringBuffer data = new StringBuffer();
@@ -287,6 +362,16 @@ public class AuthentictionManager {
 		return data.toString();
 	}
 	
+	/**
+	 * Helper method for executing http post request
+	 * 
+	 * @param url the url string
+	 * @param grantType the grant type string
+	 * @param authorizationCode the authorisation code string
+	 * @return the HttpResponse object
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 */
 	HttpResponse doPost(String url, String grantType, String authorizationCode) throws ClientProtocolException, IOException {
 		
         HttpClient httpclient = new DefaultHttpClient();
@@ -306,6 +391,16 @@ public class AuthentictionManager {
 		return response;  
 	}
 	
+	
+	/**
+	 * Helper method for executing http post request
+	 * 
+	 * @param url the url string
+	 * @param grantType the grant type string
+	 * @return the HttpResponse object
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 */
 	HttpResponse doPost(String url, String grantType) throws ClientProtocolException, IOException {
 		
         HttpClient httpclient = new DefaultHttpClient();

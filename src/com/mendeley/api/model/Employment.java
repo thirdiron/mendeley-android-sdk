@@ -3,6 +3,10 @@ package com.mendeley.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Model class representing employment json object.
+ *
+ */
 public class Employment {
 
 	public List<String> classes;

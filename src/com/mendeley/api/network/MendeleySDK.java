@@ -23,7 +23,6 @@ import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 import com.mendeley.api.util.Utils;
 
 /**
- * 
  * This class should be instantiated with the calling activity context.
  * The class provides public methods for network calls which are forwarded to the relevant network providers.
  * It also calls the AuthenticationMAnager for retrieving a valid access token and store the credentials. 

@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing file json object.
+ *
+ */
 public class File {
 	
 	public String id;

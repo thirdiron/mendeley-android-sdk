@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing person json object.
+ *
+ */
 public class Person {
 
 	public String forename;

@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing folder json object.
+ *
+ */
 public class Folder {
 
 	public String name;

@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing education json object.
+ *
+ */
 public class Education {
 	
 	public Integer id;

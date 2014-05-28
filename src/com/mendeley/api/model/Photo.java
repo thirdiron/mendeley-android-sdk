@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+/**
+ * Model class representing photo json object.
+ *
+ */
 public class Photo {
 
 	public String standard;

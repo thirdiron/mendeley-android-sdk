@@ -13,6 +13,11 @@ import android.content.SharedPreferences.Editor;
 import android.util.Base64;
 import android.util.Log;
 
+/**
+ * This class is responsible for storing and retrieving the credentials when needed.
+ * Credentials are kept in SharedPreferences using the application context. 
+ *
+ */
 public class CredentialsManager {
 
 	//7
@@ -33,6 +38,11 @@ public class CredentialsManager {
  
 	private SharedPreferences preferences;
  
+	/**
+	 * The constructor takes a context instance which will be used to store the credentials in the SharedPreferences.
+	 * 
+	 * @param context the context object.
+	 */
 	protected CredentialsManager(Context context) {
 		preferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
 		
@@ -47,6 +57,15 @@ public class CredentialsManager {
 		} 
 	}
 	
+	/**
+	 * Storing the token details in the shared preferences.
+	 * Also storing the token details in the appropriate NetworkProvider static String objects for convenience.
+	 * 
+	 * @param accessToken the access toekn string
+	 * @param refreshToken the refresh token string
+	 * @param tokenType the token type string
+	 * @param expiresIn the expires in va;ue
+	 */
 	protected void setTokens(String accessToken, String refreshToken, String tokenType, int expiresIn) {
 
 		Calendar c = Calendar .getInstance();		
@@ -68,26 +87,45 @@ public class CredentialsManager {
 		NetworkProvider.expiresAt = expiresAt;
 	}
 	
+	/**
+	 * @return the access token string or null if it does not exist.
+	 */
 	protected String getAccessToken() {
 		return preferences.getString(ACCESS_TOKEN, null);
 	}
 	
+	/**
+	 * @return the refresh token string or null if it does not exist.
+	 */
 	protected String getRefreshToken() {
 		return preferences.getString(REFRESH_TOKEN, null);
 	}
 	
+	
+	/**
+	 * @return the expires in string value or null if it does not exist.
+	 */
 	protected String getExpiresAt() {
 		return preferences.getString(EXPIRES_AT, null);
 	}
 	
+	/**
+	 * @return the expires in integer or -1 if it does not exist.
+	 */
 	protected int getExpiresIn() {
 		return preferences.getInt(EXPIRES_IN, -1);
 	}
 	
+	/**
+	 * @return the token type string or null if it does not exist.
+	 */
 	protected String getTokenType() {
 		return preferences.getString(TOKEN_TYPE, null);
 	}
 	
+	/**
+	 * Removing the credentials from the SharedPreferences as well as the NetworkProvider static string objects.
+	 */
 	protected void clearCredentials() {
 		Editor editor = preferences.edit();
 		editor.remove(CLIENT_ID);
@@ -106,6 +144,12 @@ public class CredentialsManager {
 		NetworkProvider.expiresIn = -1;
 	}
  
+	/**
+	 * Checking if all requires credentials exists, 
+	 * if true update the value of the appropriate NetworkProvider static string objects. 
+	 * 
+	 * @return true of all credentials exist, false otherwise.
+	 */
 	protected boolean hasCredentials() {
 
 		boolean hasCredentials = getClientID() != null && 
@@ -126,30 +170,54 @@ public class CredentialsManager {
 		return hasCredentials;
 	}
 	
+	/**
+	 * Adding the client id credential to the SharedPreferences
+	 * 
+	 * @param ouath2ClientId the client id string
+	 */
 	protected void setClientID(String ouath2ClientId) {
 		Editor editor = preferences.edit();
 		editor.putString(CLIENT_ID, ouath2ClientId);
 		editor.commit();
 	}
  
+	/**
+	 * Adding the client secret to the SharedPreferences
+	 * 
+	 * @param ouath2ClientSecret the client secret string
+	 */
 	protected void setClientSecret(String ouath2ClientSecret) {
 		Editor editor = preferences.edit();
 		editor.putString(CLIENT_SECRET, ouath2ClientSecret);
 		editor.commit();
 	}
  
+	/**
+	 * @return the client id string
+	 */
 	protected String getClientID() {
 		return preferences.getString(CLIENT_ID, null);
 	}
  
+	/**
+	 * @return the client secret string
+	 */
 	protected String getClientSecret() {
 		return preferences.getString(CLIENT_SECRET, null);
 	}
 	
+
     private static byte[] keyBytes = new byte[] { 0x09, 0x0f, 0x07, 0x15, 0x02, 0x04, 0x17, 0x10, 0x00, 0x05, 
     	0x07, 0x08, 0x09, 0x11, 0x0a, 0x01, 0x0b, 0x0c, 0x0d, 0x0e, 0x12, 0x14, 0x06, 0x11 };
 
-    
+
+    /**
+     * Encrypting text using the private keyBytes byte array.
+     * 
+     * @param clearText the text to encrypt
+     * @return the encrypted text
+     * @throws Exception
+     */
     public static String encrypt(String clearText) throws Exception {
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
  
@@ -160,7 +228,13 @@ public class CredentialsManager {
         return new String(Base64.encode(cipherText, Base64.DEFAULT), "UTF-8");
     }
 
-    
+    /**
+     * Decrypting text using the private keyBytes byte array.
+     * 
+     * @param cipherText the cipher text to decrypt
+     * @return the clear text string
+     * @throws Exception
+     */
     public static String decrypt(String cipherText) throws Exception {
        SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
 

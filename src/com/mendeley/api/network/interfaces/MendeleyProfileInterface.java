@@ -5,8 +5,6 @@ import com.mendeley.api.network.components.MendeleyResponse;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from profile network calls.
-
- *
  */
 public interface MendeleyProfileInterface extends MendeleyInterface {
 	

@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Model class representing document json object.
+ *
+ */
 public class Document {
-	
-	
+		
 	public String lastModified;
 	public String groupId;
 	public String profileId;

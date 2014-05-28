@@ -85,6 +85,9 @@ public class NetworkProvider {
 	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response) throws IOException {
 
 		for (String key : headersMap.keySet()) {
+//
+//			Log.e("", key+" : " + headersMap.get(key).get(0));
+//			
 			if (key != null) {
 				switch (key) {
 					case "Date":
