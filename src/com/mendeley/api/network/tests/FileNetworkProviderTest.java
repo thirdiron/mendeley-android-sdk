@@ -1,6 +1,8 @@
 package com.mendeley.api.network.tests;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import org.junit.Test;
@@ -30,7 +32,7 @@ public class FileNetworkProviderTest extends TestCase {
     }
 	
 	@Test
-	public void test_getGetFilesUrl() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void test_getGetFilesUrl() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException {
 		
 		String documentId = "test-document_id";
 		String groupId = "test-group_id";
@@ -39,8 +41,8 @@ public class FileNetworkProviderTest extends TestCase {
 
 		String paramsString = "?document_id=" + documentId +
 				"&group_id=" + groupId +
-				"&added_since=" + addedSince + 
-				"&deleted_since=" + deletedSince; 
+				"&added_since=" +  URLEncoder.encode(addedSince, "ISO-8859-1") + 
+				"&deleted_since=" + URLEncoder.encode(deletedSince, "ISO-8859-1");
 		
 		String expectedUrl = filesUrl+paramsString;
 

@@ -26,4 +26,19 @@ public class FileRequestParameters extends MendeleyRequest {
 	 * Returns files deleted since this timestamp. Should be supplied in ISO 8601 format.
 	 */
 	public String deletedSince;
+	
+	/**
+	 * The maximum number of items on the page. If not supplied, the default is 20. The largest allowable value is 500.
+	 */
+	public Integer limit;
+	
+	/**
+	 * A marker for the last key in the previous page
+	 */
+	public String marker;
+	
+	/**
+	 * A flag to indicate that the scrolling direction has switched
+	 */
+	public Boolean reverse;
 }

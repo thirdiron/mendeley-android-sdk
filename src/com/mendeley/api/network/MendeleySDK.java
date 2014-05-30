@@ -287,13 +287,15 @@ public class MendeleySDK implements AuthenticationInterface {
 	/**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  
+	 * @param fileId the id of the file to get
+	 * @param folderPath the path in which to save the file
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFile(String fileId) throws InterfaceNotImplementedException {
+	public void getFile(String fileId, String folderPath) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{String.class}, 
-		 				 	 new Object[]{fileId})) {
-			fileNetworkProvider.doGetFile(fileId);
+			 				 new Class[]{String.class, String.class}, 
+		 				 	 new Object[]{fileId, folderPath})) {
+			fileNetworkProvider.doGetFile(fileId, folderPath);
 		}
 	}
 	
@@ -313,13 +315,16 @@ public class MendeleySDK implements AuthenticationInterface {
 	/**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  
+	 * @param contentType the content type of the file
+	 * @param documentId the id of the document the file is related to
+	 * @param filePath the absolute file path
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void postFile(String contentDisposition, String contentType, String link, byte[] fileData) throws InterfaceNotImplementedException {
+	public void postFile(String contentType, String documentId, String filePath) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{String.class, String.class, String.class, byte[].class}, 
-		 				 	 new Object[]{contentDisposition, contentType, link, fileData})) {
-			fileNetworkProvider.doPostFile(contentDisposition, contentType, link, fileData);
+			 				 new Class[]{String.class, String.class, String.class}, 
+		 				 	 new Object[]{contentType, documentId, filePath})) {
+			fileNetworkProvider.doPostFile(contentType, documentId, filePath);
 		}
 	}
 	

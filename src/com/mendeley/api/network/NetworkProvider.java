@@ -1,6 +1,8 @@
 package com.mendeley.api.network;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,7 +28,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
 
 import com.mendeley.api.network.components.MendeleyResponse;
 
@@ -85,9 +86,7 @@ public class NetworkProvider {
 	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response) throws IOException {
 
 		for (String key : headersMap.keySet()) {
-//
-//			Log.e("", key+" : " + headersMap.get(key).get(0));
-//			
+
 			if (key != null) {
 				switch (key) {
 					case "Date":
@@ -128,6 +127,9 @@ public class NetworkProvider {
 						break;
 					case "Content-Encoding":
 						response.contentEncoding = headersMap.get(key).get(0);	
+						break;
+					case "Location":
+						response.location = headersMap.get(key).get(0);	
 						break;
 				}
 			} else {
@@ -184,12 +186,10 @@ public class NetworkProvider {
 		return httpPatch;
 	}
 	
-	
 	protected HttpGet getHttpGet(String url) {
 		HttpGet httpGet = new HttpGet(url);
 		httpGet.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
 		httpGet.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-//		httpGet.setHeader("Accept", "application/vnd.mendeley-document.1+json");
 		
 		return httpGet;
 	}
@@ -210,51 +210,31 @@ public class NetworkProvider {
 		con.setReadTimeout(10000);
 		con.setConnectTimeout(15000);
 		con.setRequestMethod(method);
-		con.setDoInput(true);
+		
 		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
 
 		return con;
 	}
 	
-	protected HttpsURLConnection getFileConnection(String url, String method) throws IOException {
+	protected HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
 		HttpsURLConnection con = null;
 		URL callUrl = new URL(url);
 		con = (HttpsURLConnection) callUrl.openConnection();
 		con.setReadTimeout(10000);
 		con.setConnectTimeout(15000);
 		con.setRequestMethod(method);
-		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
 
 		return con;
 	}
 	
-	//TODO: fix method
-	protected HttpsURLConnection getPatchConnection(String newUrl) throws IOException, NoSuchFieldException, IllegalAccessException, IllegalArgumentException {
-
-		HttpsURLConnection con = null;
-		URL url = new URL(newUrl);
-		con = (HttpsURLConnection) url.openConnection();
+	protected void readFileFromPath(String path) throws IOException {
+		File file = new File(path);
+		int length = (int) file.length();
+		byte [] data = new byte[length];
 		
-		final Class<?> httpURLConnectionClass = con.getClass();
-        final Class<?> parentClass = httpURLConnectionClass.getSuperclass();
-        final Field methodField;
-		methodField = parentClass.getSuperclass().getDeclaredField("method");
-		methodField.setAccessible(true);
-        methodField.set(con, "PATCH");
-        
-
-		con.setReadTimeout(10000);
-		con.setConnectTimeout(15000 );
-		con.setDoInput(true);
-
-		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
-		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-
-
-		
-		return con;
+		FileInputStream fis = new FileInputStream(file);
+		fis.read(data);
 	}
-
 
 	/**
 	 * Extracting json String from the given InputStream object.

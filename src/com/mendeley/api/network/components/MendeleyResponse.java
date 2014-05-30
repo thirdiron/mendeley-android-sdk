@@ -20,6 +20,7 @@ public class MendeleyResponse {
 	public String linkNext;
 	public String linkLast;
 	public String contentLength;
+	public String location;
 	public int responseCode;
 	public Integer mendeleyCount;
 	public MendeleyException mendeleyException;

@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,8 @@ import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 public class DocumentNetworkProvider extends NetworkProvider {
 
 	private static String documentsUrl = apiUrl + "documents";
+	
+	public static SimpleDateFormat patchDateFormat =  new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 
 	protected MendeleyDocumentInterface appInterface;
 	
@@ -210,7 +213,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @return date string in the specified format
 	 */
 	private String formatDate(Date date) {       
-        return dateFormat.format(date);
+        return patchDateFormat.format(date);
 	}
 	
 	/**
@@ -242,7 +245,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		try {
 			document.title += " patched!";
 			new PatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
-		//	new URLPatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
 		} catch (JSONException e) {
 			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
 		}
@@ -260,6 +262,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		MendeleyResponse response = new MendeleyResponse();
 		String documentId = null;
 		int expectedResult = 204;
+		InputStream is = null;
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
@@ -270,7 +273,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			String jsonString = params[3];
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatchDocument(url, date);
+			HttpPatch httpPatch = getHttpPatchDocument(url, date); 
 
 	        try {
 	        	
@@ -279,7 +282,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				int responseCode = response.getStatusLine().getStatusCode();	        	
 				
 				if (responseCode != expectedResult) {
-					return new HttpResponseException("Response code: " + responseCode);
+					is = response.getEntity().getContent();
+					String responseString = "";
+					if (is != null) {
+						responseString = getJsonString(is);
+					}
+					return new HttpResponseException("Response code: " + responseCode+" "+responseString);
 				} else {
 					
 					documentId = id;
@@ -287,66 +295,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				}
 			} catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
-			}
-			
-		}
-		
-		@Override
-		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
-			appInterface.onDocumentPatched(documentId, response);
-		}
-	}
-	
-	
-	//TODO: test remove
-	protected class URLPatchDocumentTask extends AsyncTask<String, Void, MendeleyException> {
-
-		MendeleyResponse response = new MendeleyResponse();
-		String documentId = null;
-		int expectedResult = 204;
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			
-			String url = params[0];
-			String id = params[1];
-			String date = params[2];
-			String jsonString = params[3];
-
-			HttpsURLConnection con = null;
-			OutputStream os = null;
-			
-			
-			try {
-				con = getPatchConnection(url);
-				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
-				con.connect();
-	
-				os = con.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(
-				        new OutputStreamWriter(os, "UTF-8"));
-				writer.write(jsonString);
-				writer.flush();
-				writer.close();
-				os.close();
-				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
-
-				Log.e("", "con.getResponseCode(); " + con.getResponseCode());
-				if (response.responseCode != expectedResult ) {			
-					return new HttpResponseException("Response code: " + response.responseCode);
-				} else {
-
-					documentId = id;
-					return null;
+			} finally {
+				if (is != null) {
+					try {
+						is.close();
+						is = null;
+					} catch (IOException e) {
+						return new JsonParsingException(e.getMessage());
+					}
 				}
-			} catch (IOException | NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
-				Log.e("", "", e);
-				return new JsonParsingException(e.getMessage());
 			}
-			
 		}
 		
 		@Override

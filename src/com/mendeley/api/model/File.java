@@ -27,10 +27,10 @@ public class File {
 	@Override
 	public String toString() {
 		return "id: " + id + 
-				"documentId: " + documentId + 
-				"mimeType: " + mimeType + 
-				"fileName: " + fileName + 
-				"fileHash: " + fileHash;
+				", documentId: " + documentId + 
+				", mimeType: " + mimeType + 
+				", fileName: " + fileName + 
+				", fileHash: " + fileHash;
 	}
 	
 	@Override
