@@ -257,12 +257,14 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PatchDocumentTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PatchDocumentTask extends NetworkTask {
 
-		MendeleyResponse response = new MendeleyResponse();
 		String documentId = null;
-		int expectedResult = 204;
-		InputStream is = null;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
@@ -273,7 +275,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			String jsonString = params[3];
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatchDocument(url, date); 
+			HttpPatch httpPatch = getHttpPatch(url, date); 
 
 	        try {
 	        	
@@ -281,35 +283,22 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	        	HttpResponse response = httpclient.execute(httpPatch);				
 				int responseCode = response.getStatusLine().getStatusCode();	        	
 				
-				if (responseCode != expectedResult) {
-					is = response.getEntity().getContent();
-					String responseString = "";
-					if (is != null) {
-						responseString = getJsonString(is);
-					}
-					return new HttpResponseException("Response code: " + responseCode+" "+responseString);
+				if (responseCode != expectedResponse) {
+					return new HttpResponseException(getErrorMessage(response));
 				} else {
-					
 					documentId = id;
 					return null;
 				}
 			} catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentPatched(documentId, response);
 		}
 	}
@@ -320,21 +309,21 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class DeleteDocumentTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class DeleteDocumentTask extends NetworkTask {
 
 		String documentId = null;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 204;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
 			String id = params[1];
-			
-			HttpsURLConnection con = null;
 
-			InputStream is = null;
 			try {
 				con = getConnection(url, "DELETE");
 				con.connect();
@@ -343,35 +332,21 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
-
-					is = con.getInputStream();			
-					is.close();
-					
 					documentId = id;
 					return null;
 				}
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentDeleted(documentId, response);
 		}
 	}
@@ -382,11 +357,14 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostTrashDocumentTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PostTrashDocumentTask extends NetworkTask {
 
 		String documentId = null;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 204;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
@@ -394,9 +372,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			String url = params[0];
 			String id = params[1];
 
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
 			try {
 				con = getConnection(url, "POST");
 				con.connect();
@@ -405,37 +380,21 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
-
-					is = con.getInputStream();			
-					is.close();
-					
 					documentId = id;
-					
 					return null;
 				}
-				
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentTrashed(documentId, response);
 		}
 	}
@@ -446,11 +405,14 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostDocumentTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PostDocumentTask extends NetworkTask {
 
 		Document document;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 201;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 201;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
@@ -458,16 +420,10 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			String url = params[0];
 			String jsonString = params[1];
 
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			OutputStream os = null;
-			
 			try {
 				con = getConnection(url, "POST");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
-				con.connect();
-	
+
 				os = con.getOutputStream();
 				BufferedWriter writer = new BufferedWriter(
 				        new OutputStreamWriter(os, "UTF-8"));
@@ -476,16 +432,17 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				writer.close();
 				os.close();
 				
+				con.connect();
+				
 				response.responseCode = con.getResponseCode();
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
 					is = con.getInputStream();
 					String responseString = getJsonString(is);					
-					is.close();
 					
 					JasonParser parser = new JasonParser();
 					document = parser.parseDocument(responseString);
@@ -496,31 +453,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (os != null) {
-					try {
-						os.close();
-						os = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();	
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentPosted(document, response);
 		}
 	}
@@ -531,21 +470,21 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetDocumentTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetDocumentTask extends NetworkTask {
 
-		MendeleyResponse response = new MendeleyResponse();
 		Document document;
 		String date;
-		int expectedResponse = 200;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 				String url = params[0];
 
-				HttpsURLConnection con = null;
-
-				InputStream is = null;
 				try {
 					con = getConnection(url, "GET");
 					con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
@@ -555,13 +494,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					getResponseHeaders(con.getHeaderFields(), response);	
 					
 					if (response.responseCode != expectedResponse) {
-						return new HttpResponseException("Server response : " + response.header);
+						return new HttpResponseException(getErrorMessage(con));
 					} else {
 
 						is = con.getInputStream();
 						String jsonString = getJsonString(is);					
-						is.close();
-						
+
 						JasonParser parser = new JasonParser();
 						document = parser.parseDocument(jsonString);
 						
@@ -571,24 +509,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				} catch (IOException | JSONException e) {
 					return new JsonParsingException(e.getMessage());
 				} finally {
-					if (is != null) {
-						try {
-							is.close();
-							is = null;
-						} catch (IOException e) {
-							return new JsonParsingException(e.getMessage());
-						}
-					}		
-					if (con != null) {
-						con.disconnect();
-					}	
-					
+					closeConnection();
 				}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentReceived(document, response);
 		}
 	}
@@ -600,19 +527,19 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetDocumentsTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetDocumentsTask extends NetworkTask {
 
 		List<Document> documents;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
-
-			HttpsURLConnection con = null;
-			InputStream is = null;
 			
 			try {
 				con = getConnection(url, "GET");
@@ -623,14 +550,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);	
 				
 				if (response.responseCode != 200) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
-			
-						
+
 					JasonParser parser = new JasonParser();
 					documents = parser.parseDocumentList(jsonString);
 					
@@ -640,23 +565,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {	
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentsReceived(documents, response);			
 		}
 	}

@@ -139,8 +139,7 @@ public class JasonParser {
 	 */
 	protected List<String> parseDocumentIds(String jsonString) throws JSONException {
 		List<String> documentIds = new ArrayList<String>();
-		JSONObject jsonObjet = new JSONObject(jsonString);
-		JSONArray jsonArray = jsonObjet.getJSONArray("document_ids");
+		JSONArray jsonArray = new JSONArray(jsonString);
 		for (int i = 0; i < jsonArray.length(); i++) {
 			documentIds.add(jsonArray.getString(i));
 		}

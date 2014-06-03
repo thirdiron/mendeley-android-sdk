@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,15 +21,22 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
+import org.json.JSONException;
 
 import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 
+import com.mendeley.api.exceptions.HttpResponseException;
+import com.mendeley.api.exceptions.JsonParsingException;
+import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.MendeleyResponse;
 
 /**
@@ -139,8 +147,106 @@ public class NetworkProvider {
 	}
 	
 	/**
-	 * Creating HttpPatch object with the given url and and date string.
-	 * Also adding the access token and other required headers.
+	 * Creates an error message string from a given URLConnection object,
+	 * which includes the response code, response message and the error stream from the server
+	 * 
+	 * @param con the URLConnection object
+	 * @return the error message string
+	 */
+	protected String getErrorMessage(HttpsURLConnection con) {
+		String message = "";
+		InputStream is = null;
+		try {
+			message = con.getResponseCode() + " "  + con.getResponseMessage();
+			is = con.getErrorStream();
+			String responseString = "";
+			if (is != null) {
+				responseString = getJsonString(is);
+			}
+			message += "\n" + responseString;
+		} catch (IOException e) {
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+					is = null;
+				} catch (IOException e) {
+				}
+			}
+		}
+		return message;
+	}
+	
+	/**
+	 * AsyncTask class is extended by all AsyncTasks in the NetworkProvider subclasses
+	 * The class holds MendeleyResponse and stream objects that should be used in the subclasses.
+	 */
+	protected abstract class NetworkTask extends AsyncTask<String, Void, MendeleyException> {
+
+		MendeleyResponse response = new MendeleyResponse();
+		int expectedResponse;
+		InputStream is = null;
+		OutputStream os = null;
+		HttpsURLConnection con = null;
+		
+		protected void closeConnection() {
+			if (con != null) {
+				con.disconnect();
+			}	
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
+			}
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(MendeleyException result) {	
+			response.mendeleyException = result;
+		}
+	}
+	
+	/**
+	 * Creates an error message string from a given HttpResponse object,
+	 * which includes the response code, response message and the error stream from the server
+	 * 
+	 * @param con the URLConnection object
+	 * @return the error message string
+	 */
+	protected String getErrorMessage(HttpResponse response) {
+		String message = "";
+		InputStream is = null;
+		try {
+			message = response.getStatusLine().getStatusCode() + " "  + response.getStatusLine().getReasonPhrase();
+			is = response.getEntity().getContent();
+			String responseString = "";
+			if (is != null) {
+				responseString = getJsonString(is);
+			}
+			message += "\n" + responseString;
+		} catch (IOException e) {
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+					is = null;
+				} catch (IOException e) {
+				}
+			}
+		}
+		return message;
+	}
+	
+	/**
+	 * Creating HttpPatch object with the given url, the date string
+	 * if not null and mendeley document content type.
 	 * 
 	 * @param url the call url
 	 * @param date the required date string
@@ -157,41 +263,20 @@ public class NetworkProvider {
 		
 		return httpPatch;
 	}
-	
-	protected HttpPatch getHttpPatchDocument(String url, String date) {
-		HttpPatch httpPatch = new HttpPatch(url);
-		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
-		httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-		httpPatch.setHeader("Accept", "application/json");
-		if (date != null) {
-			httpPatch.setHeader("If-Unmodified-Since", date);
-		}
-		
-		return httpPatch;
-	}
-	
-	protected HttpPatch getHttpPatch(String url) {
-		HttpPatch httpPatch = new HttpPatch(url);
-		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
-		httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-		httpPatch.setHeader("Accept", "application/json");		
-		return httpPatch;
-	}
-	
+
+	/**
+	 * Creating HttpPatch object with the given url 
+	 * and mendeley folder update content type.
+	 * 
+	 * @param url the call url
+	 * @return the HttpPatch object
+	 */
 	protected HttpPatch getFolderHttpPatch(String url) {
 		HttpPatch httpPatch = new HttpPatch(url);
 		httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
 		httpPatch.setHeader("Content-type", "application/vnd.mendeley-folder-update-folder.1+json");
 
 		return httpPatch;
-	}
-	
-	protected HttpGet getHttpGet(String url) {
-		HttpGet httpGet = new HttpGet(url);
-		httpGet.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
-		httpGet.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-		
-		return httpGet;
 	}
 	
 	/**
@@ -216,6 +301,15 @@ public class NetworkProvider {
 		return con;
 	}
 	
+	/**
+	 * Creating HttpsURLConnection object with the given url and request method
+	 * without the authorization header. This is used for downloading a file from the server.
+	 * 
+	 * @param url the call url
+	 * @param method the required request method
+	 * @return the HttpsURLConnection object
+	 * @throws IOException
+	 */
 	protected HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
 		HttpsURLConnection con = null;
 		URL callUrl = new URL(url);
@@ -225,15 +319,6 @@ public class NetworkProvider {
 		con.setRequestMethod(method);
 
 		return con;
-	}
-	
-	protected void readFileFromPath(String path) throws IOException {
-		File file = new File(path);
-		int length = (int) file.length();
-		byte [] data = new byte[length];
-		
-		FileInputStream fis = new FileInputStream(file);
-		fis.read(data);
 	}
 
 	/**
@@ -265,31 +350,7 @@ public class NetworkProvider {
 		}
 		
 		return data.toString();
-	}
-	
-	//TODO: not used for now
-	public static class HttpClientFactory {
-
-	    private static DefaultHttpClient client;
-
-	    public synchronized static DefaultHttpClient getThreadSafeClient() {
-	  
-	        if (client != null)
-	            return client;
-	         
-	        client = new DefaultHttpClient();
-	        
-	        ClientConnectionManager mgr = client.getConnectionManager();
-	        
-	        HttpParams params = client.getParams();
-	        client = new DefaultHttpClient(
-	        new ThreadSafeClientConnManager(params,
-	            mgr.getSchemeRegistry()), params);
-	  
-	        return client;
-	    } 
-	}
-	
+	}	
 	
 	protected String getApiUrl() {
 		return apiUrl;

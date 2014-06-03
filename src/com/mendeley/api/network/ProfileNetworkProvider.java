@@ -8,6 +8,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
+
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -52,26 +53,24 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
-	protected class GetProfileTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetProfileTask extends NetworkTask {
 
 		Profile profile;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
 		String id;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
 
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
-			id = params[1];
-			
+			id = params[1];			
 			url += id;
 
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
 			try {
-				
 				con = getConnection(url, "GET");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-profiles.1+json");
 				con.connect();
@@ -80,41 +79,27 @@ public class ProfileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
 			
 					JasonParser parser = new JasonParser();
 					profile = parser.parseProfile(jsonString);
 					
 					return null;
 				}
-				 
 			}	catch (IOException | JSONException e) {			
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}			if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			if (id.equals("me")) {
 				appInterface.onMyProfileReceived(profile, response);	
 			} else {

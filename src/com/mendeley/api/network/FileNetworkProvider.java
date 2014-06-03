@@ -1,28 +1,21 @@
 package com.mendeley.api.network;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
-import javax.net.ssl.HttpsURLConnection;
-
 import org.json.JSONException;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
-import com.mendeley.api.network.DocumentNetworkProvider.GetDocumentsTask;
 import com.mendeley.api.network.components.FileRequestParameters;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -144,7 +137,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	}
 	
 	/**
-	 *  Building the url string with the parameters and executes the PostFilesTask
+	 *  Building the url string with the parameters and executes the PostFileTask
 	 * 
 	 * @param contentType content type of the file
 	 * @param documentId the id of the document the file is related to
@@ -161,12 +154,15 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostFileTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PostFileTask extends NetworkTask {
 
 		File file;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 201;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 201;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
@@ -178,9 +174,6 @@ public class FileNetworkProvider extends NetworkProvider {
 			String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
 			String link = "<https://mix.mendeley.com/documents/"+documentId+">; rel=\"document\"";
 
-			HttpsURLConnection con = null;
-			InputStream is = null;
-			OutputStream os = null;
 			FileInputStream fileInputStream = null;
 			
 			try {
@@ -221,12 +214,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);			
 
 				if (response.responseCode != expectedResponse) {
-					is = con.getErrorStream();
-					String responseString = "";
-					if (is != null) {
-						responseString = getJsonString(is);
-					}
-					return new HttpResponseException("Response code: " + response.responseCode + " " +responseString);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 
 					is = con.getInputStream();
@@ -245,22 +233,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				return new MendeleyException(e.getMessage());
 			} 
 			finally {
-				if (os != null) {
-					try {
-						os.close();
-						os = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
+				closeConnection();
 				if (fileInputStream != null) {
 					try {
 						fileInputStream.close();
@@ -269,15 +242,12 @@ public class FileNetworkProvider extends NetworkProvider {
 						return new JsonParsingException(e.getMessage());
 					}
 				}
-				if (con != null) {
-					con.disconnect();
-				}	
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFilePosted(file, response);			
 		}
 	}
@@ -289,20 +259,20 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFilesTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetFilesTask extends NetworkTask {
 
 		List<File> files;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
 
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
 			try {
 				con = getConnection(url, "GET");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-file.1+json");
@@ -312,12 +282,11 @@ public class FileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
 			
 					JasonParser parser = new JasonParser();
 					files = parser.parseFileList(jsonString);
@@ -328,25 +297,13 @@ public class FileNetworkProvider extends NetworkProvider {
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}			if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFilesReceived(files, response);			
 		}
 	}
@@ -358,24 +315,24 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFileTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetFileTask extends NetworkTask {
 
 		List<File> files;
-		MendeleyResponse response = new MendeleyResponse();
 		MendeleyResponse downloadResponse = new MendeleyResponse();
-		int expectedResponse = 303;
 		byte[] fileData;
-		InputStream is = null;
 		String fileName;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 303;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
 			String folderPath = params[1];
 			
-			HttpsURLConnection con = null;
-			InputStream is = null;
 			FileOutputStream fileOutputStream = null;
 
 			try {
@@ -387,12 +344,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);			
 
 				if (response.responseCode != expectedResponse) {
-					is = con.getErrorStream();
-					String responseString = "";
-					if (is != null) {
-						responseString = getJsonString(is);
-					}
-					return new HttpResponseException("Response code: " + response.responseCode + " " + responseString);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {		
 					con.disconnect();
 					
@@ -402,14 +354,8 @@ public class FileNetworkProvider extends NetworkProvider {
 					int responseCode = con.getResponseCode();
 					
 					if (responseCode != 200) {
-						is = con.getErrorStream();
-						String responseString = "";
-						if (is != null) {
-							responseString = getJsonString(is);
-						}
-						return new HttpResponseException("Response code: " + response.responseCode + " " + responseString);
+						return new HttpResponseException(getErrorMessage(con));
 					} else {
-						
 						String content = con.getHeaderFields().get("Content-Disposition").get(0);
 						fileName = content.substring(content.indexOf("\"")+1, content.lastIndexOf("\""));
 						
@@ -423,7 +369,6 @@ public class FileNetworkProvider extends NetworkProvider {
 				        }
 	
 					    fileOutputStream.close();
-						is.close();
 						
 						return null;
 					}
@@ -432,14 +377,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
+				closeConnection();
 				if (fileOutputStream != null) {
 					try {
 						fileOutputStream.close();
@@ -448,15 +386,12 @@ public class FileNetworkProvider extends NetworkProvider {
 						return new JsonParsingException(e.getMessage());
 					}
 				}
-				if (con != null) {
-					con.disconnect();
-				}	
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFileReceived(fileName, response);
 		}
 	}
@@ -467,21 +402,19 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class DeleteFileTask extends AsyncTask<String, Void, MendeleyException> {
-
+	protected class DeleteFileTask extends NetworkTask {
 		List<File> files;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 204;
-		
 		String fileId;
 
 		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
+		
+		@Override
 		protected MendeleyException doInBackground(String... params) {
-
 			String url = params[0];
 			String id = params[1];
-
-			HttpsURLConnection con = null;
 
 			try {
 				con = getConnection(url, "DELETE");
@@ -491,7 +424,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response);			
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					fileId = id;
@@ -502,15 +435,13 @@ public class FileNetworkProvider extends NetworkProvider {
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {	
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFileDeleted(fileId, response);
 		}
 	}

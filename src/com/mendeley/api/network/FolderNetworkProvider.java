@@ -16,12 +16,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.network.NetworkProvider.NetworkTask;
 import com.mendeley.api.network.components.FolderRequestParameters;
 import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
@@ -226,11 +226,14 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PatchFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PatchFolderTask extends NetworkTask {
 
-		MendeleyResponse response = new MendeleyResponse();
 		String folderId = null;
-		int expectedResult = 200;
+
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
@@ -248,22 +251,20 @@ public class FolderNetworkProvider extends NetworkProvider{
 	        	HttpResponse response = httpclient.execute(httpPatch);				
 				int responseCode = response.getStatusLine().getStatusCode();	        	
 				
-				if (responseCode != expectedResult) {
-					return new HttpResponseException("Response code: " + responseCode);
+				if (responseCode != expectedResponse) {
+					return new HttpResponseException(getErrorMessage(response));
 				} else {
-					
 					folderId = id;
 					return null;
 				}
 			} catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
-			}
-			
+			} 			
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderPatched(folderId, response);
 		}
 	}
@@ -274,19 +275,21 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class DeleteDocumentFromFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class DeleteDocumentFromFolderTask extends NetworkTask {
 
 		String documentId = null;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 204;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
 			String id = params[1];
-			
-			HttpsURLConnection con = null;
+
 			try {
 				con = getConnection(url, "DELETE");
 				con.connect();
@@ -295,24 +298,21 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
-					
 					documentId = id;
 					return null;
 				}
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderDocumentDeleted(documentId, response);
 		}
 	}
@@ -323,19 +323,21 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class DeleteFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class DeleteFolderTask extends NetworkTask {
 
 		String folderId = null;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 204;
+
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 204;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
 			String id = params[1];
-			
-			HttpsURLConnection con = null;
+
 			try {
 				con = getConnection(url, "DELETE");
 				con.connect();
@@ -344,7 +346,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = id;
 					return null;
@@ -352,15 +354,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();	
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderDeleted(folderId, response);
 		}
 	}
@@ -371,21 +371,20 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostDocumentToFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PostDocumentToFolderTask extends NetworkTask {
 
 		String folderId;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 201;
+		
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 201;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
 			String jsonString = params[1];
-
-			HttpsURLConnection con = null;
-
-			OutputStream os = null;
 			
 			try {
 				con = getConnection(url, "POST");		
@@ -404,7 +403,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
 					folderId = params[2];
@@ -414,23 +413,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (os != null) {
-					try {
-						os.close();
-						os = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onDocumentPostedToFolder(folderId, response);
 		}
 	}
@@ -441,22 +430,20 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class PostFolderTask extends NetworkTask {
 
 		Folder folder;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 201;
+
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 201;
+		}
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
 			String jsonString = params[1];
-
-			HttpsURLConnection con = null;
-
-			InputStream is = null;
-			OutputStream os = null;
 
 			try {
 				con = getConnection(url, "POST");		
@@ -475,13 +462,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);	
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
 					is = con.getInputStream();
 					String responseString = getJsonString(is);					
-					is.close();
-					
+
 					JasonParser parser = new JasonParser();
 					folder = parser.parseFolder(responseString);
 					
@@ -491,31 +477,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (os != null) {
-					try {
-						os.close();
-						os = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderPosted(folder, response);
 		}
 	}
@@ -527,19 +495,19 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFolderDocumentIdsTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetFolderDocumentIdsTask extends NetworkTask {
 
 		List<String> documentIds;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
-		InputStream is = null;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
-
-			HttpsURLConnection con = null;
 
 			try {
 				con = getConnection(url, "GET");
@@ -550,12 +518,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);				
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
 
 					JasonParser parser = new JasonParser();
 					documentIds = parser.parseDocumentIds(jsonString);
@@ -566,23 +533,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {	
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderDocumentIdsReceived(documentIds, response);
 		}
 	}
@@ -594,19 +551,19 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFolderTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetFolderTask extends NetworkTask {
 
 		Folder folder;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
-		InputStream is = null;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
-
-			HttpsURLConnection con = null;
 
 			try {
 				con = getConnection(url, "GET");
@@ -617,14 +574,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);					
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
-			
-						
+
 					JasonParser parser = new JasonParser();
 					folder = parser.parseFolder(jsonString);
 
@@ -634,23 +589,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFolderReceived(folder, response);
 		}
 	}
@@ -661,20 +606,20 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * and send the dresponsehe call response code is different than expected or an exception is being thrown in the process
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
-	protected class GetFoldersTask extends AsyncTask<String, Void, MendeleyException> {
+	protected class GetFoldersTask extends NetworkTask {
 
 		List<Folder> folders;
-		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse = 200;
-		InputStream is = null;
 
+		@Override
+		protected void onPreExecute() {
+			expectedResponse = 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
-
-			HttpsURLConnection con = null;
-
+			
 			try {
 				con = getConnection(url, "GET");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
@@ -684,13 +629,11 @@ public class FolderNetworkProvider extends NetworkProvider{
 				getResponseHeaders(con.getHeaderFields(), response);					
 
 				if (response.responseCode != expectedResponse) {
-					return new HttpResponseException("Response code: " + response.responseCode);
+					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
-					is.close();
-			
 						
 					JasonParser parser = new JasonParser();
 					folders = parser.parseFolderList(jsonString);
@@ -701,23 +644,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}	catch (IOException | JSONException e) {
 				return new JsonParsingException(e.getMessage());
 			} finally {
-				if (is != null) {
-					try {
-						is.close();
-						is = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-				if (con != null) {
-					con.disconnect();
-				}	
+				closeConnection();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(MendeleyException result) {	
-			response.mendeleyException = result;
+			super.onPostExecute(result);
 			appInterface.onFoldersReceived(folders, response);
 		}
 	}
