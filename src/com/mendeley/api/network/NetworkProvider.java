@@ -1,13 +1,10 @@
 package com.mendeley.api.network;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -23,20 +20,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.HttpParams;
-import org.json.JSONException;
-
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-
-import com.mendeley.api.exceptions.HttpResponseException;
-import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.MendeleyResponse;
 
 /**
@@ -292,8 +278,8 @@ public class NetworkProvider {
 		HttpsURLConnection con = null;
 		URL callUrl = new URL(url);
 		con = (HttpsURLConnection) callUrl.openConnection();
-		con.setReadTimeout(10000);
-		con.setConnectTimeout(15000);
+		con.setReadTimeout(3000);
+		con.setConnectTimeout(3000);
 		con.setRequestMethod(method);
 		
 		con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
@@ -314,8 +300,8 @@ public class NetworkProvider {
 		HttpsURLConnection con = null;
 		URL callUrl = new URL(url);
 		con = (HttpsURLConnection) callUrl.openConnection();
-		con.setReadTimeout(10000);
-		con.setConnectTimeout(15000);
+		con.setReadTimeout(3000);
+		con.setConnectTimeout(3000);
 		con.setRequestMethod(method);
 
 		return con;
@@ -413,6 +399,5 @@ public class NetworkProvider {
 
 		return result;
 	}
-
 
 }

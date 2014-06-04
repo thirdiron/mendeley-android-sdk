@@ -2,12 +2,8 @@ package com.mendeley.api.network;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -15,15 +11,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import android.os.AsyncTask;
-
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.network.NetworkProvider.NetworkTask;
 import com.mendeley.api.network.components.FolderRequestParameters;
-import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
 /**
@@ -405,7 +397,6 @@ public class FolderNetworkProvider extends NetworkProvider{
 				if (response.responseCode != expectedResponse) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
-
 					folderId = params[2];
 					return null;
 				}
@@ -603,7 +594,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	/**
 	 * Executing the api call for getting folders in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to object
-	 * and send the dresponsehe call response code is different than expected or an exception is being thrown in the process
+	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
 	protected class GetFoldersTask extends NetworkTask {

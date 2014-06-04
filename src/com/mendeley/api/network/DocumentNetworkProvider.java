@@ -2,17 +2,12 @@ package com.mendeley.api.network;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -20,16 +15,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.util.Log;
-
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.DocumentRequestParameters;
-import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
 /**
@@ -419,11 +409,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			
 			String url = params[0];
 			String jsonString = params[1];
-
+			
 			try {
 				con = getConnection(url, "POST");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
-
+				con.setFixedLengthStreamingMode(jsonString.getBytes().length);
+				
 				os = con.getOutputStream();
 				BufferedWriter writer = new BufferedWriter(
 				        new OutputStreamWriter(os, "UTF-8"));

@@ -2,7 +2,6 @@ package com.mendeley.api.network.interfaces;
 
 import java.util.List;
 
-import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.MendeleyResponse;
 

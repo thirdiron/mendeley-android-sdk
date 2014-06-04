@@ -2,10 +2,6 @@ package com.mendeley.api.network.tests;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-
-import com.mendeley.api.network.FileNetworkProvider;
-import com.mendeley.api.network.FolderNetworkProvider;
 
 public class TestRunner {
 	public static void main(String[] args) {

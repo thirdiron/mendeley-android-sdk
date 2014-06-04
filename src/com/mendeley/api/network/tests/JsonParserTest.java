@@ -1,6 +1,5 @@
 package com.mendeley.api.network.tests;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,8 +11,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
-
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Education;

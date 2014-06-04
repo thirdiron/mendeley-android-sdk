@@ -1,19 +1,12 @@
 package com.mendeley.api.network;
 
 import java.io.IOException;
-import java.io.InputStream;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import org.json.JSONException;
-
-import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
-import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
 /**
