@@ -199,6 +199,7 @@ public class Document implements Parcelable {
 	    
 	    dest.writeByte((byte) (downloaded ? 1 : 0));  
 	}
+	
 	  
 	private Document(Parcel in) {
 		lastModified = in.readString();

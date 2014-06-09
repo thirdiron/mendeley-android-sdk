@@ -32,7 +32,7 @@ import com.mendeley.api.util.Utils;
 public class MendeleySDK implements AuthenticationInterface {
 	
 	protected Context appContext;
-	protected AuthentictionManager authentictionManager;
+	protected AuthenticationManager authentictionManager;
 	protected MethodtoInvoke methodToInvoke;
 	
 	protected DocumentNetworkProvider documentdNetworkProvider;
@@ -48,10 +48,12 @@ public class MendeleySDK implements AuthenticationInterface {
 	public MendeleySDK(Context appContext) {
 		this.appContext = appContext;
 		
-		authentictionManager = new AuthentictionManager(appContext, this);
+		authentictionManager = new AuthenticationManager(appContext, this);
 		initialiseInterfaces(appContext);
 		
-		hasCredentials();
+		if (!hasCredentials()) {
+			authentictionManager.authenticate();
+		}
 	}
 	
 	/**
@@ -104,7 +106,7 @@ public class MendeleySDK implements AuthenticationInterface {
 	/**
 	 * Checking if the current access token has expired
 	 * 
-	 * @return true if access token has expired.
+	 * @return true if authenticated.
 	 */
 	private boolean isAuthenticated() {
 

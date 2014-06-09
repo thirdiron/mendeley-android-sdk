@@ -221,7 +221,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					String jsonString = getJsonString(is);					
 					is.close();
 			
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					file = parser.parseFile(jsonString);
 					
 					return null;
@@ -288,7 +288,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 			
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					files = parser.parseFileList(jsonString);
 					
 					return null;

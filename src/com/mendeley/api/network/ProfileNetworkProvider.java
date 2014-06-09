@@ -78,7 +78,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 			
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					profile = parser.parseProfile(jsonString);
 					
 					return null;

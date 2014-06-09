@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.mendeley.api.model.Document;
-import com.mendeley.api.network.JasonParser;
+import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.MendeleySDK;
 import com.mendeley.api.network.NetworkProvider;
 
@@ -135,7 +135,7 @@ public class NetworkConnectionTest extends TestCase {
 	@Test
 	public void test_postResponse() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
 		
-		JasonParser parser = new JasonParser();
+		JsonParser parser = new JsonParser();
 		Document testDocument = getTestDocument();
 		
 		ArrayList<Object> values = new ArrayList<Object>();		
@@ -182,7 +182,7 @@ public class NetworkConnectionTest extends TestCase {
 	@Test
 	public void test_patchResponse() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
 
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Document testDocument = getTestDocument();
 		
 		ArrayList<Object> values = new ArrayList<Object>();		

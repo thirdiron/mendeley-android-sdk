@@ -69,7 +69,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 */
 	protected void doPostDocument(Document document) {
 
-		JasonParser parser = new JasonParser();
+		JsonParser parser = new JsonParser();
 		try {
 			new PostDocumentTask().execute(documentsUrl, parser.jsonFromDocument(document));			
 		} catch (JSONException e) {
@@ -231,7 +231,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			dateString = formatDate(date);
 		}
 		
-		JasonParser parser = new JasonParser();
+		JsonParser parser = new JsonParser();
 		try {
 			document.title += " patched!";
 			new PatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
@@ -435,7 +435,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String responseString = getJsonString(is);					
 					
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					document = parser.parseDocument(responseString);
 					
 					return null;
@@ -491,7 +491,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 						is = con.getInputStream();
 						String jsonString = getJsonString(is);					
 
-						JasonParser parser = new JasonParser();
+						JsonParser parser = new JsonParser();
 						document = parser.parseDocument(jsonString);
 						
 						return null;
@@ -547,7 +547,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					documents = parser.parseDocumentList(jsonString);
 					
 					return null;

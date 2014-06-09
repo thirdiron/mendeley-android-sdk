@@ -1,10 +1,15 @@
 package com.mendeley.api.network;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,7 +29,7 @@ import com.mendeley.api.model.Profile;
  * as well as create json strings from objects that are used by the NetwrokProvider classes.
  *
  */
-public class JasonParser {
+public class JsonParser {
 	
 	/**
 	 * Creating a json string from a Document object
@@ -630,6 +635,37 @@ public class JasonParser {
 		}
 
 		return result;
+	}
+	
+	/**
+     * Helper method for getting jeson string from an InputStream object
+     * 
+     * @param stream the InputStream object
+     * @return the json String object
+     * @throws IOException
+     */
+	String getJsonString(InputStream stream) throws IOException {
+		
+		StringBuffer data = new StringBuffer();
+		InputStreamReader isReader = null;
+		BufferedReader br = null;
+		
+		try {
+			
+			isReader = new InputStreamReader(stream); 
+            br = new BufferedReader(isReader);
+            String brl = ""; 
+            while ((brl = br.readLine()) != null) {
+        	    data.append(brl);
+            }
+            
+		} finally {
+			stream.close();
+            isReader.close();
+            br.close();
+		}
+		
+		return data.toString();
 	}
 
 }

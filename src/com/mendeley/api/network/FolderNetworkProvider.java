@@ -107,7 +107,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 */
 	protected void doPostFolder(Folder folder) {
 
-		JasonParser parser = new JasonParser();
+		JsonParser parser = new JsonParser();
 		try {
 			new PostFolderTask().execute(foldersUrl, parser.jsonFromFolder(folder));			
 		} catch (JSONException e) {
@@ -134,7 +134,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	protected void doPostDocumentToFolder(String folderId, String documentId) {
 		String documentString = null;
 		if (documentId != null && !documentId.isEmpty()) {
-			JasonParser parser = new JasonParser();
+			JsonParser parser = new JsonParser();
 			try {
 				documentString = parser.jsonFromDocumentId(documentId);
 			} catch (JSONException e) {
@@ -200,7 +200,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folder the Folder object
 	 */
 	protected void doPatchFolder(String folderId, Folder folder) {
-		JasonParser parser = new JasonParser();
+		JsonParser parser = new JsonParser();
 		String folderString = null;
 		try {
 			folderString  = parser.jsonFromFolder(folder);
@@ -459,7 +459,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 					is = con.getInputStream();
 					String responseString = getJsonString(is);					
 
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					folder = parser.parseFolder(responseString);
 					
 					return null;
@@ -515,7 +515,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					documentIds = parser.parseDocumentIds(jsonString);
 
 					return null;
@@ -571,7 +571,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					folder = parser.parseFolder(jsonString);
 
 					return null;
@@ -626,7 +626,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 						
-					JasonParser parser = new JasonParser();
+					JsonParser parser = new JsonParser();
 					folders = parser.parseFolderList(jsonString);
 
 					return null;

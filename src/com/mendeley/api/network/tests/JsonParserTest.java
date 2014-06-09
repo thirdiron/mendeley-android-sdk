@@ -20,7 +20,7 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
 import com.mendeley.api.model.Profile;
-import com.mendeley.api.network.JasonParser;
+import com.mendeley.api.network.JsonParser;
 
 public class JsonParserTest extends TestCase {
 
@@ -118,7 +118,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_parseDocument() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Document testDocument = getTestDocument();
 		String jsonString = getJsonStringFromFile(documentFile);
 		
@@ -143,7 +143,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_parseFolder() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Folder testFolder = getTestFolder();
 		String jsonString = getJsonStringFromFile(folderFile);
 		
@@ -162,7 +162,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_parseFile() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		File testFile = getTestFile();
 		String jsonString = getJsonStringFromFile(fileFile);
 		
@@ -183,7 +183,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_parseProfile() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Profile testProfile = getTestProfile();
 		String jsonString = getJsonStringFromFile(profileFile);
 		
@@ -219,7 +219,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_jsonFromDocument() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Document testDocument = getTestDocument();
 		
 		ArrayList<Object> values = new ArrayList<Object>();		
@@ -235,7 +235,7 @@ public class JsonParserTest extends TestCase {
 
 	@Test
 	public void test_jsonFromFolder() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		Folder testFolder = getTestFolder();
 		
 		ArrayList<Object> values = new ArrayList<Object>();		
@@ -251,7 +251,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_jsonFromDocumentId() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
     	String documentId = "test-document_id";
     	String expectedString = "{\"document\":\"test-document_id\"}";
 		
@@ -267,7 +267,7 @@ public class JsonParserTest extends TestCase {
 	
 	@Test
 	public void test_parseDocumentIds() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-    	JasonParser parser = new JasonParser();
+    	JsonParser parser = new JsonParser();
 		String jsonString = getJsonStringFromFile(documentIdsFile);
 		List<String> expectedList = new ArrayList<String>();
 		expectedList.add("test-document_id_1");

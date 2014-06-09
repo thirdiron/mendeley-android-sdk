@@ -1,0 +1,21 @@
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    
+    <dimen name="signin_button_text">18sp</dimen>
+    <dimen name="create_account_botton_text">18sp</dimen>
+    <dimen name="button_width">180dp</dimen>
+    <dimen name="button_height">44dp</dimen>
+    <dimen name="space_between_buttons">20dp</dimen>
+    <dimen name="button_margin">10dp</dimen>
+    <dimen name="space_between_logo_and_buttons">80dp</dimen>
+    <dimen name="phone_button_width">260dp</dimen>
+    
+	<dimen name="dialog_logo_margin"> 5dp</dimen>   
+	<dimen name="dialog_width"> 400dp</dimen>
+	<dimen name="dialog_height">400dp</dimen>
+
+		<dimen name="dialog_height_small">300dp</dimen>
+</resources>
