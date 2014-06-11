@@ -29,10 +29,10 @@ public class Document implements Parcelable {
 	public String source;
 	public String title;
 	public String revision;
+	public String created;
 	public Map<String, String> identifiers;
 	public String abstractString;
 	public ArrayList<Person> authors;
-	public String added;
 	public String pages;
 	public String volume;
 	public String issue;
@@ -46,6 +46,8 @@ public class Document implements Parcelable {
 	public ArrayList<Person> editors;
 	
 	public boolean downloaded;
+	
+	final static String ET_EL = "et. al";
 		
 	public Document() {
 		authors = new ArrayList<Person>();
@@ -62,11 +64,18 @@ public class Document implements Parcelable {
 	
 	public String getAuthorsString() {
 		String authorsString = "";
-		for (int i = 0; i < authors.size(); i++) {
+		for (int i = 0; i < authors.size() && i < 2; i++) {
 			if (i > 0) {
 				authorsString +=", ";				
 			}
-			authorsString += authors.get(i).surname + " " + authors.get(i).forename;
+			authorsString += authors.get(i).surname;
+			if (authors.get(i).forename.length() > 0) {
+				authorsString += " " + authors.get(i).forename.substring(0, 1);
+			}
+		}
+		
+		if (authors.size() > 2) {
+			authorsString += " " + ET_EL;
 		}
 		
 		return authorsString;
@@ -114,7 +123,7 @@ public class Document implements Parcelable {
 				", source: " + source +
 				", title: " + title +
 				", revision: " + revision +
-				", added: " + added +
+				", created: " + created +
 				", pages: " + pages +
 				", volume: " + volume +
 				", issue: " + issue +
@@ -179,7 +188,7 @@ public class Document implements Parcelable {
 	    	dest.writeString(person.surname);
 	    }
 	    
-		dest.writeString(added);
+		dest.writeString(created);
 		dest.writeString(pages);
 		dest.writeString(volume);
 		dest.writeString(issue);
@@ -238,7 +247,7 @@ public class Document implements Parcelable {
 		    authors.add(person);
 	    }
 		
-		added = in.readString();
+		created = in.readString();
 		pages = in.readString();
 		volume = in.readString();
 		issue = in.readString();

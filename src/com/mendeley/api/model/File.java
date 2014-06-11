@@ -11,6 +11,7 @@ public class File {
 	public String mimeType;
 	public String fileName;
 	public String fileHash;
+	public String fileSystemName;
 	
 	public File() {
 		

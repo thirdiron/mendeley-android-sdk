@@ -36,7 +36,7 @@ public class JsonParserTest extends TestCase {
 	    testDocument.id = "test-id";
 	    testDocument.title = "test-title";
 	    testDocument.year = 2014;
-	    testDocument.added = "2014-02-20T16:53:25.000Z";
+	    testDocument.created = "2014-02-20T16:53:25.000Z";
 	    testDocument.profileId = "test-profile_id";
 	    testDocument.lastModified = "2014-02-28T11:52:30.000Z";
 	    testDocument.authors.add(author);
@@ -131,7 +131,7 @@ public class JsonParserTest extends TestCase {
 				testDocument.id.equals(parsedDocument.id) &&
 				testDocument.title.equals(parsedDocument.title) &&
 				testDocument.year.equals(parsedDocument.year) &&
-				testDocument.added.equals(parsedDocument.added) &&
+				testDocument.created.equals(parsedDocument.created) &&
 				testDocument.profileId.equals(parsedDocument.profileId) &&
 				testDocument.lastModified.equals(parsedDocument.lastModified) &&
 				testDocument.id.equals(parsedDocument.id) &&

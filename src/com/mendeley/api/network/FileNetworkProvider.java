@@ -114,7 +114,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param folderPath the path in which to save the file
 	 */
 	protected void doGetFile(String fileId, String folderPath) {
-		new GetFileTask().execute(getGetFileUrl(fileId), folderPath);		  
+		new GetFileTask().execute(getGetFileUrl(fileId), folderPath, fileId);		  
 	}
 	
 	/**
@@ -321,6 +321,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		MendeleyResponse downloadResponse = new MendeleyResponse();
 		byte[] fileData;
 		String fileName;
+		String fileId;
 
 		@Override
 		protected void onPreExecute() {
@@ -332,6 +333,7 @@ public class FileNetworkProvider extends NetworkProvider {
 
 			String url = params[0];
 			String folderPath = params[1];
+			fileId = params[2];
 			
 			FileOutputStream fileOutputStream = null;
 
@@ -392,7 +394,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
 			super.onPostExecute(result);
-			appInterface.onFileReceived(fileName, response);
+			appInterface.onFileReceived(fileName, fileId, response);
 		}
 	}
 	

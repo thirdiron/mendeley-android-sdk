@@ -13,7 +13,7 @@ public interface MendeleyFileInterface extends MendeleyInterface {
 
 	public void onFilesReceived(List<File> files, MendeleyResponse mendeleyResponse);
 	
-	public void onFileReceived(String fileName, MendeleyResponse mendeleyResponse);
+	public void onFileReceived(String fileName, String fileId, MendeleyResponse mendeleyResponse);
 	
 	public void onFilePosted(File file, MendeleyResponse mendeleyResponse);
 	

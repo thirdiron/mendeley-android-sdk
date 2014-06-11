@@ -81,7 +81,7 @@ public class JsonParser {
 		jDocument.put("source", document.source);
 		jDocument.put("revision", document.revision);
 		jDocument.put("abstract", document.abstractString);
-		jDocument.put("added", document.added);
+		jDocument.put("created", document.created);
 		jDocument.put("pages", document.pages);
 		jDocument.put("volume", document.volume);
 		jDocument.put("issue", document.issue);
@@ -486,12 +486,11 @@ public class JsonParser {
 					break;
 				case "revision":
 					mendeleyDocument.revision = documentObject.getString(key);
+				case "created":
+					mendeleyDocument.created = documentObject.getString(key);
 					break;
 				case "abstract":
 					mendeleyDocument.abstractString = documentObject.getString(key);
-					break;
-				case "added":
-					mendeleyDocument.added = documentObject.getString(key);
 					break;
 				case "pages":
 					mendeleyDocument.pages = documentObject.getString(key);
