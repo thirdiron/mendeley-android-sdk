@@ -606,7 +606,7 @@ public class JsonParser {
 		Object result = null;
 		
 		Object[] values = new Object[args.size()];
-		Class[] classes = new Class[args.size()];
+		Class<?>[] classes = new Class[args.size()];
 		
 		for (int i = 0; i < args.size(); i++) {
 			if (args.get(i).getClass().getName().equals("sun.net.www.protocol.https.HttpsURLConnectionImpl")) {
