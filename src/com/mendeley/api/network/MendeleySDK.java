@@ -442,6 +442,7 @@ public class MendeleySDK implements AuthenticationInterface {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
 				authentictionManager.authenticate();
 			}
+			
 		} else {
 			return true;
 		}
@@ -453,20 +454,22 @@ public class MendeleySDK implements AuthenticationInterface {
 	 */
 	private void invokeMethod() {
 		
-		try {
-			Method method = null;
-			String className = this.getClass().getName();			
-			Class<?> clazz = Class.forName(className);  	
-			if (methodToInvoke.argumentTypes != null) {
-				method = clazz.getMethod(methodToInvoke.methodName, methodToInvoke.argumentTypes);  	
-				method.invoke(this, methodToInvoke.arguments);  
-			} else {
-				method = clazz.getMethod(methodToInvoke.methodName);
-				method.invoke(this);
+		if (methodToInvoke != null) {
+			try {
+				Method method = null;
+				String className = this.getClass().getName();			
+				Class<?> clazz = Class.forName(className);  	
+				if (methodToInvoke.argumentTypes != null) {
+					method = clazz.getMethod(methodToInvoke.methodName, methodToInvoke.argumentTypes);  	
+					method.invoke(this, methodToInvoke.arguments);  
+				} else {
+					method = clazz.getMethod(methodToInvoke.methodName);
+					method.invoke(this);
+				}
 			}
-		}
-		catch (Exception e) {
-			Log.e("", "", e);
+			catch (Exception e) {
+				Log.e("", "", e);
+			}
 		}
 	}
 
