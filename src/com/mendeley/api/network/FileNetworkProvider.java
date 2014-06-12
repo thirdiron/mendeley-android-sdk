@@ -17,7 +17,6 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.components.FileRequestParameters;
-import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
@@ -318,7 +317,6 @@ public class FileNetworkProvider extends NetworkProvider {
 	protected class GetFileTask extends NetworkTask {
 
 		List<File> files;
-		MendeleyResponse downloadResponse = new MendeleyResponse();
 		byte[] fileData;
 		String fileName;
 		String fileId;
