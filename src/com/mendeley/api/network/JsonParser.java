@@ -325,7 +325,7 @@ public class JsonParser {
 		            for (int i = 0; i < educationArray.length(); i++) {
 		            	
 		            	JSONObject educationObject = educationArray.getJSONObject(i);		            	
-		            	Education education = new Education();
+		            	Education.Builder education = new Education.Builder();
 		            	
 		            	for (@SuppressWarnings("unchecked") Iterator<String> educationIter = 
 		            			educationObject.keys(); educationIter.hasNext();) {
@@ -333,32 +333,32 @@ public class JsonParser {
 		        			String educationKey = educationIter.next();
 		        			switch (educationKey) {
 			        			case "id":
-			        				education.id = educationObject.getInt(educationKey);
+			        				education.setId(educationObject.getInt(educationKey));
 			    					break;
 			        			case "last_modified":
-			        				education.lastModified = educationObject.getString(educationKey);
+			        				education.setLastModified(educationObject.getString(educationKey));
 			    					break;
 			        			case "created":
-			        				education.created = educationObject.getString(educationKey);
+			        				education.setCreated(educationObject.getString(educationKey));
 			    					break;
 			        			case "degree":
-			        				education.degree = educationObject.getString(educationKey);
+			        				education.setDegree(educationObject.getString(educationKey));
 			    					break;
 			        			case "institution":
-			        				education.institution = educationObject.getString(educationKey);
+			        				education.setInstitution(educationObject.getString(educationKey));
 			    					break;
 			        			case "start_date":
-			        				education.startDate = educationObject.getString(educationKey);
+			        				education.setStartDate(educationObject.getString(educationKey));
 			    					break;
 			        			case "end_date":
-			        				education.endDate = educationObject.getString(educationKey);
+			        				education.setEndDate(educationObject.getString(educationKey));
 			    					break;
 			        			case "website":
-			        				education.website = educationObject.getString(educationKey);
+			        				education.setWebsite(educationObject.getString(educationKey));
 			    					break;
 		        			}
 		            	}
-		            	profile.education.add(education);
+		            	profile.education.add(education.build());
 		            	
 		            }
 		            break;
