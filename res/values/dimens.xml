@@ -17,5 +17,5 @@
 	<dimen name="dialog_width"> 400dp</dimen>
 	<dimen name="dialog_height">400dp</dimen>
 
-		<dimen name="dialog_height_small">300dp</dimen>
+	<dimen name="dialog_height_small">300dp</dimen>
 </resources>
