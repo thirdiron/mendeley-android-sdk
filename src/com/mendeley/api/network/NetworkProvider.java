@@ -5,14 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -350,54 +346,4 @@ public class NetworkProvider {
 		
 	}
 	
-	/**
-	 * Creating and invoking a method from the given parameters.
-	 * Used for testing private methods.
-	 * 
-	 * @param methodName the method to invoke
-	 * @param args the method's arguments
-	 * @return the result of the invoked method
-	 * @throws NoSuchMethodException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
-	 */
-	public Object getResultFromMethod(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		Object result = null;
-		
-		Object[] values = new Object[args.size()];
-		@SuppressWarnings("rawtypes")
-		Class[] classes = new Class[args.size()];
-		
-		for (int i = 0; i < args.size(); i++) {
-			if (args.get(i).getClass().getName().equals("sun.net.www.protocol.https.HttpsURLConnectionImpl")) {
-				classes[i] =  javax.net.ssl.HttpsURLConnection.class;
-			} else if (args.get(i).getClass().getName().equals("sun.net.www.protocol.http.HttpURLConnection$HttpInputStream") ||
-				       args.get(i).getClass().getName().equals("org.apache.http.conn.EofSensorInputStream")) { 
-				classes[i] =  java.io.InputStream.class;
-			} else if (args.get(i).getClass().equals(HashMap.class)) { 
-				classes[i] =  Map.class;
-			} else {
-				classes[i] = args.get(i).getClass();
-			}
-			
-			values[i] = args.get(i);
-		}
-
-		Method method = null;
-		
-		if (args.size() > 0) {
-			method = this.getClass().getDeclaredMethod(methodName, classes);	
-			method.setAccessible(true);
-			result = method.invoke(this, values);
-		} else {
-			method = this.getClass().getDeclaredMethod(methodName);
-			method.setAccessible(true);
-			result = method.invoke(this);
-		}
-
-		return result;
-	}
-
 }

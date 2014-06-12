@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -598,42 +596,6 @@ public class JsonParser {
 		}
 		
 		return documents;
-	}
-
-	//testing
-	public Object getMethodToTest(String methodName, ArrayList<Object> args) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		Object result = null;
-		
-		Object[] values = new Object[args.size()];
-		Class<?>[] classes = new Class[args.size()];
-		
-		for (int i = 0; i < args.size(); i++) {
-			if (args.get(i).getClass().getName().equals("sun.net.www.protocol.https.HttpsURLConnectionImpl")) {
-				classes[i] =  javax.net.ssl.HttpsURLConnection.class;
-			} else if (args.get(i).getClass().getName().equals("sun.net.www.protocol.http.HttpURLConnection$HttpInputStream")) { 
-				classes[i] =  java.io.InputStream.class;
-			} else {
-				classes[i] = args.get(i).getClass();
-			}
-			
-		//	System.out.println(args.get(i).getClass().getName());
-			values[i] = args.get(i);
-		}
-
-		Method method = null;
-		
-		if (args.size() > 0) {
-			method = this.getClass().getDeclaredMethod(methodName, classes);	
-			method.setAccessible(true);
-			result = method.invoke(this, values);
-		} else {
-			method = this.getClass().getDeclaredMethod(methodName);
-			method.setAccessible(true);
-			result = method.invoke(this);
-		}
-
-		return result;
 	}
 	
 	/**
