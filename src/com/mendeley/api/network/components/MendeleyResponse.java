@@ -10,6 +10,9 @@ import com.mendeley.api.exceptions.MendeleyException;
  */
 public class MendeleyResponse {
 	
+	public int responseCode;
+	public MendeleyException mendeleyException;
+	
 	public String header;
 	public String date;
 	public String contentEncoding;
@@ -17,13 +20,8 @@ public class MendeleyResponse {
 	public String vary;
 	public String traceId;
 	public String connection;
-	public String linkNext;
-	public String linkLast;
 	public String contentLength;
 	public String location;
-	public int responseCode;
-	public Integer mendeleyCount;
-	public MendeleyException mendeleyException;
 	
 	@Override
 	public String toString() {
@@ -34,9 +32,6 @@ public class MendeleyResponse {
 			   ", vary: "+vary+
 			   ", traceId: "+traceId+
 			   ", connection: "+connection+
-			   ", linkNext: "+linkNext+
-   			   ", linkLast: "+linkLast+
-   			   ", mendeleyCount: " +mendeleyCount+
 			   ", contentLength: "+contentLength+
 			   ", responseCode: "+responseCode+
 			   ", mendeleyException: "+mendeleyException;

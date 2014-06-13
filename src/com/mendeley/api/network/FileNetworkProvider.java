@@ -158,8 +158,8 @@ public class FileNetworkProvider extends NetworkProvider {
 		File file;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 201;
+		protected int getExpectedResponse() {
+			return 201;
 		}
 		
 		@Override
@@ -210,9 +210,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);			
+				getResponseHeaders(con.getHeaderFields(), response, paging);			
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 
@@ -245,9 +245,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onFilePosted(file, response);			
+		protected void onSuccess() {
+			appInterface.onFilePosted(file, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFileNotPosted(exception);				
 		}
 	}
 	
@@ -263,8 +267,8 @@ public class FileNetworkProvider extends NetworkProvider {
 		List<File> files;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -278,9 +282,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);				
+				getResponseHeaders(con.getHeaderFields(), response, paging);				
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -301,9 +305,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {		
-			super.onPostExecute(result);
-			appInterface.onFilesReceived(files, response);			
+		protected void onSuccess() {		
+			appInterface.onFilesReceived(files, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {		
+			appInterface.onFilesNotReceived(exception);				
 		}
 	}
 	
@@ -322,8 +330,8 @@ public class FileNetworkProvider extends NetworkProvider {
 		String fileId;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 303;
+		protected int getExpectedResponse() {
+			return 303;
 		}
 		
 		@Override
@@ -341,9 +349,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);			
+				getResponseHeaders(con.getHeaderFields(), response, paging);			
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {		
 					con.disconnect();
@@ -390,9 +398,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {		
-			super.onPostExecute(result);
-			appInterface.onFileReceived(fileName, fileId, response);
+		protected void onSuccess() {		
+			appInterface.onFileReceived(fileName, fileId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {		
+			appInterface.onFileNotReceived(exception);				
 		}
 	}
 	
@@ -407,8 +419,8 @@ public class FileNetworkProvider extends NetworkProvider {
 		String fileId;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -421,9 +433,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);			
+				getResponseHeaders(con.getHeaderFields(), response, paging);			
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -440,9 +452,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {	
-			super.onPostExecute(result);
-			appInterface.onFileDeleted(fileId, response);
+		protected void onSuccess() {	
+			appInterface.onFileDeleted(fileId, paging);
+		}
+		
+		@Override
+		protected void onFailure(MendeleyException exception) {	
+			appInterface.onFileNotDeleted(exception);				
 		}
 	}
 
