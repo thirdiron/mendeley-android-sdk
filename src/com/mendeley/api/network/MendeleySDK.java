@@ -354,6 +354,13 @@ public class MendeleySDK {
 	}
 	
 	/**
+	 * public method to call clearCredentials method on the protected AuthenticationManager
+	 */
+	public void clearCredentials() {
+		authenticationManager.clearCredentials();
+	}
+	
+	/**
 	 * Checking if the current access token has expired
 	 * 
 	 * @return true if authenticated.
