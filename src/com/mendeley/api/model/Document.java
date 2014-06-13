@@ -45,8 +45,6 @@ public class Document implements Parcelable {
 	public String chapter;
 	public ArrayList<Person> editors;
 	
-	public boolean downloaded;
-	
 	final static String ET_EL = "et. al";
 		
 	public Document() {
@@ -205,8 +203,6 @@ public class Document implements Parcelable {
 	    	dest.writeString(person.forename);
 	    	dest.writeString(person.surname);
 	    }
-	    
-	    dest.writeByte((byte) (downloaded ? 1 : 0));  
 	}
 	
 	  
@@ -267,7 +263,5 @@ public class Document implements Parcelable {
 		    Person person = new Person(foreName, surname);
 		    editors.add(person);
 	    }
-		
-		downloaded = in.readByte() != 0; 
 	} 
 }
