@@ -203,10 +203,14 @@ public class AuthenticationManager implements Serializable {
 		}
 		
 		@Override
-		protected void onPostExecute(String result) {			
-			createRefreshHandler(false);
-			if (notify) {
-				authInterface.onAuthenticated();
+		protected void onPostExecute(String result) {		
+			if (result == null) {
+				authInterface.onAuthenticationFail();
+			} else {
+				createRefreshHandler(false);
+				if (notify) {
+					authInterface.onAuthenticated();
+				}
 			}
 		}
     }	

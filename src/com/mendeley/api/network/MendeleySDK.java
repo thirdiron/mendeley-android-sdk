@@ -9,6 +9,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
+import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.DocumentRequestParameters;
@@ -487,7 +488,7 @@ public class MendeleySDK implements AuthenticationInterface {
 	 */
 	@Override
 	public void onAuthenticationFail() {
-		Log.e("", "onAuthenticationFail");
+		((MendeleyInterface)appContext).onAPICallFail(new MendeleyException("Authentication failed"));
 	}
 	
 	/**

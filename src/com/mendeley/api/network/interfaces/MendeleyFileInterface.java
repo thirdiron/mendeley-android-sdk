@@ -18,5 +18,7 @@ public interface MendeleyFileInterface extends MendeleyInterface {
 	public void onFilePosted(File file, MendeleyResponse mendeleyResponse);
 	
 	public void onFileDeleted(String fileId, MendeleyResponse mendeleyResponse);
+	
+	public void onFileDownloadProgress(String fileId, int progress);
 
 }

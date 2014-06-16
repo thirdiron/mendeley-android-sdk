@@ -361,15 +361,26 @@ public class FileNetworkProvider extends NetworkProvider {
 						String content = con.getHeaderFields().get("Content-Disposition").get(0);
 						fileName = content.substring(content.indexOf("\"")+1, content.lastIndexOf("\""));
 						
+						int fileLength = con.getContentLength();
 						is = con.getInputStream();			
 						fileOutputStream = new FileOutputStream(new java.io.File(folderPath+java.io.File.separator+fileName));
-						byte[]  buffer = new byte[1024];
-				        int bufferLength = 0; 
-	
-				        while ((bufferLength = is.read(buffer)) > 0) {
-				        	fileOutputStream.write(buffer, 0, bufferLength);
-				        }
-	
+						
+						byte data[] = new byte[1024];
+			            long total = 0;
+			            int count;
+			            while ((count = is.read(data)) != -1) {
+			                total += count;
+			                if (fileLength > 0) 
+			                    publishProgress((int) (total * 100 / fileLength));
+			                fileOutputStream.write(data, 0, count);
+			            }
+//						byte[]  buffer = new byte[1024];
+//				        int bufferLength = 0; 
+//	
+//				        while ((bufferLength = is.read(buffer)) > 0) {
+//				        	fileOutputStream.write(buffer, 0, bufferLength);
+//				        }
+//	
 					    fileOutputStream.close();
 						
 						return null;
@@ -391,6 +402,12 @@ public class FileNetworkProvider extends NetworkProvider {
 			}
 		}
 		
+	    @Override
+	    protected void onProgressUpdate(Integer... progress) {
+	       
+	    	appInterface.onFileDownloadProgress(fileId, progress[0]);
+	    }
+	    
 		@Override
 		protected void onPostExecute(MendeleyException result) {		
 			super.onPostExecute(result);

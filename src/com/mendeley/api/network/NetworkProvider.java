@@ -16,8 +16,10 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.network.components.MendeleyResponse;
 
@@ -163,7 +165,7 @@ public class NetworkProvider {
 	 * AsyncTask class is extended by all AsyncTasks in the NetworkProvider subclasses
 	 * The class holds MendeleyResponse and stream objects that should be used in the subclasses.
 	 */
-	protected abstract class NetworkTask extends AsyncTask<String, Void, MendeleyException> {
+	protected abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException> {
 
 		MendeleyResponse response = new MendeleyResponse();
 		int expectedResponse;
@@ -192,6 +194,10 @@ public class NetworkProvider {
 		@Override
 		protected void onPostExecute(MendeleyException result) {	
 			response.mendeleyException = result;
+		}
+
+		protected void onProgressUpdate(Integer[] progress) {
+			super.onProgressUpdate();
 		}
 	}
 	
