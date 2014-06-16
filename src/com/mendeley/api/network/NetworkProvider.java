@@ -22,6 +22,7 @@ import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.network.components.MendeleyResponse;
+import com.mendeley.api.network.components.Paging;
 
 /**
  * This class provides common functionality for the other network providers that subclass it.
@@ -75,7 +76,8 @@ public class NetworkProvider {
 	 * @param response the response object to hold header data
 	 * @throws IOException
 	 */
-	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response) throws IOException {
+	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response, Paging paging)
+			throws IOException {
 
 		for (String key : headersMap.keySet()) {
 
@@ -104,15 +106,15 @@ public class NetworkProvider {
 								linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
 							} catch (IndexOutOfBoundsException e) {}
 							if (link.indexOf("next") != -1) {
-								response.linkNext = linkString;
+								paging.linkNext = linkString;
 							}
 							if (link.indexOf("last") != -1) {
-								response.linkLast = linkString;
+								paging.linkLast = linkString;
 							}
 						}
 						break;
 					case "Mendeley-Count":
-						response.mendeleyCount = Integer.parseInt(headersMap.get(key).get(0));
+						paging.mendeleyCount = Integer.parseInt(headersMap.get(key).get(0));
 						break;
 					case "Content-Length":
 						response.contentLength = headersMap.get(key).get(0);	
@@ -168,10 +170,12 @@ public class NetworkProvider {
 	protected abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException> {
 
 		MendeleyResponse response = new MendeleyResponse();
-		int expectedResponse;
+		Paging paging = new Paging();
 		InputStream is = null;
 		OutputStream os = null;
 		HttpsURLConnection con = null;
+		
+		protected abstract int getExpectedResponse();
 		
 		protected void closeConnection() {
 			if (con != null) {
@@ -192,13 +196,23 @@ public class NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {	
-			response.mendeleyException = result;
+		protected void onPostExecute(MendeleyException exception) {	
+			response.mendeleyException = exception;
+			if (exception == null) {
+				onSuccess();
+			} else {
+				onFailure(exception);
+			}
 		}
 
 		protected void onProgressUpdate(Integer[] progress) {
 			super.onProgressUpdate();
 		}
+		
+		protected abstract void onSuccess();
+		
+		protected abstract void onFailure(MendeleyException exception);
+
 	}
 	
 	/**

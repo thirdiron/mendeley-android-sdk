@@ -223,8 +223,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		String folderId = null;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -243,7 +243,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	        	HttpResponse response = httpclient.execute(httpPatch);				
 				int responseCode = response.getStatusLine().getStatusCode();	        	
 				
-				if (responseCode != expectedResponse) {
+				if (responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(response));
 				} else {
 					folderId = id;
@@ -255,9 +255,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onFolderPatched(folderId, response);
+		protected void onSuccess() {
+			appInterface.onFolderPatched(folderId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderNotPatched(exception);
 		}
 	}
 	
@@ -272,8 +276,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		String documentId = null;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -287,9 +291,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -303,9 +307,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onFolderDocumentDeleted(documentId, response);
+		protected void onSuccess() {
+			appInterface.onFolderDocumentDeleted(documentId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderDocumentNotDeleted(exception);
 		}
 	}
 	
@@ -320,8 +328,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		String folderId = null;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -335,9 +343,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = id;
@@ -351,9 +359,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onFolderDeleted(folderId, response);
+		protected void onSuccess() {
+			appInterface.onFolderDeleted(folderId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderNotDeleted(exception);
 		}
 	}
 	
@@ -368,8 +380,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		String folderId;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 201;
+		protected int getExpectedResponse() {
+			return 201;
 		}
 		
 		@Override
@@ -392,9 +404,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				os.close();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = params[2];
@@ -409,9 +421,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentPostedToFolder(folderId, response);
+		protected void onSuccess() {
+			appInterface.onDocumentPostedToFolder(folderId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotPostedToFolder(exception);
 		}
 	}
 	
@@ -426,8 +442,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		Folder folder;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 201;
+		protected int getExpectedResponse() {
+			return 201;
 		}
 		
 		@Override
@@ -450,9 +466,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				os.close();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
@@ -473,9 +489,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onFolderPosted(folder, response);
+		protected void onSuccess() {
+			appInterface.onFolderPosted(folder, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderNotPosted(exception);
 		}
 	}
 	
@@ -491,8 +511,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		List<String> documentIds;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -506,9 +526,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);				
+				getResponseHeaders(con.getHeaderFields(), response, paging);				
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -529,9 +549,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {	
-			super.onPostExecute(result);
-			appInterface.onFolderDocumentIdsReceived(documentIds, response);
+		protected void onSuccess() {
+			appInterface.onFolderDocumentIdsReceived(documentIds, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderDocumentIdsNotReceived(exception);
 		}
 	}
 	
@@ -547,8 +571,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		Folder folder;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -562,9 +586,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);					
+				getResponseHeaders(con.getHeaderFields(), response, paging);					
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -585,9 +609,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {		
-			super.onPostExecute(result);
-			appInterface.onFolderReceived(folder, response);
+		protected void onSuccess() {
+			appInterface.onFolderReceived(folder, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFolderNotReceived(exception);
 		}
 	}
 	
@@ -602,8 +630,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		List<Folder> folders;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -617,9 +645,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);					
+				getResponseHeaders(con.getHeaderFields(), response, paging);					
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -640,9 +668,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {	
-			super.onPostExecute(result);
-			appInterface.onFoldersReceived(folders, response);
+		protected void onSuccess() {
+			appInterface.onFoldersReceived(folders, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onFoldersNotReceived(exception);
 		}
 	}
 

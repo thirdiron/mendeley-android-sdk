@@ -50,12 +50,12 @@ public class ProfileNetworkProvider extends NetworkProvider {
 
 		Profile profile;
 		String id;
-		
-		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
-		}
 
+		@Override
+		protected int getExpectedResponse() {
+			return 200;
+		}
+		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
 
@@ -69,9 +69,9 @@ public class ProfileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);				
+				getResponseHeaders(con.getHeaderFields(), response, paging);				
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -91,12 +91,20 @@ public class ProfileNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {		
-			super.onPostExecute(result);
+		protected void onSuccess() {
 			if (id.equals("me")) {
-				appInterface.onMyProfileReceived(profile, response);	
+				appInterface.onMyProfileReceived(profile, paging);
 			} else {
-				appInterface.onProfileReceived(profile, response);	
+				appInterface.onProfileReceived(profile, paging);
+			}		
+		}
+		
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			if (id.equals("me")) {
+				appInterface.onMyProfileNotReceived(exception);
+			} else {
+				appInterface.onProfileNotReceived(exception);
 			}		
 		}
 	}

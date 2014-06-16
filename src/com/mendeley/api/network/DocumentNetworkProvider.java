@@ -252,8 +252,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		String documentId = null;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -273,7 +273,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	        	HttpResponse response = httpclient.execute(httpPatch);				
 				int responseCode = response.getStatusLine().getStatusCode();	        	
 				
-				if (responseCode != expectedResponse) {
+				if (responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(response));
 				} else {
 					documentId = id;
@@ -287,9 +287,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentPatched(documentId, response);
+		protected void onSuccess() {
+			appInterface.onDocumentPatched(documentId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotPatched(exception);
 		}
 	}
 	
@@ -304,8 +308,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		String documentId = null;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -319,9 +323,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -335,9 +339,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentDeleted(documentId, response);
+		protected void onSuccess() {
+			appInterface.onDocumentDeleted(documentId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotDeleted(exception);
 		}
 	}
 	
@@ -352,8 +360,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		String documentId = null;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 204;
+		protected int getExpectedResponse() {
+			return 204;
 		}
 		
 		@Override
@@ -367,9 +375,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -383,9 +391,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentTrashed(documentId, response);
+		protected void onSuccess() {
+			appInterface.onDocumentTrashed(documentId, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotTrashed(exception);
 		}
 	}
 	
@@ -400,8 +412,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		Document document;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 201;
+		protected int getExpectedResponse() {
+			return 201;
 		}
 		
 		@Override
@@ -426,9 +438,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 
-				if (response.responseCode != expectedResponse) {
+				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
@@ -449,9 +461,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentPosted(document, response);
+		protected void onSuccess() {
+			appInterface.onDocumentPosted(document, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotPosted(exception);
 		}
 	}
 	
@@ -467,8 +483,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		String date;
 		
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -482,9 +498,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					con.connect();
 
 					response.responseCode = con.getResponseCode();
-					getResponseHeaders(con.getHeaderFields(), response);	
+					getResponseHeaders(con.getHeaderFields(), response, paging);	
 					
-					if (response.responseCode != expectedResponse) {
+					if (response.responseCode != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
 					} else {
 
@@ -505,9 +521,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {
-			super.onPostExecute(result);
-			appInterface.onDocumentReceived(document, response);
+		protected void onSuccess() {
+			appInterface.onDocumentReceived(document, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentNotReceived(exception);
 		}
 	}
 
@@ -523,8 +543,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		List<Document> documents;
 
 		@Override
-		protected void onPreExecute() {
-			expectedResponse = 200;
+		protected int getExpectedResponse() {
+			return 200;
 		}
 		
 		@Override
@@ -538,7 +558,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response);	
+				getResponseHeaders(con.getHeaderFields(), response, paging);	
 				
 				if (response.responseCode != 200) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -561,9 +581,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		}
 		
 		@Override
-		protected void onPostExecute(MendeleyException result) {	
-			super.onPostExecute(result);
-			appInterface.onDocumentsReceived(documents, response);			
+		protected void onSuccess() {
+			appInterface.onDocumentsReceived(documents, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentsNotReceived(exception);
 		}
 	}
 	

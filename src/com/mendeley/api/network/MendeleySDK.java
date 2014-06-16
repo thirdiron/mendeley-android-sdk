@@ -26,17 +26,17 @@ import com.mendeley.api.util.Utils;
 /**
  * This class should be instantiated with the calling activity context.
  * The class provides public methods for network calls which are forwarded to the relevant network providers.
- * It also calls the AuthenticationMAnager for retrieving a valid access token and store the credentials. 
+ * It also calls the AuthenticationManager for retrieving a valid access token and store the credentials. 
  * The context is used for displaying the authentication WebView, storing credentials in SharedPreferences 
  * and is also checked to see which interfaces the activity implements for sending callbacks once a network task has finished.
  */
-public class MendeleySDK implements AuthenticationInterface {
+public class MendeleySDK {
 	
 	protected Context appContext;
-	protected AuthenticationManager authentictionManager;
+	protected AuthenticationManager authenticationManager;
 	protected MethodtoInvoke methodToInvoke;
 	
-	protected DocumentNetworkProvider documentdNetworkProvider;
+	protected DocumentNetworkProvider documentNetworkProvider;
 	protected FileNetworkProvider fileNetworkProvider;
 	protected ProfileNetworkProvider profileNetworkProvider;
 	protected FolderNetworkProvider folderNetworkProvider;
@@ -49,89 +49,24 @@ public class MendeleySDK implements AuthenticationInterface {
 	public MendeleySDK(Context appContext) {
 		this.appContext = appContext;
 		
-		authentictionManager = new AuthenticationManager(appContext, this);
+		authenticationManager = new AuthenticationManager(appContext, new AuthenticationInterface() {
+			@Override
+			public void onAuthenticated() {
+				invokeMethod();
+			}
+			
+			@Override
+			public void onAuthenticationFail() {
+				Log.e("", "onAuthenticationFail");
+			}
+		});
 		initialiseInterfaces(appContext);
 		
 		if (!hasCredentials()) {
-			authentictionManager.authenticate();
+			authenticationManager.authenticate();
 		}
 	}
-	
-	/**
-	 * Checking the given context to see which interfaces are implemented by the calling activity
-	 * and initialising the relevant objects for sending callbacks.
-	 * 
-	 * @param context the calling activity context.
-	 */
-	private void initialiseInterfaces(Context context) {
-		
-		if (context instanceof MendeleyDocumentInterface) {
-			documentInterface = (MendeleyDocumentInterface) context;
-		}
-		
-		if (context instanceof MendeleyFolderInterface) {
-			folderInterface = (MendeleyFolderInterface) context;
-		}
-		
-		if (context instanceof MendeleyFileInterface) {
-			fileInterface = (MendeleyFileInterface) context;
-		}
-		
-		if (context instanceof MendeleyProfileInterface) {
-			profileInterface = (MendeleyProfileInterface) context;
-		}
-		
-		documentdNetworkProvider = new DocumentNetworkProvider(documentInterface);
-		fileNetworkProvider = new FileNetworkProvider(fileInterface);
-		profileNetworkProvider = new ProfileNetworkProvider(profileInterface);
-		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
-	} 
-	
 
-	/**
-	 * public method to call hasCredentials method on the protected AuthenticationManager
-	 * 
-	 * @return true if credentials are stored already in SharedPreferences.
-	 */
-	public boolean hasCredentials() {
-		return authentictionManager.hasCredentials();
-	}
-	
-	/**
-	 * public method to call clearCredentials method on the protected AuthenticationManager
-	 */
-	public void clearCredentials() {
-		authentictionManager.clearCredentials();
-	}
-	
-	/**
-	 * Checking if the current access token has expired
-	 * 
-	 * @return true if authenticated.
-	 */
-	private boolean isAuthenticated() {
-
-		boolean isAuthenticated = false;
-		
-		if (NetworkProvider.accessToken != null && NetworkProvider.expiresAt != null) {
-			Date now = new Date();
-			Date expires = null;
-			try {
-				expires = Utils.dateFormat.parse(NetworkProvider.expiresAt);
-			} catch (ParseException e) {
-				Log.e("", "", e);
-				return false;
-			}
-
-			long diffInMs = expires.getTime() - now.getTime();
-			long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-			
-			isAuthenticated = diffInSec > 0;
-		}
-
-		return isAuthenticated;
-	}
-	
 	/**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
@@ -341,7 +276,7 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{DocumentRequestParameters.class}, 
 									 new Object[]{parameters})) {
-			documentdNetworkProvider.doGetDocuments(parameters);
+			documentNetworkProvider.doGetDocuments(parameters);
 		}
 	}
 
@@ -356,7 +291,7 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{String.class,DocumentRequestParameters.class}, 
 									 new Object[]{documentId, parameters})) {
-			documentdNetworkProvider.doGetDocument(documentId, parameters);
+			documentNetworkProvider.doGetDocument(documentId, parameters);
 		}
 	}
 	
@@ -370,7 +305,7 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{String.class}, 
 							 		 new Object[]{documentId})) {
-			documentdNetworkProvider.doPostTrashDocument(documentId);
+			documentNetworkProvider.doPostTrashDocument(documentId);
 		}
 	}
 	
@@ -384,7 +319,7 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{String.class},
 									 new Object[]{documentId})) {
-			documentdNetworkProvider.doDeleteDocument(documentId);
+			documentNetworkProvider.doDeleteDocument(documentId);
 		}
 	}
 	
@@ -398,7 +333,7 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{Document.class}, 
 									 new Object[]{document})) {
-			documentdNetworkProvider.doPostDocument(document);
+			documentNetworkProvider.doPostDocument(document);
 		}
 	}
 
@@ -415,11 +350,84 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{String.class, Date.class, Document.class}, 
 									 new Object[]{documentId, date, document})) {
-			documentdNetworkProvider.doPatchDocument(documentId, date, document);
+			documentNetworkProvider.doPatchDocument(documentId, date, document);
 		}
 	}
 	
+	/**
+	 * public method to call clearCredentials method on the protected AuthenticationManager
+	 */
+	public void clearCredentials() {
+		authenticationManager.clearCredentials();
+	}
 	
+	/**
+	 * Checking if the current access token has expired
+	 * 
+	 * @return true if authenticated.
+	 */
+	private boolean isAuthenticated() {
+
+		boolean isAuthenticated = false;
+		
+		if (NetworkProvider.accessToken != null && NetworkProvider.expiresAt != null) {
+			Date now = new Date();
+			Date expires = null;
+			try {
+				expires = Utils.dateFormat.parse(NetworkProvider.expiresAt);
+			} catch (ParseException e) {
+				Log.e("", "", e);
+				return false;
+			}
+
+			long diffInMs = expires.getTime() - now.getTime();
+			long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
+			
+			isAuthenticated = diffInSec > 0;
+		}
+
+		return isAuthenticated;
+	}
+	
+	/**
+	 * Call hasCredentials method on the protected AuthenticationManager
+	 * 
+	 * @return true if credentials are stored already in SharedPreferences.
+	 */
+	private boolean hasCredentials() {
+		return authenticationManager.hasCredentials();
+	}
+	
+	/**
+	 * Checking the given context to see which interfaces are implemented by the calling activity
+	 * and initialising the relevant objects for sending callbacks.
+	 * 
+	 * @param context the calling activity context.
+	 */
+	private void initialiseInterfaces(Context context) {
+		
+		if (context instanceof MendeleyDocumentInterface) {
+			documentInterface = (MendeleyDocumentInterface) context;
+		}
+		
+		if (context instanceof MendeleyFolderInterface) {
+			folderInterface = (MendeleyFolderInterface) context;
+		}
+		
+		if (context instanceof MendeleyFileInterface) {
+			fileInterface = (MendeleyFileInterface) context;
+		}
+		
+		if (context instanceof MendeleyProfileInterface) {
+			profileInterface = (MendeleyProfileInterface) context;
+		}
+		
+		documentNetworkProvider = new DocumentNetworkProvider(documentInterface);
+		fileNetworkProvider = new FileNetworkProvider(fileInterface);
+		profileNetworkProvider = new ProfileNetworkProvider(profileInterface);
+		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
+	} 
+		
 	/**
 	 * First checking that the MendeleyInterface has been instantiated for sending callbacks to the application, if not throwing InterfaceNotImplementedException.
 	 * Then checking if client is authenticated, if false initialising the MethodToInvoke object with the calling method name and its arguments
@@ -438,10 +446,10 @@ public class MendeleySDK implements AuthenticationInterface {
 		if (!isAuthenticated()) {
 			if (classes == null) {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
-				authentictionManager.authenticate();
+				authenticationManager.authenticate();
 			} else {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
-				authentictionManager.authenticate();
+				authenticationManager.authenticate();
 			}
 			
 		} else {
@@ -475,23 +483,6 @@ public class MendeleySDK implements AuthenticationInterface {
 	}
 
 	/**
-	 * A callback method that is called from AuthenticationManager when client has been authenticated. 
-	 */
-	@Override
-	public void onAuthenticated() {
-		invokeMethod();
-	}
-	
-
-	/**
-	 * A callback method that is called from AuthenticationManager when client has failed to be authenticated. 
-	 */
-	@Override
-	public void onAuthenticationFail() {
-		((MendeleyInterface)appContext).onAPICallFail(new MendeleyException("Authentication failed"));
-	}
-	
-	/**
 	 * Inner class that holds details of the method and arguments to be called once the client has been authenticated.
 	 *
 	 */
@@ -514,7 +505,6 @@ public class MendeleySDK implements AuthenticationInterface {
 			this.arguments = arguments;
 		}
 	}
-
 	
 	/**
 	 * public default constructor for junit testing.
