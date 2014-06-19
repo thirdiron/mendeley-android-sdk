@@ -12,6 +12,7 @@ import org.json.JSONException;
 
 import android.util.Log;
 
+import com.mendeley.api.exceptions.FileDownloadException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -380,13 +381,6 @@ public class FileNetworkProvider extends NetworkProvider {
 			                    publishProgress((int) (total * 100 / fileLength));
 			                fileOutputStream.write(data, 0, count);
 			            }
-//						byte[]  buffer = new byte[1024];
-//				        int bufferLength = 0; 
-//	
-//				        while ((bufferLength = is.read(buffer)) > 0) {
-//				        	fileOutputStream.write(buffer, 0, bufferLength);
-//				        }
-//	
 					    fileOutputStream.close();
 						
 						return null;
@@ -394,7 +388,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				}
 				 
 			}	catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
+				return new FileDownloadException(e.getMessage(), fileId);
 			} finally {
 				closeConnection();
 				if (fileOutputStream != null) {
@@ -402,7 +396,7 @@ public class FileNetworkProvider extends NetworkProvider {
 						fileOutputStream.close();
 						fileOutputStream = null;
 					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
+						return new FileDownloadException(e.getMessage(), fileId);
 					}
 				}
 			}
@@ -410,7 +404,6 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
-	       
 	    	appInterface.onFileDownloadProgress(fileId, progress[0]);
 	    }
 	    

@@ -47,8 +47,6 @@ public class DialogActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         if (getScreenSize() > SMALL_SCREEN_SIZE) {
         	super.setTheme( android.R.style.Theme_Holo_Dialog);

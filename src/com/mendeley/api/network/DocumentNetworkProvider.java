@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -29,6 +30,8 @@ import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 public class DocumentNetworkProvider extends NetworkProvider {
 
 	private static String documentsUrl = apiUrl + "documents";
+	
+	private static String documentTypesUrl = apiUrl + "document_types";
 	
 	public static SimpleDateFormat patchDateFormat =  new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 
@@ -181,6 +184,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		url.append(paramsString.toString());
 		return url.toString();
 	}
+	
+	/**
+	 * Getting the appropriate url string and executes the GetDocumentTypesTask.
+	 * 
+	 * @param params the document request parameters
+	 */
+	protected void doGetDocumentTypes() {
+		new GetDocumentTypesTask().execute(documentTypesUrl);		  
+	}
+	
 	
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentsTask.
@@ -528,6 +541,67 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			appInterface.onDocumentNotReceived(exception);
+		}
+	}
+	
+	
+	/**
+	 * Executing the api call for getting a document types in the background.
+	 * sending the data to the relevant callback method in the MendeleyDocumentInterface.
+	 * If the call response code is different than expected or an exception is being thrown in the process
+	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
+	 */
+	protected class GetDocumentTypesTask extends NetworkTask {
+
+		Map<String, String> typesMap;
+		String date;
+		
+		@Override
+		protected int getExpectedResponse() {
+			return 200;
+		}
+		
+		@Override
+		protected MendeleyException doInBackground(String... params) {
+
+				String url = params[0];
+
+				try {
+					con = getConnection(url, "GET");
+					con.addRequestProperty("Content-type", "application/vnd.mendeley-document-type.1+json"); 
+					con.connect();
+
+					response.responseCode = con.getResponseCode();
+					getResponseHeaders(con.getHeaderFields(), response, paging);	
+					
+					if (response.responseCode != getExpectedResponse()) {
+						return new HttpResponseException(getErrorMessage(con));
+					} else {
+
+						is = con.getInputStream();
+						String jsonString = getJsonString(is);					
+
+						JsonParser parser = new JsonParser();
+						typesMap = parser.parseDocumentTypes(jsonString);
+						
+						return null;
+					}
+					
+				} catch (IOException | JSONException e) {
+					return new JsonParsingException(e.getMessage());
+				} finally {
+					closeConnection();
+				}
+		}
+		
+		@Override
+		protected void onSuccess() {
+			appInterface.onDocumentTypesReceived(typesMap, paging);
+		}
+
+		@Override
+		protected void onFailure(MendeleyException exception) {
+			appInterface.onDocumentTypesNotReceived(exception);
 		}
 	}
 

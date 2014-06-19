@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -144,6 +146,20 @@ public class JsonParser {
 		}
 		
 		return documentIds;
+	}
+	
+	Map<String, String> parseDocumentTypes(String jsonString) throws JSONException{
+		Map<String, String> typesMap = new HashMap<String, String>();
+		
+		JSONArray jsonarray = new JSONArray(jsonString);
+		
+		for (int i = 0; i < jsonarray.length(); i++) {
+			JSONObject jsonObject = jsonarray.getJSONObject(i);
+			String key = jsonObject.getString("name");
+			String value = jsonObject.getString("description");
+			typesMap.put(key, value);
+		}
+		return typesMap;
 	}
 
 	/**
@@ -628,5 +644,5 @@ public class JsonParser {
 		
 		return data.toString();
 	}
-
+	
 }

@@ -1,6 +1,7 @@
 package com.mendeley.api.network.interfaces;
 
 import java.util.List;
+import java.util.Map;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
@@ -29,4 +30,7 @@ public interface MendeleyDocumentInterface extends MendeleyInterface {
 	
 	public void onDocumentPatched(String documentId, Paging paging);
 	public void onDocumentNotPatched(MendeleyException mendeleyException);
+	
+	public void onDocumentTypesReceived(Map<String, String> typesMap, Paging paging);
+	public void onDocumentTypesNotReceived(MendeleyException mendeleyException);
 }

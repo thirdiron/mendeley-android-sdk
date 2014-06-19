@@ -279,6 +279,21 @@ public class MendeleySDK {
 			documentNetworkProvider.doGetDocuments(parameters);
 		}
 	}
+	
+	/**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @param parameters holds optional query parameters, will be ignored if null
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getDocumentTypes() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 null, 
+								 	 null)) {
+			documentNetworkProvider.doGetDocumentTypes();
+		}
+	}
+
 
 	/**
 	 * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
