@@ -76,8 +76,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		try {
 			new PostDocumentTask().execute(documentsUrl, parser.jsonFromDocument(document));			
 		} catch (JSONException e) {
-			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
-		}
+            appInterface.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
+        }
 	}
 	
 	/**
@@ -187,8 +187,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentTypesTask.
-	 * 
-	 * @param params the document request parameters
 	 */
 	protected void doGetDocumentTypes() {
 		new GetDocumentTypesTask().execute(documentTypesUrl);		  
@@ -205,8 +203,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			new GetDocumentsTask().execute(getGetDocumentsUrl(params));		  
 		}
 		catch (UnsupportedEncodingException e) {
-			appInterface.onAPICallFail(new MendeleyException(e.getMessage()));
-		}
+            appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
+        }
 	}
 	
 	/**
@@ -249,8 +247,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			document.title += " patched!";
 			new PatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
 		} catch (JSONException e) {
-			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
-		}
+            appInterface.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
+        }
 	}
 	
 	/**

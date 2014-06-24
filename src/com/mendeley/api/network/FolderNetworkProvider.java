@@ -111,8 +111,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		try {
 			new PostFolderTask().execute(foldersUrl, parser.jsonFromFolder(folder));			
 		} catch (JSONException e) {
-			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
-		}
+            appInterface.onFolderNotPosted(new JsonParsingException(e.getMessage()));
+        }
 	}
 	
 	/**
@@ -138,8 +138,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 			try {
 				documentString = parser.jsonFromDocumentId(documentId);
 			} catch (JSONException e) {
-				appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
-			}
+                appInterface.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
+            }
 		}	
 		new PostDocumentToFolderTask().execute(getPostDocumentToFolderUrl(folderId), documentString, folderId);	
 	}
@@ -205,8 +205,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		try {
 			folderString  = parser.jsonFromFolder(folder);
 		} catch (JSONException e) {
-			appInterface.onAPICallFail(new JsonParsingException(e.getMessage()));
-		}
+            appInterface.onFolderNotPatched(new JsonParsingException(e.getMessage()));
+        }
 		
 		new PatchFolderTask().execute(getPatchFolderUrl(folderId), folderId, folderString);	
 	}
