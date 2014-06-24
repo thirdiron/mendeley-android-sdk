@@ -170,7 +170,7 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
 	protected File parseFile(String jsonString) throws JSONException {
-		File mendeleyFile = new File();
+		File.Builder mendeleyFile = new File.Builder();
 		
 		JSONObject documentObject = new JSONObject(jsonString);
 		
@@ -180,24 +180,24 @@ public class JsonParser {
 			String key = keysIter.next();
 			switch (key) {			  
 				case "id":
-					mendeleyFile.id = documentObject.getString(key);
+					mendeleyFile.setId(documentObject.getString(key));
 					break;
 				case "document_id":
-					mendeleyFile.documentId = documentObject.getString(key);
+					mendeleyFile.setDocumentId(documentObject.getString(key));
 					break;
 				case "mime_type":
-					mendeleyFile.mimeType = documentObject.getString(key);
+					mendeleyFile.setMimeType(documentObject.getString(key));
 					break;
 				case "file_name":
-					mendeleyFile.fileName = documentObject.getString(key);
+					mendeleyFile.setFileName(documentObject.getString(key));
 					break;
 				case "filehash":
-					mendeleyFile.fileHash = documentObject.getString(key);
+					mendeleyFile.setFileHash(documentObject.getString(key));
 					break;
 			}
 		}
 		
-		return mendeleyFile;
+		return mendeleyFile.build();
 	}
 	
 	/**
