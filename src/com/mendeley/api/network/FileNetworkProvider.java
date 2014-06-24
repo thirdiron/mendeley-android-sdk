@@ -93,7 +93,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			new GetFilesTask().execute(getGetFilesUrl(params));		
 		}
 		catch (UnsupportedEncodingException e) {
-			appInterface.onAPICallFail(new MendeleyException(e.getMessage()));
+            appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
 		}
 	}
 	

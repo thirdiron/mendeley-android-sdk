@@ -32,7 +32,6 @@ import com.mendeley.api.util.Utils;
  */
 public class MendeleySDK {
 	
-	protected Context appContext;
 	protected AuthenticationManager authenticationManager;
 	protected MethodtoInvoke methodToInvoke;
 	
@@ -46,10 +45,8 @@ public class MendeleySDK {
 	protected MendeleyFileInterface fileInterface;
 	protected MendeleyProfileInterface profileInterface;
 
-	public MendeleySDK(Context appContext) {
-		this.appContext = appContext;
-		
-		authenticationManager = new AuthenticationManager(appContext, new AuthenticationInterface() {
+	public MendeleySDK(Context context, Object callbacks) {
+		authenticationManager = new AuthenticationManager(context, new AuthenticationInterface() {
 			@Override
 			public void onAuthenticated() {
 				invokeMethod();
@@ -60,7 +57,7 @@ public class MendeleySDK {
 				Log.e("", "onAuthenticationFail");
 			}
 		});
-		initialiseInterfaces(appContext);
+		initialiseInterfaces(callbacks);
 		
 		if (!hasCredentials()) {
 			authenticationManager.authenticate();
@@ -283,7 +280,6 @@ public class MendeleySDK {
 	/**
 	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
 	 * 
-	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocumentTypes() throws InterfaceNotImplementedException {
@@ -417,24 +413,24 @@ public class MendeleySDK {
 	 * Checking the given context to see which interfaces are implemented by the calling activity
 	 * and initialising the relevant objects for sending callbacks.
 	 * 
-	 * @param context the calling activity context.
+	 * @param callbacks the requester's callbacks.
 	 */
-	private void initialiseInterfaces(Context context) {
+	private void initialiseInterfaces(Object callbacks) {
 		
-		if (context instanceof MendeleyDocumentInterface) {
-			documentInterface = (MendeleyDocumentInterface) context;
+		if (callbacks instanceof MendeleyDocumentInterface) {
+			documentInterface = (MendeleyDocumentInterface) callbacks;
 		}
 		
-		if (context instanceof MendeleyFolderInterface) {
-			folderInterface = (MendeleyFolderInterface) context;
+		if (callbacks instanceof MendeleyFolderInterface) {
+			folderInterface = (MendeleyFolderInterface) callbacks;
 		}
 		
-		if (context instanceof MendeleyFileInterface) {
-			fileInterface = (MendeleyFileInterface) context;
+		if (callbacks instanceof MendeleyFileInterface) {
+			fileInterface = (MendeleyFileInterface) callbacks;
 		}
 		
-		if (context instanceof MendeleyProfileInterface) {
-			profileInterface = (MendeleyProfileInterface) context;
+		if (callbacks instanceof MendeleyProfileInterface) {
+			profileInterface = (MendeleyProfileInterface) callbacks;
 		}
 		
 		documentNetworkProvider = new DocumentNetworkProvider(documentInterface);
