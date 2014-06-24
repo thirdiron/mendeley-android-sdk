@@ -353,7 +353,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				getResponseHeaders(con.getHeaderFields(), response, paging);			
 
 				if (response.responseCode != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
+					return new FileDownloadException(getErrorMessage(con), fileId);
 				} else {		
 					con.disconnect();
 					
@@ -363,7 +363,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					int responseCode = con.getResponseCode();
 					
 					if (responseCode != 200) {
-						return new HttpResponseException(getErrorMessage(con));
+						return new FileDownloadException(getErrorMessage(con), fileId);
 					} else {
 						String content = con.getHeaderFields().get("Content-Disposition").get(0);
 						fileName = content.substring(content.indexOf("\"")+1, content.lastIndexOf("\""));
