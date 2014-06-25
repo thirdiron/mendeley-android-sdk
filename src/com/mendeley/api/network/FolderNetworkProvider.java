@@ -256,7 +256,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderPatched(folderId, paging);
+			appInterface.onFolderPatched(folderId);
 		}
 
 		@Override
@@ -308,7 +308,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderDocumentDeleted(documentId, paging);
+			appInterface.onFolderDocumentDeleted(documentId);
 		}
 
 		@Override
@@ -360,7 +360,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderDeleted(folderId, paging);
+			appInterface.onFolderDeleted(folderId);
 		}
 
 		@Override
@@ -422,7 +422,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentPostedToFolder(folderId, paging);
+			appInterface.onDocumentPostedToFolder(folderId);
 		}
 
 		@Override
@@ -490,7 +490,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderPosted(folder, paging);
+			appInterface.onFolderPosted(folder);
 		}
 
 		@Override
@@ -610,7 +610,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderReceived(folder, paging);
+			appInterface.onFolderReceived(folder);
 		}
 
 		@Override

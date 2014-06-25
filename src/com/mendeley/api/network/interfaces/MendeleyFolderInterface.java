@@ -15,25 +15,25 @@ public interface MendeleyFolderInterface extends MendeleyInterface{
 	public void onFoldersReceived(List<Folder> folders, Paging paging);
 	public void onFoldersNotReceived(MendeleyException mendeleyException);
 	
-	public void onFolderReceived(Folder folder, Paging paging);
+	public void onFolderReceived(Folder folder);
 	public void onFolderNotReceived(MendeleyException mendeleyException);
 		
 	public void onFolderDocumentIdsReceived(List<String> documentIds, Paging paging);
 	public void onFolderDocumentIdsNotReceived(MendeleyException mendeleyException);
 	
-	public void onFolderPosted(Folder folder, Paging paging);
+	public void onFolderPosted(Folder folder);
 	public void onFolderNotPosted(MendeleyException mendeleyException);
 	
-	public void onDocumentPostedToFolder(String folderId, Paging paging);
+	public void onDocumentPostedToFolder(String folderId);
 	public void onDocumentNotPostedToFolder(MendeleyException mendeleyException);
 	
-	public void onFolderDeleted(String folderId, Paging paging);
+	public void onFolderDeleted(String folderId);
 	public void onFolderNotDeleted(MendeleyException mendeleyException);
 	
-	public void onFolderDocumentDeleted(String documentId, Paging paging);
+	public void onFolderDocumentDeleted(String documentId);
 	public void onFolderDocumentNotDeleted(MendeleyException mendeleyException);
 	
-	public void onFolderPatched(String folderId, Paging paging);
+	public void onFolderPatched(String folderId);
 	public void onFolderNotPatched(MendeleyException mendeleyException);
 	
 }

@@ -16,21 +16,21 @@ public interface MendeleyDocumentInterface extends MendeleyInterface {
 	public void onDocumentsReceived(List<Document> documents, Paging paging);
 	public void onDocumentsNotReceived(MendeleyException mendeleyException);
 	
-	public void onDocumentReceived(Document document, Paging paging);
+	public void onDocumentReceived(Document document);
 	public void onDocumentNotReceived(MendeleyException mendeleyException);
 	
-	public void onDocumentPosted(Document document, Paging paging);
+	public void onDocumentPosted(Document document);
 	public void onDocumentNotPosted(MendeleyException mendeleyException);
 	
-	public void onDocumentTrashed(String documentId, Paging paging);
+	public void onDocumentTrashed(String documentId);
 	public void onDocumentNotTrashed(MendeleyException mendeleyException);
 	
-	public void onDocumentDeleted(String documentId, Paging paging);
+	public void onDocumentDeleted(String documentId);
 	public void onDocumentNotDeleted(MendeleyException mendeleyException);
 	
-	public void onDocumentPatched(String documentId, Paging paging);
+	public void onDocumentPatched(String documentId);
 	public void onDocumentNotPatched(MendeleyException mendeleyException);
 	
-	public void onDocumentTypesReceived(Map<String, String> typesMap, Paging paging);
+	public void onDocumentTypesReceived(Map<String, String> typesMap);
 	public void onDocumentTypesNotReceived(MendeleyException mendeleyException);
 }

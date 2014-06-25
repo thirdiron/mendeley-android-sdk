@@ -15,15 +15,15 @@ public interface MendeleyFileInterface extends MendeleyInterface {
 	public void onFilesReceived(List<File> files, Paging paging);
 	public void onFilesNotReceived(MendeleyException mendeleyException);
 	
-	public void onFileReceived(String fileName, String fileId, Paging paging);
+	public void onFileReceived(String fileName, String fileId);
 	public void onFileNotReceived(MendeleyException mendeleyException);
 	
-	public void onFilePosted(File file, Paging paging);
+	public void onFilePosted(File file);
 	public void onFileNotPosted(MendeleyException mendeleyException);
 	
 	public void onFileDownloadProgress(String fileId, int progress);
 
-	public void onFileDeleted(String fileId, Paging paging);
+	public void onFileDeleted(String fileId);
 	public void onFileNotDeleted(MendeleyException mendeleyException);
 
 

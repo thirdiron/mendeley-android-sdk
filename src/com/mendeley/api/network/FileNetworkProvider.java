@@ -247,7 +247,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFilePosted(file, paging);
+			appInterface.onFilePosted(file);
 		}
 
 		@Override
@@ -409,7 +409,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	    
 		@Override
 		protected void onSuccess() {		
-			appInterface.onFileReceived(fileName, fileId, paging);
+			appInterface.onFileReceived(fileName, fileId);
 		}
 
 		@Override
@@ -463,7 +463,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {	
-			appInterface.onFileDeleted(fileId, paging);
+			appInterface.onFileDeleted(fileId);
 		}
 		
 		@Override
