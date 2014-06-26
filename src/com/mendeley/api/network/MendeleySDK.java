@@ -9,12 +9,12 @@ import android.content.Context;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
-import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.DocumentRequestParameters;
 import com.mendeley.api.network.components.FileRequestParameters;
 import com.mendeley.api.network.components.FolderRequestParameters;
+import com.mendeley.api.network.components.Paging;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -274,6 +274,20 @@ public class MendeleySDK {
 									 new Class[]{DocumentRequestParameters.class}, 
 									 new Object[]{parameters})) {
 			documentNetworkProvider.doGetDocuments(parameters);
+		}
+	}
+	
+	/**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * 
+	 * @paging reference to next page returned by a previous onDocumentsReceived() callback.
+	 * @throws InterfaceNotImplementedException
+	 */
+	public void getDocuments(Paging paging) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{DocumentRequestParameters.class}, 
+									 new Object[]{paging})) {
+			documentNetworkProvider.doGetDocuments(paging);
 		}
 	}
 	

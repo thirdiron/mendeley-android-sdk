@@ -19,8 +19,10 @@ import org.json.JSONException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.DocumentRequestParameters;
+import com.mendeley.api.network.components.Paging;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
 /**
@@ -205,6 +207,23 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		catch (UnsupportedEncodingException e) {
             appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
         }
+	}
+	
+	/**
+	 * Getting the appropriate url string and executes the GetDocumentsTask.
+	 * 
+	 * @param paging reference to next page
+	 */
+	protected void doGetDocuments(Paging paging) {
+		if (isValidPage(paging)) {
+			new GetDocumentsTask().execute(paging.linkNext);
+		} else {
+            appInterface.onDocumentsNotReceived(new NoMorePagesException());
+		}
+	}
+	
+	private boolean isValidPage(Paging paging) {
+		return paging != null && paging.linkNext != null && paging.linkNext.length() > 0;
 	}
 	
 	/**
