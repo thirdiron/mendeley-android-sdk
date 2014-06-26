@@ -299,7 +299,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentPatched(documentId, paging);
+			appInterface.onDocumentPatched(documentId);
 		}
 
 		@Override
@@ -351,7 +351,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentDeleted(documentId, paging);
+			appInterface.onDocumentDeleted(documentId);
 		}
 
 		@Override
@@ -403,7 +403,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentTrashed(documentId, paging);
+			appInterface.onDocumentTrashed(documentId);
 		}
 
 		@Override
@@ -473,7 +473,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentPosted(document, paging);
+			appInterface.onDocumentPosted(document);
 		}
 
 		@Override
@@ -533,7 +533,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentReceived(document, paging);
+			appInterface.onDocumentReceived(document);
 		}
 
 		@Override
@@ -594,7 +594,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentTypesReceived(typesMap, paging);
+			appInterface.onDocumentTypesReceived(typesMap);
 		}
 
 		@Override

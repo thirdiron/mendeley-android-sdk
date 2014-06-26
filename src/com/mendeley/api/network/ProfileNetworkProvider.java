@@ -93,9 +93,9 @@ public class ProfileNetworkProvider extends NetworkProvider {
 		@Override
 		protected void onSuccess() {
 			if (id.equals("me")) {
-				appInterface.onMyProfileReceived(profile, paging);
+				appInterface.onMyProfileReceived(profile);
 			} else {
-				appInterface.onProfileReceived(profile, paging);
+				appInterface.onProfileReceived(profile);
 			}		
 		}
 		

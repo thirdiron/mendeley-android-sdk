@@ -9,11 +9,11 @@ import com.mendeley.api.network.components.Paging;
  */
 public interface MendeleyProfileInterface extends MendeleyInterface {
 	
-	public void onProfileReceived(Profile profile, Paging paging);
+	public void onProfileReceived(Profile profile);
 	
 	public void onProfileNotReceived(MendeleyException mendeleyException);
 
-	public void onMyProfileReceived(Profile profile, Paging paging);
+	public void onMyProfileReceived(Profile profile);
 
 	public void onMyProfileNotReceived(MendeleyException mendeleyException);
 	
