@@ -2,7 +2,6 @@ package com.mendeley.api.network.interfaces;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
-import com.mendeley.api.network.components.Paging;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from profile network calls.

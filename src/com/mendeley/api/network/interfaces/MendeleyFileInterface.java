@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from file network calls.
@@ -12,7 +12,7 @@ import com.mendeley.api.network.components.Paging;
  */
 public interface MendeleyFileInterface extends MendeleyInterface {
 
-	public void onFilesReceived(List<File> files, Paging paging);
+	public void onFilesReceived(List<File> files, Page next);
 	public void onFilesNotReceived(MendeleyException mendeleyException);
 	
 	public void onFileReceived(String fileName, String fileId);

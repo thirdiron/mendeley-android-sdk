@@ -69,7 +69,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);				
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));

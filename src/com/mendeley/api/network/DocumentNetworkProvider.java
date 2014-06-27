@@ -22,7 +22,7 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.network.components.DocumentRequestParameters;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
 /**
@@ -212,11 +212,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentsTask.
 	 * 
-	 * @param paging reference to next page
+	 * @param next reference to next page
 	 */
-	protected void doGetDocuments(Paging paging) {
-		if (Paging.isValidPage(paging)) {
-			new GetDocumentsTask().execute(paging.linkNext);
+	protected void doGetDocuments(Page next) {
+		if (Page.isValidPage(next)) {
+			new GetDocumentsTask().execute(next.link);
 		} else {
             appInterface.onDocumentsNotReceived(new NoMorePagesException());
 		}
@@ -349,7 +349,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);	
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -401,7 +401,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);	
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -464,7 +464,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);	
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -524,7 +524,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					con.connect();
 
 					response.responseCode = con.getResponseCode();
-					getResponseHeaders(con.getHeaderFields(), response, paging);	
+					getResponseHeaders(con.getHeaderFields(), response, next);
 					
 					if (response.responseCode != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
@@ -585,7 +585,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					con.connect();
 
 					response.responseCode = con.getResponseCode();
-					getResponseHeaders(con.getHeaderFields(), response, paging);	
+					getResponseHeaders(con.getHeaderFields(), response, next);
 					
 					if (response.responseCode != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
@@ -645,7 +645,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);	
+				getResponseHeaders(con.getHeaderFields(), response, next);
 				
 				if (response.responseCode != 200) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -669,7 +669,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentsReceived(documents, paging);
+			appInterface.onDocumentsReceived(documents, next);
 		}
 
 		@Override

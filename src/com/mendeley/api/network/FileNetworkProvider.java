@@ -19,7 +19,7 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.components.FileRequestParameters;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
@@ -102,11 +102,11 @@ public class FileNetworkProvider extends NetworkProvider {
     /**
      * Getting the appropriate url string and executes the GetFilesTask
      *
-     * @param paging reference to next page
+     * @param next reference to next page
      */
-    protected void doGetFiles(Paging paging) {
-        if (Paging.isValidPage(paging)) {
-            new GetFilesTask().execute(paging.linkNext);
+    protected void doGetFiles(Page next) {
+        if (Page.isValidPage(next)) {
+            new GetFilesTask().execute(next.link);
         } else {
             appInterface.onFilesNotReceived(new NoMorePagesException());
         }
@@ -226,7 +226,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);			
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -298,7 +298,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);				
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -322,7 +322,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {		
-			appInterface.onFilesReceived(files, paging);
+			appInterface.onFilesReceived(files, next);
 		}
 
 		@Override
@@ -365,7 +365,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);			
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
@@ -458,7 +458,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.connect();
 				
 				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, paging);			
+				getResponseHeaders(con.getHeaderFields(), response, next);
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));

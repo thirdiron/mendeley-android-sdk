@@ -14,7 +14,7 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.DocumentRequestParameters;
 import com.mendeley.api.network.components.FileRequestParameters;
 import com.mendeley.api.network.components.FolderRequestParameters;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -88,14 +88,14 @@ public class MendeleySDK {
     /**
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      *
-     * @param paging reference to next page
+     * @param next reference to next page
      * @throws InterfaceNotImplementedException
      */
-    public void getFolders(Paging paging) throws InterfaceNotImplementedException {
+    public void getFolders(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(folderInterface,
                 new Class[]{FolderRequestParameters.class},
-                new Object[]{paging})) {
-            folderNetworkProvider.doGetFolders(paging);
+                new Object[]{next})) {
+            folderNetworkProvider.doGetFolders(next);
         }
     }
 
@@ -129,13 +129,13 @@ public class MendeleySDK {
     /**
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      *
-     * @param paging reference to next results page
+     * @param next reference to next results page
      */
-    public void getFolderDocumentIds(Paging paging) throws InterfaceNotImplementedException {
+    public void getFolderDocumentIds(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(folderInterface,
                 new Class[]{String.class},
-                new Object[]{paging})) {
-            folderNetworkProvider.doGetFolderDocumentIds(paging);
+                new Object[]{next})) {
+            folderNetworkProvider.doGetFolderDocumentIds(next);
         }
     }
 
@@ -261,13 +261,13 @@ public class MendeleySDK {
     /**
      *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
      *
-     * @param paging returned from previous getFiles() call
+     * @param next returned from previous getFiles() call
      */
-    public void getFiles(Paging paging) throws InterfaceNotImplementedException {
+    public void getFiles(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(fileInterface,
                 new Class[]{FileRequestParameters.class},
-                new Object[]{paging})) {
-            fileNetworkProvider.doGetFiles(paging);
+                new Object[]{next})) {
+            fileNetworkProvider.doGetFiles(next);
         }
     }
 
@@ -339,13 +339,13 @@ public class MendeleySDK {
 	/**
 	 * Retrieve subsequent pages of documents in the user's library.
 	 * 
-	 * @paging reference to next page returned by a previous onDocumentsReceived() callback.
+	 * @next reference to next page returned by a previous onDocumentsReceived() callback.
 	 */
-	public void getDocuments(Paging paging) throws InterfaceNotImplementedException {
+	public void getDocuments(Page next) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{DocumentRequestParameters.class}, 
-									 new Object[]{paging})) {
-			documentNetworkProvider.doGetDocuments(paging);
+									 new Object[]{next})) {
+			documentNetworkProvider.doGetDocuments(next);
 		}
 	}
 	
