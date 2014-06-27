@@ -215,15 +215,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param paging reference to next page
 	 */
 	protected void doGetDocuments(Paging paging) {
-		if (isValidPage(paging)) {
+		if (Paging.isValidPage(paging)) {
 			new GetDocumentsTask().execute(paging.linkNext);
 		} else {
             appInterface.onDocumentsNotReceived(new NoMorePagesException());
 		}
-	}
-	
-	private boolean isValidPage(Paging paging) {
-		return paging != null && paging.linkNext != null && paging.linkNext.length() > 0;
 	}
 	
 	/**

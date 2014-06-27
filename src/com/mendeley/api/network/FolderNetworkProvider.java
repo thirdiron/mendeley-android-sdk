@@ -14,8 +14,10 @@ import org.json.JSONException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.FolderRequestParameters;
+import com.mendeley.api.network.components.Paging;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
 /**
@@ -62,7 +64,20 @@ public class FolderNetworkProvider extends NetworkProvider{
 		new GetFoldersTask().execute(getGetFoldersUrl(params));		  
 	}
 
-	/**
+    /**
+     * Getting the appropriate url string and executes the GetFoldersTask
+     *
+     * @param paging reference to next page
+     */
+    protected void doGetFolders(Paging paging) {
+        if (Paging.isValidPage(paging)) {
+            new GetFoldersTask().execute(paging.linkNext);
+        } else {
+            appInterface.onFoldersNotReceived(new NoMorePagesException());
+        }
+    }
+
+    /**
 	 * Building the url for get folder
 	 * 
 	 * @param folderId the folder id to get
@@ -99,8 +114,21 @@ public class FolderNetworkProvider extends NetworkProvider{
 	protected void doGetFolderDocumentIds(String folderId) {
 		new GetFolderDocumentIdsTask().execute(getGetFolderDocumentIdsUrl(folderId));		  
 	}
-	
-	/**
+
+    /**
+     * Getting the appropriate url string and executes the GetFolderDocumentIdsTask
+     *
+     * @param paging reference to next page
+     */
+    protected void doGetFolderDocumentIds(Paging paging) {
+        if (Paging.isValidPage(paging)) {
+            new GetFolderDocumentIdsTask().execute(paging.linkNext);
+        } else {
+            appInterface.onFolderDocumentIdsNotReceived(new NoMorePagesException());
+        }
+    }
+
+    /**
 	 * Building the url string with the parameters and executes the PostFolderTask.
 	 * 
 	 * @param folder the folder to post

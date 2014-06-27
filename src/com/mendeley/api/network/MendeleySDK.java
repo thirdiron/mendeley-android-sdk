@@ -77,8 +77,29 @@ public class MendeleySDK {
 			folderNetworkProvider.doGetFolders(parameters);
 		}
 	}
-	
-	/**
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     */
+    public void getFolders() throws InterfaceNotImplementedException {
+        getFolders((FolderRequestParameters) null);
+    }
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     *
+     * @param paging reference to next page
+     * @throws InterfaceNotImplementedException
+     */
+    public void getFolders(Paging paging) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(folderInterface,
+                new Class[]{FolderRequestParameters.class},
+                new Object[]{paging})) {
+            folderNetworkProvider.doGetFolders(paging);
+        }
+    }
+
+    /**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId id of the folder to get
@@ -96,7 +117,6 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId id of the folder for which to get the document ids
-	 * @throws InterfaceNotImplementedException
 	 */
 	public void getFolderDocumentIds(String folderId) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(folderInterface,
@@ -105,8 +125,21 @@ public class MendeleySDK {
 			folderNetworkProvider.doGetFolderDocumentIds(folderId);
 		}
 	}
-	
-	/**
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     *
+     * @param paging reference to next results page
+     */
+    public void getFolderDocumentIds(Paging paging) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(folderInterface,
+                new Class[]{String.class},
+                new Object[]{paging})) {
+            folderNetworkProvider.doGetFolderDocumentIds(paging);
+        }
+    }
+
+    /**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folder the folder object to post
@@ -204,22 +237,42 @@ public class MendeleySDK {
 			profileNetworkProvider.doGetProfile(profileId);
 		}
 	}
-	
-	/**
-	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
-	 *  
-	 * @param parameters holds optional query parameters, will be ignored if null
-	 * @throws InterfaceNotImplementedException
-	 */
-	public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{FileRequestParameters.class}, 
-		 				 	 new Object[]{parameters})) {
-			fileNetworkProvider.doGetFiles(parameters);
-		}
-	}
-	
-	/**
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     *
+     * @param parameters holds optional query parameters, will be ignored if null
+     */
+    public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(fileInterface,
+                new Class[]{FileRequestParameters.class},
+                new Object[]{parameters})) {
+            fileNetworkProvider.doGetFiles(parameters);
+        }
+    }
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     */
+    public void getFiles() throws InterfaceNotImplementedException {
+        getFiles((FileRequestParameters) null);
+    }
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     *
+     * @param paging returned from previous getFiles() call
+     */
+    public void getFiles(Paging paging) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(fileInterface,
+                new Class[]{FileRequestParameters.class},
+                new Object[]{paging})) {
+            fileNetworkProvider.doGetFiles(paging);
+        }
+    }
+
+
+    /**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  
 	 * @param fileId the id of the file to get

@@ -12,5 +12,9 @@ public class Paging {
    			   ", linkLast: "+linkLast+
    			   ", mendeleyCount: " +mendeleyCount;
 	}
+
+    public static boolean isValidPage(Paging paging) {
+        return paging != null && paging.linkNext != null && paging.linkNext.length() > 0;
+    }
 	
 }

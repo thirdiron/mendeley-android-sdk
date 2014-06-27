@@ -16,8 +16,10 @@ import com.mendeley.api.exceptions.FileDownloadException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.components.FileRequestParameters;
+import com.mendeley.api.network.components.Paging;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
@@ -96,8 +98,21 @@ public class FileNetworkProvider extends NetworkProvider {
             appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
 		}
 	}
-	
-	/**
+
+    /**
+     * Getting the appropriate url string and executes the GetFilesTask
+     *
+     * @param paging reference to next page
+     */
+    protected void doGetFiles(Paging paging) {
+        if (Paging.isValidPage(paging)) {
+            new GetFilesTask().execute(paging.linkNext);
+        } else {
+            appInterface.onFilesNotReceived(new NoMorePagesException());
+        }
+    }
+
+    /**
 	 * Building the url for get files
 	 * 
 	 * @param fileId the id of the file to get
