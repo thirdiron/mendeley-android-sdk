@@ -264,10 +264,9 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * Retrieve a list of documents in the user's library.
 	 * 
 	 * @param parameters holds optional query parameters, will be ignored if null
-	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(documentInterface,
@@ -276,12 +275,18 @@ public class MendeleySDK {
 			documentNetworkProvider.doGetDocuments(parameters);
 		}
 	}
+
+    /**
+     * Retrieve a list of documents in the user's library.
+     */
+    public void getDocuments() throws InterfaceNotImplementedException {
+        getDocuments((DocumentRequestParameters) null);
+    }
 	
 	/**
-	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * Retrieve subsequent pages of documents in the user's library.
 	 * 
 	 * @paging reference to next page returned by a previous onDocumentsReceived() callback.
-	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocuments(Paging paging) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(documentInterface,
