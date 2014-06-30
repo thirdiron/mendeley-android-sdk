@@ -267,7 +267,8 @@ public class JsonParser {
 	 */
 	protected Profile parseProfile(String jsonString) throws JSONException {
 		
-		Profile profile  = new Profile();
+		Profile.Builder mendeleyProfile = new Profile.Builder();
+		
 		JSONObject profileObject = new JSONObject(jsonString);
 		 
 		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
@@ -277,43 +278,43 @@ public class JsonParser {
 			switch (key) {
 			  
 				case "location":
-					profile.location = profileObject.getString(key);
+					mendeleyProfile.setLastName(profileObject.getString(key));
 					break;
 				case "id":
-					profile.id = profileObject.getString(key);
+					mendeleyProfile.setId(profileObject.getString(key));
 					break;
 				case "display_name":
-					profile.displayName = profileObject.getString(key);
+					mendeleyProfile.setDisplayName(profileObject.getString(key));
 					break;
 				case "user_type":
-					profile.userType = profileObject.getString(key);
+					mendeleyProfile.setUserType(profileObject.getString(key));
 					break;
 				case "url":
-					profile.url = profileObject.getString(key);
+					mendeleyProfile.setUrl(profileObject.getString(key));
 					break;
 				case "email":
-					profile.email = profileObject.getString(key);
+					mendeleyProfile.setEmail(profileObject.getString(key));
 					break;
 				case "link":
-					profile.link = profileObject.getString(key);
+					mendeleyProfile.setLink(profileObject.getString(key));
 					break;
 				case "first_name":
-					profile.firstName = profileObject.getString(key);
+					mendeleyProfile.setFirstName(profileObject.getString(key));
 					break;
 				case "last_name":
-					profile.lastName = profileObject.getString(key);
+					mendeleyProfile.setLastName(profileObject.getString(key));
 					break;
 				case "research_interests":
-					profile.researchInterests = profileObject.getString(key);
+					mendeleyProfile.setResearchInterests(profileObject.getString(key));
 					break;
 				case "academic_status":
-					profile.academicStatus = profileObject.getString(key);
+					mendeleyProfile.setAcademicStatus(profileObject.getString(key));
 					break;
 				case "verified":
-					profile.verified = profileObject.getBoolean(key);
+					mendeleyProfile.setVerified(profileObject.getBoolean(key));
 					break;
 				case "created_at":
-					profile.createdAt = profileObject.getString(key);
+					mendeleyProfile.setCreatedAt(profileObject.getString(key));
 					break;
 				case "discipline":
 					JSONObject disciplineObject = profileObject.getJSONObject(key);
@@ -321,7 +322,7 @@ public class JsonParser {
 					if (disciplineObject.has("name")) {
 						discipline.name = disciplineObject.getString("name");
 					}
-					profile.discipline = discipline;
+					mendeleyProfile.setDiscipline(discipline);
 					break;
 				case "photo":
 					JSONObject photoObject = profileObject.getJSONObject(key);
@@ -333,10 +334,11 @@ public class JsonParser {
 						photo.square = photoObject.getString("square");
 					}
 					
-					profile.photo  = photo;
+					mendeleyProfile.setPhoto(photo);
 					break;
 				case "education":					  
 					JSONArray educationArray = profileObject.getJSONArray(key);
+			       	ArrayList<Education> educationList = new ArrayList<Education>();
 					
 		            for (int i = 0; i < educationArray.length(); i++) {
 		            	
@@ -374,12 +376,15 @@ public class JsonParser {
 			    					break;
 		        			}
 		            	}
-		            	profile.education.add(education.build());
+		            	educationList.add(education.build());
 		            	
 		            }
+		            
+		            mendeleyProfile.setEducation(educationList);
 		            break;
 				case "employment":					  
 					JSONArray employmentArray = profileObject.getJSONArray(key);
+					ArrayList<Employment> employmentList = new ArrayList<Employment>();
 
 		            for (int i = 0; i < employmentArray.length(); i++) {
 		            	
@@ -427,13 +432,15 @@ public class JsonParser {
 			    					break;
 		        			}
 		            	}
-		            	profile.employment.add(employment);		            	
+		            	employmentList.add(employment);		            	
 		            }
+		            
+		            mendeleyProfile.setEmployment(employmentList);
 		            break;
 			}
 		}
 		
-		return profile;
+		return mendeleyProfile.build();
 	}
 
 	/**
@@ -444,7 +451,7 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
 	protected Document parseDocument(String jsonString) throws JSONException {		
-		Document mendeleyDocument = new Document();
+		Document.Builder mendeleyDocument = new Document.Builder();
 		JSONObject documentObject = new JSONObject(jsonString);
 		 
 		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
@@ -454,124 +461,133 @@ public class JsonParser {
 			switch (key) {
 			  
 				case "last_modified":
-					mendeleyDocument.lastModified = documentObject.getString(key);
+					mendeleyDocument.setLastModified(documentObject.getString(key));
 					break;
 				case "group_id":
-					mendeleyDocument.groupId = documentObject.getString(key);
+					mendeleyDocument.setGroupId(documentObject.getString(key));
 					break;
 				case "profile_id":
-					mendeleyDocument.profileId = documentObject.getString(key);
+					mendeleyDocument.setProfileId(documentObject.getString(key));
 					break;
 				case "read":
-					mendeleyDocument.read = documentObject.getBoolean(key);
+					mendeleyDocument.setRead(documentObject.getBoolean(key));
 					break;
 				case "starred":
-					mendeleyDocument.starred = documentObject.getBoolean(key);
+					mendeleyDocument.setStarred(documentObject.getBoolean(key));
 					break;
 				case "authored":
-					mendeleyDocument.authored = documentObject.getBoolean(key);
+					mendeleyDocument.setAuthored(documentObject.getBoolean(key));
 					break;
 				case "confirmed":
-					mendeleyDocument.confirmed = documentObject.getBoolean(key);
+					mendeleyDocument.setConfirmed(documentObject.getBoolean(key));
 					break;
 				case "hidden":
-					mendeleyDocument.hidden = documentObject.getBoolean(key);
+					mendeleyDocument.setHidden(documentObject.getBoolean(key));
 					break;
 				case "id":
-					mendeleyDocument.id = documentObject.getString(key);
+					mendeleyDocument.setId(documentObject.getString(key));
 					break;
 				case "type":
-					mendeleyDocument.type = documentObject.getString(key);
+					mendeleyDocument.setType(documentObject.getString(key));
 					break;
 				case "month":
-					mendeleyDocument.month = documentObject.getInt(key);
+					mendeleyDocument.setMonth(documentObject.getInt(key));
 					break;
 				case "year":
-					mendeleyDocument.year = documentObject.getInt(key);
+					mendeleyDocument.setYear(documentObject.getInt(key));
 					break;
 				case "day":
-					mendeleyDocument.day = documentObject.getInt(key);
+					mendeleyDocument.setDay(documentObject.getInt(key));
 					break;
 				case "source":
-					mendeleyDocument.source = documentObject.getString(key);
+					mendeleyDocument.setSource(documentObject.getString(key));
 					break;
 				case "title":
-					mendeleyDocument.title = documentObject.getString(key);
+					mendeleyDocument.setTitle(documentObject.getString(key));
 					break;
 				case "revision":
-					mendeleyDocument.revision = documentObject.getString(key);
+					mendeleyDocument.setRevision(documentObject.getString(key));
 				case "created":
-					mendeleyDocument.created = documentObject.getString(key);
+					mendeleyDocument.setCreated(documentObject.getString(key));
 					break;
 				case "abstract":
-					mendeleyDocument.abstractString = documentObject.getString(key);
+					mendeleyDocument.setAbstractString(documentObject.getString(key));
 					break;
 				case "pages":
-					mendeleyDocument.pages = documentObject.getString(key);
+					mendeleyDocument.setPages(documentObject.getString(key));
 					break;
 				case "volume":
-					mendeleyDocument.volume = documentObject.getString(key);
+					mendeleyDocument.setVolume(documentObject.getString(key));
 					break;
 				case "issue":
-					mendeleyDocument.issue = documentObject.getString(key);
+					mendeleyDocument.setIssue(documentObject.getString(key));
 					break;
 				case "website":
-					mendeleyDocument.website = documentObject.getString(key);
+					mendeleyDocument.setWebsite(documentObject.getString(key));
 					break;
 				case "publisher":
-					mendeleyDocument.publisher = documentObject.getString(key);
+					mendeleyDocument.setPublisher(documentObject.getString(key));
 					break;
 				case "city":
-					mendeleyDocument.city = documentObject.getString(key);
+					mendeleyDocument.setCity(documentObject.getString(key));
 					break;
 				case "edition":
-					mendeleyDocument.edition = documentObject.getString(key);
+					mendeleyDocument.setEdition(documentObject.getString(key));
 					break;
 				case "institution":
-					mendeleyDocument.institution = documentObject.getString(key);
+					mendeleyDocument.setInstitution(documentObject.getString(key));
 					break;
 				case "series":
-					mendeleyDocument.series = documentObject.getString(key);
+					mendeleyDocument.setSeries(documentObject.getString(key));
 					break;
 				case "chapter":
-					mendeleyDocument.chapter = documentObject.getString(key);
+					mendeleyDocument.setChapter(documentObject.getString(key));
 					break;		
 				case "authors":
 					  
 					JSONArray authors = documentObject.getJSONArray(key);
+					ArrayList<Person> authorsList = new ArrayList<Person>();
 			            
 		            for (int i = 0; i < authors.length(); i++) {
 		            	Person author = new Person (
 		            			authors.getJSONObject(i).getString("forename"),
 		            			authors.getJSONObject(i).getString("surname"));
-		            	mendeleyDocument.authors.add(author);
+		            	authorsList.add(author);
 		            }
+		            
+		            mendeleyDocument.setAuthors(authorsList);
 		            break;
 				case "editors":
 					  
 					JSONArray editors = documentObject.getJSONArray(key);
+					ArrayList<Person> editorsList = new ArrayList<Person>();
 			            
 		            for (int i = 0; i < editors.length(); i++) {
 		            	Person editor = new Person (
 		            			editors.getJSONObject(i).getString("forename"),
 		            			editors.getJSONObject(i).getString("surname"));
-		            	mendeleyDocument.editors.add(editor);
+		            	editorsList.add(editor);
 		            }
+		            
+		            mendeleyDocument.setEditors(editorsList);
 		            break;
 				case "identifiers":
 					JSONObject identifiersObject = documentObject.getJSONObject(key);
+					HashMap<String, String> identifiersMap = new HashMap<String, String>();
 						 
 					 for (@SuppressWarnings("unchecked") Iterator<String> identifierIter = 
 							 identifiersObject.keys(); identifierIter.hasNext();) {
 					  
 						 String identifierKey = identifierIter.next();
-						 mendeleyDocument.identifiers.put(identifierKey, identifiersObject.getString(identifierKey));
+						 identifiersMap.put(identifierKey, identifiersObject.getString(identifierKey));
 					 }
+					 
+					 mendeleyDocument.setIdentifiers(identifiersMap);
 					 break;
 			  }
 		  }
 		  
-		 return mendeleyDocument;
+		 return mendeleyDocument.build();
 	}
 	
 	/**

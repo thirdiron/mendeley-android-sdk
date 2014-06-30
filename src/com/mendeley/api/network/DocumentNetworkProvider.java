@@ -244,7 +244,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		JsonParser parser = new JsonParser();
 		try {
-			document.title += " patched!";
 			new PatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
 		} catch (JSONException e) {
             appInterface.onDocumentNotPatched(new JsonParsingException(e.getMessage()));

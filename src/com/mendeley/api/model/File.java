@@ -12,7 +12,7 @@ public class File {
     public final String fileName;
     public final String fileHash;
 
-    public File(String id, String documentId, String mimeType, String fileName, String fileHash) {
+    private File(String id, String documentId, String mimeType, String fileName, String fileHash) {
         this.id = id;
         this.documentId = documentId;
         this.mimeType = mimeType;
