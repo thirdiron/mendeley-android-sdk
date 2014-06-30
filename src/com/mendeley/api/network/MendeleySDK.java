@@ -279,11 +279,11 @@ public class MendeleySDK {
 	 * @param folderPath the path in which to save the file
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFile(String fileId, String folderPath) throws InterfaceNotImplementedException {
+	public void getFile(String fileId, String documentId, String folderPath) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{String.class, String.class}, 
-		 				 	 new Object[]{fileId, folderPath})) {
-			fileNetworkProvider.doGetFile(fileId, folderPath);
+			 				 new Class[]{String.class, String.class, String.class}, 
+		 				 	 new Object[]{fileId, documentId, folderPath})) {
+			fileNetworkProvider.doGetFile(fileId, documentId, folderPath);
 		}
 	}
 	

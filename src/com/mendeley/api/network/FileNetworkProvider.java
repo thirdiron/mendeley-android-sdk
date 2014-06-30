@@ -128,8 +128,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to get
 	 * @param folderPath the path in which to save the file
 	 */
-	protected void doGetFile(String fileId, String folderPath) {
-		new GetFileTask().execute(getGetFileUrl(fileId), folderPath, fileId);		  
+	protected void doGetFile(String fileId, String documentId, String folderPath) {
+		new GetFileTask().execute(getGetFileUrl(fileId), folderPath, fileId, documentId);		  
 	}
 	
 	/**
@@ -344,6 +344,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		byte[] fileData;
 		String fileName;
 		String fileId;
+		String docimentId;
 
 		@Override
 		protected int getExpectedResponse() {
@@ -356,6 +357,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			String url = params[0];
 			String folderPath = params[1];
 			fileId = params[2];
+			docimentId = params[3];
 			
 			FileOutputStream fileOutputStream = null;
 
@@ -419,7 +421,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
-	    	appInterface.onFileDownloadProgress(fileId, progress[0]);
+	    	appInterface.onFileDownloadProgress(fileId, docimentId, progress[0]);
 	    }
 	    
 		@Override
