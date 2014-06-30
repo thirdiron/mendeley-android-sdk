@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from folder network calls.
@@ -12,13 +12,13 @@ import com.mendeley.api.network.components.Paging;
  */
 public interface MendeleyFolderInterface extends MendeleyInterface{
 
-	public void onFoldersReceived(List<Folder> folders, Paging paging);
+	public void onFoldersReceived(List<Folder> folders, Page next);
 	public void onFoldersNotReceived(MendeleyException mendeleyException);
 	
 	public void onFolderReceived(Folder folder);
 	public void onFolderNotReceived(MendeleyException mendeleyException);
 		
-	public void onFolderDocumentIdsReceived(List<String> documentIds, Paging paging);
+	public void onFolderDocumentIdsReceived(List<String> documentIds, Page next);
 	public void onFolderDocumentIdsNotReceived(MendeleyException mendeleyException);
 	
 	public void onFolderPosted(Folder folder);

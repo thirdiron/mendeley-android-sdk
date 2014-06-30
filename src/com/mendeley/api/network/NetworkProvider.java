@@ -22,7 +22,7 @@ import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.network.components.MendeleyResponse;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 
 /**
  * This class provides common functionality for the other network providers that subclass it.
@@ -72,11 +72,10 @@ public class NetworkProvider {
 	/**
 	 * Extracting the headers from the given HttpsURLConnection object.
 	 * 
-	 * @param con the connection object to get headers from
 	 * @param response the response object to hold header data
 	 * @throws IOException
 	 */
-	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response, Paging paging)
+	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response, Page next)
 			throws IOException {
 
 		for (String key : headersMap.keySet()) {
@@ -106,15 +105,13 @@ public class NetworkProvider {
 								linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
 							} catch (IndexOutOfBoundsException e) {}
 							if (link.indexOf("next") != -1) {
-								paging.linkNext = linkString;
+								next.link = linkString;
 							}
-							if (link.indexOf("last") != -1) {
-								paging.linkLast = linkString;
-							}
+                            // "last" and "prev" links are not used
 						}
 						break;
 					case "Mendeley-Count":
-						paging.mendeleyCount = Integer.parseInt(headersMap.get(key).get(0));
+                        // Unused
 						break;
 					case "Content-Length":
 						response.contentLength = headersMap.get(key).get(0);	
@@ -170,7 +167,7 @@ public class NetworkProvider {
 	protected abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException> {
 
 		MendeleyResponse response = new MendeleyResponse();
-		Paging paging = new Paging();
+		Page next = new Page();
 		InputStream is = null;
 		OutputStream os = null;
 		HttpsURLConnection con = null;
@@ -219,7 +216,6 @@ public class NetworkProvider {
 	 * Creates an error message string from a given HttpResponse object,
 	 * which includes the response code, response message and the error stream from the server
 	 * 
-	 * @param con the URLConnection object
 	 * @return the error message string
 	 */
 	protected String getErrorMessage(HttpResponse response) {

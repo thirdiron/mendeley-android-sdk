@@ -9,12 +9,12 @@ import android.content.Context;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
-import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.DocumentRequestParameters;
 import com.mendeley.api.network.components.FileRequestParameters;
 import com.mendeley.api.network.components.FolderRequestParameters;
+import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -77,8 +77,29 @@ public class MendeleySDK {
 			folderNetworkProvider.doGetFolders(parameters);
 		}
 	}
-	
-	/**
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     */
+    public void getFolders() throws InterfaceNotImplementedException {
+        getFolders((FolderRequestParameters) null);
+    }
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     *
+     * @param next reference to next page
+     * @throws InterfaceNotImplementedException
+     */
+    public void getFolders(Page next) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(folderInterface,
+                new Class[]{FolderRequestParameters.class},
+                new Object[]{next})) {
+            folderNetworkProvider.doGetFolders(next);
+        }
+    }
+
+    /**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId id of the folder to get
@@ -96,7 +117,6 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId id of the folder for which to get the document ids
-	 * @throws InterfaceNotImplementedException
 	 */
 	public void getFolderDocumentIds(String folderId) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(folderInterface,
@@ -105,8 +125,21 @@ public class MendeleySDK {
 			folderNetworkProvider.doGetFolderDocumentIds(folderId);
 		}
 	}
-	
-	/**
+
+    /**
+     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     *
+     * @param next reference to next results page
+     */
+    public void getFolderDocumentIds(Page next) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(folderInterface,
+                new Class[]{String.class},
+                new Object[]{next})) {
+            folderNetworkProvider.doGetFolderDocumentIds(next);
+        }
+    }
+
+    /**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folder the folder object to post
@@ -204,22 +237,42 @@ public class MendeleySDK {
 			profileNetworkProvider.doGetProfile(profileId);
 		}
 	}
-	
-	/**
-	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
-	 *  
-	 * @param parameters holds optional query parameters, will be ignored if null
-	 * @throws InterfaceNotImplementedException
-	 */
-	public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(fileInterface,
-			 				 new Class[]{FileRequestParameters.class}, 
-		 				 	 new Object[]{parameters})) {
-			fileNetworkProvider.doGetFiles(parameters);
-		}
-	}
-	
-	/**
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     *
+     * @param parameters holds optional query parameters, will be ignored if null
+     */
+    public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(fileInterface,
+                new Class[]{FileRequestParameters.class},
+                new Object[]{parameters})) {
+            fileNetworkProvider.doGetFiles(parameters);
+        }
+    }
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     */
+    public void getFiles() throws InterfaceNotImplementedException {
+        getFiles((FileRequestParameters) null);
+    }
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     *
+     * @param next returned from previous getFiles() call
+     */
+    public void getFiles(Page next) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(fileInterface,
+                new Class[]{FileRequestParameters.class},
+                new Object[]{next})) {
+            fileNetworkProvider.doGetFiles(next);
+        }
+    }
+
+
+    /**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  
 	 * @param fileId the id of the file to get
@@ -264,16 +317,35 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 * Retrieve a list of documents in the user's library.
 	 * 
 	 * @param parameters holds optional query parameters, will be ignored if null
-	 * @throws InterfaceNotImplementedException
 	 */
 	public void getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(documentInterface,
 									 new Class[]{DocumentRequestParameters.class}, 
 									 new Object[]{parameters})) {
 			documentNetworkProvider.doGetDocuments(parameters);
+		}
+	}
+
+    /**
+     * Retrieve a list of documents in the user's library.
+     */
+    public void getDocuments() throws InterfaceNotImplementedException {
+        getDocuments((DocumentRequestParameters) null);
+    }
+	
+	/**
+	 * Retrieve subsequent pages of documents in the user's library.
+	 * 
+	 * @next reference to next page returned by a previous onDocumentsReceived() callback.
+	 */
+	public void getDocuments(Page next) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+									 new Class[]{DocumentRequestParameters.class}, 
+									 new Object[]{next})) {
+			documentNetworkProvider.doGetDocuments(next);
 		}
 	}
 	

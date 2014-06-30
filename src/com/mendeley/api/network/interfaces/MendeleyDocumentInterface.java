@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
-import com.mendeley.api.network.components.Paging;
+import com.mendeley.api.network.components.Page;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from document network calls.
@@ -13,7 +13,7 @@ import com.mendeley.api.network.components.Paging;
  */
 public interface MendeleyDocumentInterface extends MendeleyInterface {
 
-	public void onDocumentsReceived(List<Document> documents, Paging paging);
+	public void onDocumentsReceived(List<Document> documents, Page next);
 	public void onDocumentsNotReceived(MendeleyException mendeleyException);
 	
 	public void onDocumentReceived(Document document);
