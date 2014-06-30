@@ -42,16 +42,16 @@ public class JsonParser {
 		JSONArray authors = new JSONArray();
 		for (int i = 0; i < document.authors.size(); i++) {
 			JSONObject author = new JSONObject();
-			author.put("forename", document.authors.get(i).forename);
-			author.put("surname", document.authors.get(i).surname);
+			author.put("first_name", document.authors.get(i).firstName);
+			author.put("last_name", document.authors.get(i).lastName);
 			authors.put(i, author);
 		}
 		
 		JSONArray editors = new JSONArray();
 		for (int i = 0; i < document.editors.size(); i++) {
 			JSONObject editor = new JSONObject();
-			editor.put("forename", document.editors.get(i).forename);
-			editor.put("surname", document.editors.get(i).surname);
+			editor.put("first_name", document.editors.get(i).firstName);
+			editor.put("last_name", document.editors.get(i).lastName);
 			editors.put(i, editor);
 		}
 		
@@ -110,7 +110,7 @@ public class JsonParser {
 		JSONObject jFolder = new JSONObject();
 		
 		jFolder.put("name", folder.name);
-		jFolder.put("parent", folder.parent);
+		jFolder.put("parent_id", folder.parentId);
 		jFolder.put("id", folder.id);
 		jFolder.put("group_id", folder.groupId);
 		jFolder.put("added", folder.added);
@@ -240,8 +240,8 @@ public class JsonParser {
 			String key = keysIter.next();
 			switch (key) {
 			  
-				case "parent":
-					folder.parent = folderObject.getString(key);
+				case "parent_id":
+					folder.parentId = folderObject.getString(key);
 					break;
 				case "id":
 					folder.id = folderObject.getString(key);
@@ -550,8 +550,8 @@ public class JsonParser {
 			            
 		            for (int i = 0; i < authors.length(); i++) {
 		            	Person author = new Person (
-		            			authors.getJSONObject(i).getString("forename"),
-		            			authors.getJSONObject(i).getString("surname"));
+		            			authors.getJSONObject(i).getString("first_name"),
+		            			authors.getJSONObject(i).getString("last_name"));
 		            	authorsList.add(author);
 		            }
 		            
@@ -564,8 +564,8 @@ public class JsonParser {
 			            
 		            for (int i = 0; i < editors.length(); i++) {
 		            	Person editor = new Person (
-		            			editors.getJSONObject(i).getString("forename"),
-		            			editors.getJSONObject(i).getString("surname"));
+		            			editors.getJSONObject(i).getString("first_name"),
+		            			editors.getJSONObject(i).getString("last_name"));
 		            	editorsList.add(editor);
 		            }
 		            

@@ -7,7 +7,7 @@ package com.mendeley.api.model;
 public class Folder {
 
 	public String name;
-	public String parent;
+	public String parentId;
 	public String id;
 	public String groupId;
 	public String added;
@@ -19,7 +19,7 @@ public class Folder {
 	@Override
 	public String toString() {
 		return "name: " + name + 
-			   ", parent: " + parent + 
+			   ", parentId: " + parentId +
 			   ", id: " + id + 
 			   ", groupId: " + groupId + 
 			   ", added: " + added;

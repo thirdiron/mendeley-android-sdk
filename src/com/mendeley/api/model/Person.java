@@ -8,12 +8,12 @@ import android.os.Parcelable;
  */
 public class Person implements Parcelable {
 
-	public String forename;
-	public String surname;
+	public String firstName;
+	public String lastName;
 	
-	public Person(String forename, String surname) {
-		this.forename = forename;
-		this.surname = surname;
+	public Person(String firstName, String lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
 	}
 	
 	public static final Parcelable.Creator<Person> CREATOR = new Parcelable.Creator<Person>() {
@@ -34,13 +34,13 @@ public class Person implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(forename);
-		dest.writeString(surname);
+		dest.writeString(firstName);
+		dest.writeString(lastName);
 	}
 	
 	private Person(Parcel in) {
-		forename = in.readString();
-		surname = in.readString();
+		firstName = in.readString();
+		lastName = in.readString();
 	}
 
 }

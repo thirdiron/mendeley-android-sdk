@@ -201,7 +201,7 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId the id of the folder to patch
-	 * @param folder the folder object that holds the new name and parent data 
+	 * @param folder the folder object that holds the new name and parentId data
 	 * @throws InterfaceNotImplementedException
 	 */
 	public void patchFolder(String folderId, Folder folder) throws InterfaceNotImplementedException {

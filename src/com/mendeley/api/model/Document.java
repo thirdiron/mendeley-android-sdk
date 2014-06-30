@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mendeley.api.model.Education.Builder;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -381,9 +379,9 @@ public class Document implements Parcelable {
 			if (i > 0) {
 				authorsString +=", ";				
 			}
-			authorsString += authors.get(i).surname;
-			if (authors.get(i).forename.length() > 0) {
-				authorsString += " " + authors.get(i).forename.substring(0, 1);
+			authorsString += authors.get(i).lastName;
+			if (authors.get(i).firstName.length() > 0) {
+				authorsString += " " + authors.get(i).firstName.substring(0, 1);
 			}
 		}
 		
@@ -497,8 +495,8 @@ public class Document implements Parcelable {
 		
 		dest.writeInt(authors.size());
 	    for(Person person : authors){
-	    	dest.writeString(person.forename);
-	    	dest.writeString(person.surname);
+	    	dest.writeString(person.firstName);
+	    	dest.writeString(person.lastName);
 	    }
 	    
 		dest.writeString(created);
@@ -515,8 +513,8 @@ public class Document implements Parcelable {
 
 		dest.writeInt(editors.size());
 	    for(Person person : editors){
-	    	dest.writeString(person.forename);
-	    	dest.writeString(person.surname);
+	    	dest.writeString(person.firstName);
+	    	dest.writeString(person.lastName);
 	    }
 	}
 	
@@ -552,9 +550,9 @@ public class Document implements Parcelable {
 		authors = new ArrayList<Person>();
 		size = in.readInt();
 		for(int i = 0; i < size; i++) {
-		    String foreName = in.readString();
-		    String surname = in.readString();
-		    Person person = new Person(foreName, surname);
+		    String firstName = in.readString();
+		    String lastName = in.readString();
+		    Person person = new Person(firstName, lastName);
 		    authors.add(person);
 	    }
 		
@@ -573,9 +571,9 @@ public class Document implements Parcelable {
 		editors = new ArrayList<Person>();
 		size = in.readInt();
 		for(int i = 0; i < size; i++) {
-		    String foreName = in.readString();
-		    String surname = in.readString();
-		    Person person = new Person(foreName, surname);
+		    String firstName = in.readString();
+		    String lastName = in.readString();
+		    Person person = new Person(firstName, lastName);
 		    editors.add(person);
 	    }
 	} 
