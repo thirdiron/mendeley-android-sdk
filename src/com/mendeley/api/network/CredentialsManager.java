@@ -20,12 +20,12 @@ import android.util.Log;
  */
 public class CredentialsManager {
 
-	//7
-	//jwcVcop9EFHGeICghPsq+g==
-	private final static String ouath2ClientId = "jwcVcop9EFHGeICghPsq+g==";
-	//42FJEXdZ8q4wbQJnMpw7
-	//d++XETQEE1X2i7O/8sE98/zII7g4zAvs/eDmDgEvMLM=
-    private final static String ouath2ClientSecret = "d++XETQEE1X2i7O/8sE98/zII7g4zAvs/eDmDgEvMLM=";
+	//7 542
+	//jwcVcop9EFHGeICghPsq+g== JFajmiqix8+QhNQbcLBKaA==
+	private final static String ouath2ClientId = "JFajmiqix8+QhNQbcLBKaA==";
+	//42FJEXdZ8q4wbQJnMpw7 Bn6R66P6rrtMU7L4
+	//d++XETQEE1X2i7O/8sE98/zII7g4zAvs/eDmDgEvMLM= kAnDvX/xU5GkQe/AQ14m+r/N0WU/DRgk62VjCQ9Xqws=
+    private final static String ouath2ClientSecret = "kAnDvX/xU5GkQe/AQ14m+r/N0WU/DRgk62VjCQ9Xqws=";
 	
 	private static final String CLIENT_ID = "ouath2ClientId";
 	private static final String CLIENT_SECRET = "ouath2ClientSecret";
