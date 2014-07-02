@@ -287,6 +287,20 @@ public class MendeleySDK {
 		}
 	}
 	
+    /**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 *  
+	 * @param fileId the id of the file
+	 */
+	public void cancelDownload(String fileId) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 new Class[]{String.class}, 
+		 				 	 new Object[]{fileId})) {
+			fileNetworkProvider.cancelDownload(fileId);
+		}
+	}
+	
+	
 	/**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
 	 *  

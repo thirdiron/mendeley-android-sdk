@@ -6,10 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mendeley.api.exceptions.FileDownloadException;
@@ -27,6 +30,8 @@ import com.mendeley.api.network.interfaces.MendeleyFileInterface;
  *
  */
 public class FileNetworkProvider extends NetworkProvider {
+	
+	Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
 	
 	private static String filesUrl = apiUrl + "files";
 	MendeleyFileInterface appInterface;
@@ -128,8 +133,18 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to get
 	 * @param folderPath the path in which to save the file
 	 */
-	protected void doGetFile(String fileId, String documentId, String folderPath) {
-		new GetFileTask().execute(getGetFileUrl(fileId), folderPath, fileId, documentId);		  
+	protected void doGetFile(final String fileId, final String documentId, final String folderPath) {
+		final GetFileTask fileTask = new GetFileTask();
+		fileTaskMap.put(fileId, fileTask);
+		fileTask.execute(getGetFileUrl(fileId), folderPath, fileId, documentId);		 		
+	}
+	
+	/**
+	 * Cancelling the NetworkTask that is currently download the file with the given fileId.
+	 * @param fileId the id of the file 
+	 */
+	protected void cancelDownload(String fileId) {
+		fileTaskMap.get(fileId).cancel(true);
 	}
 	
 	/**
@@ -345,6 +360,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		String fileName;
 		String fileId;
 		String docimentId;
+		String filePath;
 
 		@Override
 		protected int getExpectedResponse() {
@@ -353,7 +369,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-
+			
 			String url = params[0];
 			String folderPath = params[1];
 			fileId = params[2];
@@ -387,12 +403,13 @@ public class FileNetworkProvider extends NetworkProvider {
 						
 						int fileLength = con.getContentLength();
 						is = con.getInputStream();			
-						fileOutputStream = new FileOutputStream(new java.io.File(folderPath+java.io.File.separator+fileName));
+						filePath = folderPath+java.io.File.separator+fileName;
+						fileOutputStream = new FileOutputStream(new java.io.File(filePath));
 						
 						byte data[] = new byte[1024];
 			            long total = 0;
 			            int count;
-			            while ((count = is.read(data)) != -1) {
+			            while ((count = is.read(data)) != -1 && !isCancelled()) {
 			                total += count;
 			                if (fileLength > 0) 
 			                    publishProgress((int) (total * 100 / fileLength));
@@ -424,13 +441,22 @@ public class FileNetworkProvider extends NetworkProvider {
 	    	appInterface.onFileDownloadProgress(fileId, docimentId, progress[0]);
 	    }
 	    
+	    @Override
+	    protected void onCancelled (MendeleyException result) {
+	    	fileTaskMap.remove(fileId);
+	    	java.io.File file = new java.io.File(filePath);
+	    	file.delete();
+	    }
+	    
 		@Override
 		protected void onSuccess() {		
+			fileTaskMap.remove(fileId);
 			appInterface.onFileReceived(fileName, fileId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
+			fileTaskMap.remove(fileId);
 			appInterface.onFileNotReceived(exception);				
 		}
 	}
