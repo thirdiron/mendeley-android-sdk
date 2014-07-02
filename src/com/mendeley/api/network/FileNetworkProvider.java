@@ -136,7 +136,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	protected void doGetFile(final String fileId, final String documentId, final String folderPath) {
 		final GetFileTask fileTask = new GetFileTask();
 		fileTaskMap.put(fileId, fileTask);
-		fileTask.execute(getGetFileUrl(fileId), folderPath, fileId, documentId);		 		
+		String[] params = new String[]{getGetFileUrl(fileId), folderPath, fileId, documentId};
+		fileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	}
 	
 	/**
@@ -359,7 +360,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		byte[] fileData;
 		String fileName;
 		String fileId;
-		String docimentId;
+		String documentId;
 		String filePath;
 
 		@Override
@@ -373,8 +374,8 @@ public class FileNetworkProvider extends NetworkProvider {
 			String url = params[0];
 			String folderPath = params[1];
 			fileId = params[2];
-			docimentId = params[3];
-			
+			documentId = params[3];
+
 			FileOutputStream fileOutputStream = null;
 
 			try {
@@ -438,7 +439,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
-	    	appInterface.onFileDownloadProgress(fileId, docimentId, progress[0]);
+	    	appInterface.onFileDownloadProgress(fileId, documentId, progress[0]);
 	    }
 	    
 	    @Override
