@@ -21,6 +21,7 @@ import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 import com.mendeley.api.network.interfaces.MendeleyInterface;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
+import com.mendeley.api.network.interfaces.MendeleySignInInterface;
 import com.mendeley.api.util.Utils;
 
 /**
@@ -44,21 +45,59 @@ public class MendeleySDK {
 	protected MendeleyFolderInterface folderInterface;
 	protected MendeleyFileInterface fileInterface;
 	protected MendeleyProfileInterface profileInterface;
+	MendeleySignInInterface mendeleySignInInterface;
 
-	public MendeleySDK(Context context, Object callbacks) {
+	public MendeleySDK(Context context, Object callbacks)  {
+		
 		authenticationManager = new AuthenticationManager(context, new AuthenticationInterface() {
 			@Override
 			public void onAuthenticated() {
+				if (mendeleySignInInterface != null) {
+					mendeleySignInInterface.isSignedIn(true);
+				}
 				invokeMethod();
 			}
 			
 			@Override
 			public void onAuthenticationFail() {
+				if (mendeleySignInInterface != null) {
+					mendeleySignInInterface.isSignedIn(false);
+				}
 				Log.e("", "onAuthenticationFail");
 			}
 		});
 		initialiseInterfaces(callbacks);
+
+		if (!hasCredentials()) {
+			authenticationManager.authenticate();
+		}
+	}
+	
+	public MendeleySDK(Context context, Object callbacks, Object signInCallback)  {
 		
+		if (signInCallback instanceof MendeleySignInInterface) {
+			this.mendeleySignInInterface = (MendeleySignInInterface)signInCallback;
+		}
+		
+		authenticationManager = new AuthenticationManager(context, new AuthenticationInterface() {
+			@Override
+			public void onAuthenticated() {
+				if (mendeleySignInInterface != null) {
+					mendeleySignInInterface.isSignedIn(true);
+				}
+				invokeMethod();
+			}
+			
+			@Override
+			public void onAuthenticationFail() {
+				if (mendeleySignInInterface != null) {
+					mendeleySignInInterface.isSignedIn(false);
+				}
+				Log.e("", "onAuthenticationFail");
+			}
+		});
+		initialiseInterfaces(callbacks);
+
 		if (!hasCredentials()) {
 			authenticationManager.authenticate();
 		}
@@ -300,6 +339,39 @@ public class MendeleySDK {
 		}
 	}
 	
+    /**
+	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+	 */
+	public void cancelGetFiles() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(fileInterface,
+			 				 null, 
+		 				 	 null)) {
+			fileNetworkProvider.cancelGetFiles();
+		}
+	}
+	
+	
+    /**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 */
+	public void cancelGetDocuments() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+			 				 null, 
+		 				 	 null)) {
+			documentNetworkProvider.cancelGetDocuments();
+		}
+	}
+	
+    /**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 */
+	public void cancelGetDocumentTypes() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+			 				 null, 
+		 				 	 null)) {
+			documentNetworkProvider.cancelGetDocumentTypes();
+		}
+	}
 	
 	/**
 	 *  Checking if call can be executed and forwarding it to the FileNetworkProvider.

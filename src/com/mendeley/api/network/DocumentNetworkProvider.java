@@ -36,6 +36,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	private static String documentTypesUrl = apiUrl + "document_types";
 	
 	public static SimpleDateFormat patchDateFormat =  new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
+	
+	private GetDocumentsTask getDocumentsTask;
+	private GetDocumentTypesTask getDocumentTypesTask;
 
 	protected MendeleyDocumentInterface appInterface;
 	
@@ -202,12 +205,32 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 */
 	protected void doGetDocuments(DocumentRequestParameters params) {
 		try {
-			new GetDocumentsTask().execute(getGetDocumentsUrl(params));		  
+			getDocumentsTask = new GetDocumentsTask();		
+			getDocumentsTask.execute(getGetDocumentsUrl(params));
 		}
 		catch (UnsupportedEncodingException e) {
             appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
         }
 	}
+	
+	/**
+	 * Cancelling GetDocumentsTask if it is currently running
+	 */
+	protected void cancelGetDocuments() {
+		if (getDocumentsTask != null) {
+			getDocumentsTask.cancel(true);
+		}
+	}
+	
+	/**
+	 * Cancelling GetDocumentTypesTask if it is currently running
+	 */
+	protected void cancelGetDocumentTypes() {
+		if (getDocumentTypesTask != null) {
+			getDocumentTypesTask.cancel(true);
+		}
+	}
+	
 	
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentsTask.
@@ -588,7 +611,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					
 					if (response.responseCode != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
-					} else {
+					} else if (!isCancelled()) {
 
 						is = con.getInputStream();
 						String jsonString = getJsonString(is);					
@@ -597,6 +620,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 						typesMap = parser.parseDocumentTypes(jsonString);
 						
 						return null;
+					} else {
+						return new MendeleyException("Operation cancelled by the user");
 					}
 					
 				} catch (IOException | JSONException e) {
@@ -606,14 +631,23 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				}
 		}
 		
+		
+	    @Override
+	    protected void onCancelled (MendeleyException result) {
+	    	appInterface.onDocumentTypesNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	getDocumentTypesTask = null;
+	    }
+		
 		@Override
 		protected void onSuccess() {
 			appInterface.onDocumentTypesReceived(typesMap);
+			getDocumentTypesTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			appInterface.onDocumentTypesNotReceived(exception);
+			getDocumentTypesTask = null;
 		}
 	}
 
@@ -648,7 +682,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				
 				if (response.responseCode != 200) {
 					return new HttpResponseException(getErrorMessage(con));
-				} else {			
+				} else if (!isCancelled()) {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
@@ -657,6 +691,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					documents = parser.parseDocumentList(jsonString);
 					
 					return null;
+				} else {
+					return new MendeleyException("Operation cancelled by the user");
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -666,20 +702,25 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			}
 		}
 		
+	    @Override
+	    protected void onCancelled (MendeleyException result) {
+	    	appInterface.onDocumentsNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	getDocumentsTask = null;
+	    }
+		
 		@Override
 		protected void onSuccess() {
 			appInterface.onDocumentsReceived(documents, next);
+			getDocumentsTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			appInterface.onDocumentsNotReceived(exception);
+			getDocumentsTask = null;
 		}
 	}
-	
-	//testing
-	
+
+	//TESTING
 	public DocumentNetworkProvider() {}
-	
-	
 }

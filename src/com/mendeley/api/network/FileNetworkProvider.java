@@ -31,7 +31,8 @@ import com.mendeley.api.network.interfaces.MendeleyFileInterface;
  */
 public class FileNetworkProvider extends NetworkProvider {
 	
-	Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
+	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
+	private GetFilesTask getFilesTask;
 	
 	private static String filesUrl = apiUrl + "files";
 	MendeleyFileInterface appInterface;
@@ -97,7 +98,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	 */
 	protected void doGetFiles(FileRequestParameters params) {		
 		try {
-			new GetFilesTask().execute(getGetFilesUrl(params));		
+			getFilesTask = new GetFilesTask();		
+			getFilesTask.execute(getGetFilesUrl(params));
 		}
 		catch (UnsupportedEncodingException e) {
             appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
@@ -145,7 +147,19 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file 
 	 */
 	protected void cancelDownload(String fileId) {
-		fileTaskMap.get(fileId).cancel(true);
+		GetFileTask task = (GetFileTask) fileTaskMap.get(fileId);
+		if (task != null) {
+			task.cancel(true);
+		}
+	}
+	
+	/**
+	 * Cancelling GetFilesTask if it is currently running
+	 */
+	protected void cancelGetFiles() {
+		if (getFilesTask != null) {
+			getFilesTask.cancel(true);
+		}
 	}
 	
 	/**
@@ -318,7 +332,7 @@ public class FileNetworkProvider extends NetworkProvider {
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
-				} else {			
+				} else if (!isCancelled()) {			
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
@@ -327,6 +341,8 @@ public class FileNetworkProvider extends NetworkProvider {
 					files = parser.parseFileList(jsonString);
 					
 					return null;
+				} else {
+					return new MendeleyException("Operation cancelled by the user");
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -336,14 +352,22 @@ public class FileNetworkProvider extends NetworkProvider {
 			}
 		}
 		
+	    @Override
+	    protected void onCancelled (MendeleyException result) {
+	    	appInterface.onFilesNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	getFilesTask = null;
+	    }
+		
 		@Override
 		protected void onSuccess() {		
 			appInterface.onFilesReceived(files, next);
+			getFilesTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
-			appInterface.onFilesNotReceived(exception);				
+			appInterface.onFilesNotReceived(exception);		
+			getFilesTask = null;
 		}
 	}
 	
@@ -435,7 +459,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					}
 				}
 			}
-		}
+		} 
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
@@ -445,8 +469,11 @@ public class FileNetworkProvider extends NetworkProvider {
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	fileTaskMap.remove(fileId);
-	    	java.io.File file = new java.io.File(filePath);
-	    	file.delete();
+	    	
+	    	if (filePath != null) {
+		    	java.io.File file = new java.io.File(filePath);
+		    	file.delete();
+	    	}
 	    }
 	    
 		@Override
