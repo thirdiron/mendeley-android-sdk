@@ -17,7 +17,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
@@ -79,7 +78,7 @@ public class AuthenticationManager implements Serializable {
         this.clientSecret = clientSecret;
 
         SharedPreferences preferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
-        credentialsManager = new CredentialsManager(preferences);
+        credentialsManager = new SharedPreferencesCredentialsManager(preferences);
     }
 
     private AuthenticationManager(String username, String password,
@@ -92,7 +91,7 @@ public class AuthenticationManager implements Serializable {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
 
-        credentialsManager = new CredentialsManager(null);
+        credentialsManager = new InMemoryCredentialsManager();
     }
 
     protected static void configure(Context context, AuthenticationInterface authInterface,
