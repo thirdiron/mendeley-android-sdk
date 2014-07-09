@@ -74,7 +74,6 @@ public class MendeleySDK {
                         if (mendeleySignInInterface != null) {
                             mendeleySignInInterface.isSignedIn(false);
                         }
-                        Log.e("", "onAuthenticationFail");
                         authenticationManager.authenticate();
                     }
                 },
