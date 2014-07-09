@@ -12,6 +12,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
+import android.os.AsyncTask;
+
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -19,6 +21,7 @@ import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.DocumentNetworkProvider.GetDocumentsTask;
+import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
 import com.mendeley.api.network.components.FolderRequestParameters;
 import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
@@ -77,7 +80,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 */
 	protected void doGetFolders(FolderRequestParameters params) {
 		getFoldersTask = new GetFoldersTask();		
-		getFoldersTask.execute(getGetFoldersUrl(params));
+		String[] paramsArray = new String[]{getGetFoldersUrl(params)};			
+		getFoldersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 
     /**
@@ -87,7 +91,8 @@ public class FolderNetworkProvider extends NetworkProvider{
      */
     protected void doGetFolders(Page next) {
         if (Page.isValidPage(next)) {
-            new GetFoldersTask().execute(next.link);
+    		String[] paramsArray = new String[]{next.link};			
+            new GetFoldersTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
         } else {
             appInterface.onFoldersNotReceived(new NoMorePagesException());
         }
@@ -109,7 +114,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the folder id to get
 	 */
 	protected void doGetFolder(String folderId) {
-		new GetFolderTask().execute(getGetFolderUrl(folderId));		  
+		String[] paramsArray = new String[]{getGetFolderUrl(folderId)};			
+		new GetFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -128,7 +134,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the folder id
 	 */
 	protected void doGetFolderDocumentIds(String folderId) {
-		new GetFolderDocumentIdsTask().execute(getGetFolderDocumentIdsUrl(folderId), folderId);		  
+		String[] paramsArray = new String[]{getGetFolderDocumentIdsUrl(folderId), folderId};			
+		new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
 	}
 
     /**
@@ -138,7 +145,8 @@ public class FolderNetworkProvider extends NetworkProvider{
      */
     protected void doGetFolderDocumentIds(Page next) {
         if (Page.isValidPage(next)) {
-            new GetFolderDocumentIdsTask().execute(next.link);
+    		String[] paramsArray = new String[]{next.link};			
+            new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
         } else {
             appInterface.onFolderDocumentIdsNotReceived(new NoMorePagesException());
         }
@@ -153,7 +161,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 		JsonParser parser = new JsonParser();
 		try {
-			new PostFolderTask().execute(foldersUrl, parser.jsonFromFolder(folder));			
+    		String[] paramsArray = new String[]{foldersUrl, parser.jsonFromFolder(folder)};			
+			new PostFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 		} catch (JSONException e) {
             appInterface.onFolderNotPosted(new JsonParsingException(e.getMessage()));
         }
@@ -185,7 +194,8 @@ public class FolderNetworkProvider extends NetworkProvider{
                 appInterface.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
             }
 		}	
-		new PostDocumentToFolderTask().execute(getPostDocumentToFolderUrl(folderId), documentString, folderId);	
+		String[] paramsArray = new String[]{getPostDocumentToFolderUrl(folderId), documentString, folderId};			
+		new PostDocumentToFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -204,7 +214,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the id of the folder to delete
 	 */
 	protected void doDeleteFolder(String folderId) {
-		new DeleteFolderTask().execute(getDeleteFolderUrl(folderId), folderId);	
+		String[] paramsArray = new String[]{getDeleteFolderUrl(folderId), folderId};			
+		new DeleteFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -224,7 +235,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param documentId the id of the document to delete
 	 */
 	protected void doDeleteDocumentFromFolder(String folderId, String documentId) {
-		new DeleteDocumentFromFolderTask().execute(getDeleteDocumentFromFolderUrl(folderId, documentId), documentId);	
+		String[] paramsArray = new String[]{getDeleteDocumentFromFolderUrl(folderId, documentId), documentId};			
+		new DeleteDocumentFromFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -251,8 +263,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 		} catch (JSONException e) {
             appInterface.onFolderNotPatched(new JsonParsingException(e.getMessage()));
         }
-		
-		new PatchFolderTask().execute(getPatchFolderUrl(folderId), folderId, folderString);	
+		String[] paramsArray = new String[]{getPatchFolderUrl(folderId), folderId, folderString};			
+		new PatchFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**

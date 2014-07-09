@@ -1,12 +1,16 @@
 package com.mendeley.api.network;
 
 import java.io.IOException;
+
 import org.json.JSONException;
+
+import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
 /**
@@ -27,7 +31,8 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * 
 	 */
 	protected void doGetMyProfile() {
-		new GetProfileTask().execute(profilesUrl, "me");		  
+		String[] paramsArray = new String[]{profilesUrl, "me"};			
+		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
 	}
 	
 	/**
@@ -36,7 +41,8 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * @param profileId the profile id to get
 	 */
 	protected void doGetProfile(String profileId) {		
-		new GetProfileTask().execute(profilesUrl, profileId);		  
+		String[] paramsArray = new String[]{profilesUrl, profileId};			
+		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**

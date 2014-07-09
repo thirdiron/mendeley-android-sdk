@@ -127,7 +127,7 @@ public class JsonParser {
 	 */
 	protected static String jsonFromDocumentId(String documentId) throws JSONException {
 		JSONObject jDocument = new JSONObject();		
-		jDocument.put("document", documentId);		
+		jDocument.put("id", documentId);		
 		return jDocument.toString();
 	}
 	
