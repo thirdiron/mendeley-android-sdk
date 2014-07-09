@@ -99,7 +99,9 @@ public class FileNetworkProvider extends NetworkProvider {
 	protected void doGetFiles(FileRequestParameters params) {		
 		try {
 			getFilesTask = new GetFilesTask();		
-			getFilesTask.execute(getGetFilesUrl(params));
+
+			String[] paramsArray = new String[]{getGetFilesUrl(params)};
+			getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 		}
 		catch (UnsupportedEncodingException e) {
             appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
@@ -113,7 +115,9 @@ public class FileNetworkProvider extends NetworkProvider {
      */
     protected void doGetFiles(Page next) {
         if (Page.isValidPage(next)) {
-            new GetFilesTask().execute(next.link);
+        	
+        	String[] paramsArray = new String[]{next.link};			
+            new GetFilesTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         } else {
             appInterface.onFilesNotReceived(new NoMorePagesException());
         }
@@ -178,7 +182,9 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to delete
 	 */
 	protected void doDeleteFile(String fileId) { Log.e("", "fileId to delete: " + fileId);
-		new DeleteFileTask().execute(getDeleteFileUrl(fileId), fileId);		  
+	
+		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
+		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
 	/**
@@ -189,7 +195,9 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param filePath the absolute file path
 	 */
 	protected void doPostFile(String contentType, String documentId, String filePath) {
-		new PostFileTask().execute(contentType, documentId, filePath);		  
+		
+		String[] paramsArray = new String[]{contentType, documentId, filePath};			
+		new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**

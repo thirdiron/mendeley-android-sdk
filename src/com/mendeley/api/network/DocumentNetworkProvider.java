@@ -16,11 +16,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
+import android.os.AsyncTask;
+
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
 import com.mendeley.api.network.components.DocumentRequestParameters;
 import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
@@ -66,8 +69,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 *  
 	 * @param documentId the document if to delete
 	 */
-	protected void doDeleteDocument(String documentId) {
-		 new DeleteDocumentTask().execute(getDeleteDocumentUrl(documentId), documentId);
+	protected void doDeleteDocument(String documentId) {	
+		 String[] paramsArray = new String[]{getDeleteDocumentUrl(documentId), documentId};			
+		 new DeleteDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 
 	/**
@@ -79,7 +83,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
 		JsonParser parser = new JsonParser();
 		try {
-			new PostDocumentTask().execute(documentsUrl, parser.jsonFromDocument(document));			
+			String[] paramsArray = new String[]{documentsUrl, parser.jsonFromDocument(document)};			
+			new PostDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 		
 		} catch (JSONException e) {
             appInterface.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
         }
@@ -101,7 +106,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param documentId the document id to trash
 	 */
 	protected void doPostTrashDocument(String documentId) {
-		 new PostTrashDocumentTask().execute(getTrashDocumentUrl(documentId), documentId);
+		String[] paramsArray = new String[]{getTrashDocumentUrl(documentId), documentId};			
+		new PostTrashDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -132,7 +138,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param params the document request parameters
 	 */
 	protected void doGetDocument(String documentId, DocumentRequestParameters params) {
-		new GetDocumentTask().execute(getGetDocumentUrl(documentId, params));
+		String[] paramsArray = new String[]{getGetDocumentUrl(documentId, params)};			
+		new GetDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 	
 	/**
@@ -194,7 +201,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * Getting the appropriate url string and executes the GetDocumentTypesTask.
 	 */
 	protected void doGetDocumentTypes() {
-		new GetDocumentTypesTask().execute(documentTypesUrl);		  
+		String[] paramsArray = new String[]{documentTypesUrl};			
+		new GetDocumentTypesTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 	  
 	}
 	
 	
@@ -206,7 +214,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	protected void doGetDocuments(DocumentRequestParameters params) {
 		try {
 			getDocumentsTask = new GetDocumentsTask();		
-			getDocumentsTask.execute(getGetDocumentsUrl(params));
+			
+			String[] paramsArray = new String[]{getGetDocumentsUrl(params)};			
+			getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 		}
 		catch (UnsupportedEncodingException e) {
             appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
@@ -239,7 +249,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 */
 	protected void doGetDocuments(Page next) {
 		if (Page.isValidPage(next)) {
-			new GetDocumentsTask().execute(next.link);
+			String[] paramsArray = new String[]{next.link};			
+			new GetDocumentsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 		} else {
             appInterface.onDocumentsNotReceived(new NoMorePagesException());
 		}
@@ -282,7 +293,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		JsonParser parser = new JsonParser();
 		try {
-			new PatchDocumentTask().execute(getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document));		
+			String[] paramsArray = new String[]{getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document)};			
+			new PatchDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 	
 		} catch (JSONException e) {
             appInterface.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
         }
