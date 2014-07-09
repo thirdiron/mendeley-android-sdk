@@ -3,6 +3,7 @@ package com.mendeley.api.network.interfaces;
 import java.util.List;
 
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.components.Page;
 
@@ -18,7 +19,7 @@ public interface MendeleyFolderInterface extends MendeleyInterface{
 	public void onFolderReceived(Folder folder);
 	public void onFolderNotReceived(MendeleyException mendeleyException);
 		
-	public void onFolderDocumentIdsReceived(List<String> documentIds, Page next);
+	public void onFolderDocumentIdsReceived(String folderId, List<DocumentId> documentIds, Page next);
 	public void onFolderDocumentIdsNotReceived(MendeleyException mendeleyException);
 	
 	public void onFolderPosted(Folder folder);

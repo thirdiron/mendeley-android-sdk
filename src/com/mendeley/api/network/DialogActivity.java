@@ -154,7 +154,7 @@ public class DialogActivity extends Activity {
 	        	index += 5;
 	        	AuthorizationCode = authReturnUrl.substring(index);
 	        }
-			
+
 			return AuthorizationCode;
     	}
     	
@@ -183,7 +183,7 @@ public class DialogActivity extends Activity {
 		
 		@Override
 		protected void onPostExecute(String result) {
-			
+
 			Intent resultData = new Intent(); 
 			if (result != null) {
 	        	resultData.putExtra("authorization_code", authorizationCode);

@@ -3,6 +3,7 @@ package com.mendeley.api.network;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -15,7 +16,9 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
+import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.network.DocumentNetworkProvider.GetDocumentsTask;
 import com.mendeley.api.network.components.FolderRequestParameters;
 import com.mendeley.api.network.components.Page;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
@@ -28,6 +31,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	
 	private static String foldersUrl = apiUrl + "folders";
 	MendeleyFolderInterface appInterface;
+	
+	private GetFoldersTask getFoldersTask;
 	
 	/**
 	 * Constructor that takes MendeleyFolderInterface instance which will be used to send callbacks to the application
@@ -54,6 +59,16 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		return url.toString();
 	}
+	
+	/**
+	 * Cancelling GetFoldersTask if it is currently running
+	 */
+	protected void cancelGetFolders() {
+		if (getFoldersTask != null) {
+			getFoldersTask.cancel(true);
+		}
+	}
+	
 
 	/**
 	 * Getting the appropriate url string and executes the GetFoldersTask
@@ -61,7 +76,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param params folder request parameters object
 	 */
 	protected void doGetFolders(FolderRequestParameters params) {
-		new GetFoldersTask().execute(getGetFoldersUrl(params));		  
+		getFoldersTask = new GetFoldersTask();		
+		getFoldersTask.execute(getGetFoldersUrl(params));
 	}
 
     /**
@@ -112,7 +128,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the folder id
 	 */
 	protected void doGetFolderDocumentIds(String folderId) {
-		new GetFolderDocumentIdsTask().execute(getGetFolderDocumentIdsUrl(folderId));		  
+		new GetFolderDocumentIdsTask().execute(getGetFolderDocumentIdsUrl(folderId), folderId);		  
 	}
 
     /**
@@ -536,7 +552,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 */
 	protected class GetFolderDocumentIdsTask extends NetworkTask {
 
-		List<String> documentIds;
+		List<DocumentId> documentIds;
+		String folderId;
 
 		@Override
 		protected int getExpectedResponse() {
@@ -547,6 +564,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
+			if (params.length > 1) {
+				folderId = params[1];
+			}
 
 			try {
 				con = getConnection(url, "GET");
@@ -578,7 +598,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderDocumentIdsReceived(documentIds, next);
+			appInterface.onFolderDocumentIdsReceived(folderId, documentIds, next);
 		}
 
 		@Override
@@ -677,7 +697,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 				if (response.responseCode != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
-				} else {			
+				} else if (!isCancelled()) {				
 				
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
@@ -686,6 +706,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 					folders = parser.parseFolderList(jsonString);
 
 					return null;
+				} else {
+					return new MendeleyException("Operation cancelled by the user");
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -695,6 +717,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}
 		}
 		
+	    @Override
+	    protected void onCancelled (MendeleyException result) {
+	    	appInterface.onFoldersNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	getFoldersTask = null;
+	    }
+	    
 		@Override
 		protected void onSuccess() {
 			appInterface.onFoldersReceived(folders, next);
