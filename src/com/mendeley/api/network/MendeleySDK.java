@@ -32,7 +32,6 @@ import com.mendeley.api.util.Utils;
  * and is also checked to see which interfaces the activity implements for sending callbacks once a network task has finished.
  */
 public class MendeleySDK {
-	
 	protected AuthenticationManager authenticationManager;
 	protected MethodtoInvoke methodToInvoke;
 	
@@ -47,46 +46,87 @@ public class MendeleySDK {
 	protected MendeleyProfileInterface profileInterface;
 	MendeleySignInInterface mendeleySignInInterface;
 
+    /**
+     * Obtain a handle to the SDK.
+     *
+     * @param context used for creating the sign-in activity
+     * @param callbacks object which implements one or more Mendeley*Interfaces
+     * @param clientId your app's Mendeley ID, from the registration process
+     * @param clientSecret your app's client secret, from the registration process
+     */
 	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret)  {
-        init(context, callbacks, clientId, clientSecret);
+        initWithWebSignIn(context, callbacks, clientId, clientSecret);
 	}
-	
+
+    /**
+     * Obtain a handle to the SDK.
+     *
+     * @param signInCallback used to receive sign in/out events.
+     */
 	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret,
                        MendeleySignInInterface signInCallback) {
-        this.mendeleySignInInterface = (MendeleySignInInterface) signInCallback;
-        init(context, callbacks, clientId, clientSecret);
+        this.mendeleySignInInterface = signInCallback;
+        initWithWebSignIn(context, callbacks, clientId, clientSecret);
     }
 
-    private void init(Context context, Object callbacks, String clientId, String clientSecret) {
+    /**
+     * Obtain a handle to the SDK (internal use only).
+     * <p>
+     * Developer applications should not use this constructor, instead they should pass a context.
+     * This constructor is intended for unit testing the SDK.
+     */
+    public MendeleySDK(String username, String password, Object callbacks, String clientId, String clientSecret)  {
+        initWithPasswordSignIn(username, password, callbacks, clientId, clientSecret);
+    }
+
+    private void initWithWebSignIn(Context context, Object callbacks, String clientId, String clientSecret) {
         AuthenticationManager.configure(
                 context,
-                new AuthenticationInterface() {
-                    @Override
-                    public void onAuthenticated() {
-                        if (mendeleySignInInterface != null) {
-                            mendeleySignInInterface.isSignedIn(true);
-                        }
-                        invokeMethod();
-                    }
-
-                    @Override
-                    public void onAuthenticationFail() {
-                        if (mendeleySignInInterface != null) {
-                            mendeleySignInInterface.isSignedIn(false);
-                        }
-                        authenticationManager.authenticate();
-                    }
-                },
+                createAuthenticationInterface(),
                 clientId,
                 clientSecret);
+        init(callbacks);
+    }
+
+    private void initWithPasswordSignIn(String username, String password, Object callbacks, String clientId, String clientSecret) {
+        AuthenticationManager.configure(
+                username,
+                password,
+                createAuthenticationInterface(),
+                clientId,
+                clientSecret);
+        init(callbacks);
+    }
+
+    private void init(Object callbacks) {
         authenticationManager = AuthenticationManager.getInstance();
         initialiseInterfaces(callbacks);
         if (!hasCredentials()) {
             authenticationManager.authenticate();
         }
     }
-		
-	/**
+
+    private AuthenticationInterface createAuthenticationInterface() {
+        return new AuthenticationInterface() {
+            @Override
+            public void onAuthenticated() {
+                if (mendeleySignInInterface != null) {
+                    mendeleySignInInterface.isSignedIn(true);
+                }
+                invokeMethod();
+            }
+
+            @Override
+            public void onAuthenticationFail() {
+                if (mendeleySignInInterface != null) {
+                    mendeleySignInInterface.isSignedIn(false);
+                }
+                authenticationManager.authenticate();
+            }
+        };
+    }
+
+    /**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param parameters holds optional query parameters, will be ignored if null
@@ -525,40 +565,12 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 * Checking if the current access token has expired
-	 * 
-	 * @return true if authenticated.
-	 */
-	private boolean isAuthenticated() {
-
-		boolean isAuthenticated = false;
-		
-		if (NetworkProvider.accessToken != null && NetworkProvider.expiresAt != null) {
-			Date now = new Date();
-			Date expires = null;
-			try {
-				expires = Utils.dateFormat.parse(NetworkProvider.expiresAt);
-			} catch (ParseException e) {
-				Log.e("", "", e);
-				return false;
-			}
-
-			long diffInMs = expires.getTime() - now.getTime();
-			long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-			
-			isAuthenticated = diffInSec > 0;
-		}
-
-		return isAuthenticated;
-	}
-	
-	/**
-	 * Call hasCredentials method on the protected AuthenticationManager
+	 * Call checkCredentialsAndCopyToNetworkProvider method on the protected AuthenticationManager
 	 * 
 	 * @return true if credentials are stored already in SharedPreferences.
 	 */
 	private boolean hasCredentials() {
-		return authenticationManager.hasCredentials();
+		return authenticationManager.checkCredentialsAndCopyToNetworkProvider();
 	}
 	
 	/**
@@ -606,7 +618,7 @@ public class MendeleySDK {
 		if (mendeleyInterface == null) {
 			throw new InterfaceNotImplementedException("The required MendeleyInterface is not implemented by the calling class");
 		}
-		if (!isAuthenticated()) {
+		if (!authenticationManager.isAuthenticated()) {
 			if (classes == null) {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
 				authenticationManager.authenticate();
@@ -674,5 +686,4 @@ public class MendeleySDK {
 	 */
 	public MendeleySDK() {
 	}
-	
 }

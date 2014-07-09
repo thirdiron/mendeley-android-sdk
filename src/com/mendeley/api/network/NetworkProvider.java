@@ -29,15 +29,10 @@ import com.mendeley.api.network.components.Page;
  *
  */
 public class NetworkProvider {
-
-	protected static String apiUrl = "https://mix.mendeley.com:443/";
+	protected static final String apiUrl = "https://mix.mendeley.com:443/";
 	
-	protected static String tokenType = null;
 	protected static String accessToken = null;
-	protected static String refreshToken = null;
-	protected static String expiresAt = null;
-	protected static int expiresIn = -1;
-	
+
 	@SuppressLint("SimpleDateFormat")
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 

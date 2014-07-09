@@ -31,14 +31,13 @@ import com.mendeley.api.model.Profile;
  *
  */
 public class JsonParser {
-	
 	/**
 	 * Creating a json string from a Document object
 	 * @param document the Document object
 	 * @return the json string
 	 * @throws JSONException
 	 */
-	protected String jsonFromDocument(Document document) throws JSONException {
+	protected static String jsonFromDocument(Document document) throws JSONException {
 
 		JSONArray authors = new JSONArray();
 		for (int i = 0; i < document.authors.size(); i++) {
@@ -106,7 +105,7 @@ public class JsonParser {
 	 * @return the json string
 	 * @throws JSONException
 	 */
-	protected String jsonFromFolder(Folder folder) throws JSONException {
+	protected static String jsonFromFolder(Folder folder) throws JSONException {
 
 		JSONObject jFolder = new JSONObject();
 		
@@ -126,7 +125,7 @@ public class JsonParser {
 	 * @return the json string
 	 * @throws JSONException
 	 */
-	protected String jsonFromDocumentId(String documentId) throws JSONException {
+	protected static String jsonFromDocumentId(String documentId) throws JSONException {
 		JSONObject jDocument = new JSONObject();		
 		jDocument.put("id", documentId);		
 		return jDocument.toString();
@@ -139,7 +138,7 @@ public class JsonParser {
 	 * @return the list of string document ids
 	 * @throws JSONException
 	 */
-	protected List<DocumentId> parseDocumentIds(String jsonString) throws JSONException {
+	protected static List<DocumentId> parseDocumentIds(String jsonString) throws JSONException {
 		List<DocumentId> documentIds = new ArrayList<DocumentId>();
 		JSONArray jsonArray = new JSONArray(jsonString);
 		for (int i = 0; i < jsonArray.length(); i++) {	
@@ -148,8 +147,8 @@ public class JsonParser {
 		
 		return documentIds;
 	}
-	
-	Map<String, String> parseDocumentTypes(String jsonString) throws JSONException{
+
+    static Map<String, String> parseDocumentTypes(String jsonString) throws JSONException{
 		Map<String, String> typesMap = new HashMap<String, String>();
 		
 		JSONArray jsonarray = new JSONArray(jsonString);
@@ -170,7 +169,7 @@ public class JsonParser {
 	 * @return the File object
 	 * @throws JSONException
 	 */
-	protected File parseFile(String jsonString) throws JSONException {
+	protected static File parseFile(String jsonString) throws JSONException {
 		File.Builder mendeleyFile = new File.Builder();
 		
 		JSONObject documentObject = new JSONObject(jsonString);
@@ -201,7 +200,7 @@ public class JsonParser {
 		return mendeleyFile.build();
 	}
 	
-	protected DocumentId parseDocumentId(String jsonString) throws JSONException {
+	protected static DocumentId parseDocumentId(String jsonString) throws JSONException {
 		DocumentId.Builder mendeleyDocumentId = new DocumentId.Builder();
 		
 		JSONObject documentObject = new JSONObject(jsonString);
@@ -227,7 +226,7 @@ public class JsonParser {
 	 * @return the list of Folder objects
 	 * @throws JSONException
 	 */
-	protected List<Folder> parseFolderList(String jsonString) throws JSONException {
+	protected static List<Folder> parseFolderList(String jsonString) throws JSONException {
 		
 		List<Folder> folders = new ArrayList<Folder>();
 		
@@ -247,7 +246,7 @@ public class JsonParser {
 	 * @return the Folder object
 	 * @throws JSONException
 	 */
-	protected Folder parseFolder(String jsonString) throws JSONException {
+	protected static Folder parseFolder(String jsonString) throws JSONException {
 		
 		Folder.Builder mendeleyFolder = new Folder.Builder();
 		
@@ -286,7 +285,7 @@ public class JsonParser {
 	 * @return the Profile object
 	 * @throws JSONException
 	 */
-	protected Profile parseProfile(String jsonString) throws JSONException {
+	protected static Profile parseProfile(String jsonString) throws JSONException {
 		
 		Profile.Builder mendeleyProfile = new Profile.Builder();
 		
@@ -471,7 +470,7 @@ public class JsonParser {
 	 * @return the Document object
 	 * @throws JSONException
 	 */
-	protected Document parseDocument(String jsonString) throws JSONException {		
+	protected static Document parseDocument(String jsonString) throws JSONException {
 		Document.Builder mendeleyDocument = new Document.Builder();
 		JSONObject documentObject = new JSONObject(jsonString);
 		 
@@ -618,7 +617,7 @@ public class JsonParser {
 	 * @return the list of File objects
 	 * @throws JSONException
 	 */
-	protected List<File> parseFileList(String jsonString) throws JSONException {
+	protected static List<File> parseFileList(String jsonString) throws JSONException {
 		
 		List<File> files = new ArrayList<File>();
 		
@@ -638,7 +637,7 @@ public class JsonParser {
 	 * @return the list of Document objects
 	 * @throws JSONException
 	 */
-	protected List<Document> parseDocumentList(String jsonString) throws JSONException {
+	protected static List<Document> parseDocumentList(String jsonString) throws JSONException {
 		
 		List<Document> documents = new ArrayList<Document>();
 		
@@ -658,7 +657,7 @@ public class JsonParser {
      * @return the json String object
      * @throws IOException
      */
-	String getJsonString(InputStream stream) throws IOException {
+    static String getJsonString(InputStream stream) throws IOException {
 		
 		StringBuffer data = new StringBuffer();
 		InputStreamReader isReader = null;
@@ -681,5 +680,4 @@ public class JsonParser {
 		
 		return data.toString();
 	}
-	
 }
