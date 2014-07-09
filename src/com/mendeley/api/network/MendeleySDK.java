@@ -65,7 +65,7 @@ public class MendeleySDK {
      */
 	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret,
                        MendeleySignInInterface signInCallback) {
-        this.mendeleySignInInterface = (MendeleySignInInterface) signInCallback;
+        this.mendeleySignInInterface = signInCallback;
         initWithWebSignIn(context, callbacks, clientId, clientSecret);
     }
 
@@ -565,34 +565,6 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 * Checking if the current access token has expired
-	 * 
-	 * @return true if authenticated.
-	 */
-	private boolean isAuthenticated() {
-
-		boolean isAuthenticated = false;
-		
-		if (NetworkProvider.accessToken != null && NetworkProvider.expiresAt != null) {
-			Date now = new Date();
-			Date expires = null;
-			try {
-				expires = Utils.dateFormat.parse(NetworkProvider.expiresAt);
-			} catch (ParseException e) {
-				Log.e("", "", e);
-				return false;
-			}
-
-			long diffInMs = expires.getTime() - now.getTime();
-			long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-			
-			isAuthenticated = diffInSec > 0;
-		}
-
-		return isAuthenticated;
-	}
-	
-	/**
 	 * Call checkCredentialsAndCopyToNetworkProvider method on the protected AuthenticationManager
 	 * 
 	 * @return true if credentials are stored already in SharedPreferences.
@@ -646,7 +618,7 @@ public class MendeleySDK {
 		if (mendeleyInterface == null) {
 			throw new InterfaceNotImplementedException("The required MendeleyInterface is not implemented by the calling class");
 		}
-		if (!isAuthenticated()) {
+		if (!authenticationManager.isAuthenticated()) {
 			if (classes == null) {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
 				authenticationManager.authenticate();

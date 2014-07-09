@@ -179,7 +179,7 @@ public class DialogActivity extends Activity {
 			
 			setResult(Activity.RESULT_OK, resultData);
 			finish();
-		}    
+		}
     }
     
 	/**

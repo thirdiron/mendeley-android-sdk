@@ -58,10 +58,6 @@ public class CredentialsManager {
 		editor.commit();
 		
 		NetworkProvider.accessToken = null;
-		NetworkProvider.refreshToken = null;
-		NetworkProvider.tokenType = null;
-		NetworkProvider.expiresAt = null;
-		NetworkProvider.expiresIn = -1;
 	}
  
 	/**
@@ -79,41 +75,37 @@ public class CredentialsManager {
 
 		if (hasCredentials) {
 			NetworkProvider.accessToken = getAccessToken();
-			NetworkProvider.refreshToken = getRefreshToken();
-			NetworkProvider.tokenType = getTokenType();
-			NetworkProvider.expiresIn = getExpiresIn();
-			NetworkProvider.expiresAt = getExpiresAt();
 		}
 		
 		return hasCredentials;
 	}
 
     /**
-     * @return the access token string or null if it does not exist.
+     * @return the expires in integer or -1 if it does not exist.
      */
-    private String getAccessToken() {
-        return preferences.getString(ACCESS_TOKEN, null);
-    }
-
-    /**
-     * @return the refresh token string or null if it does not exist.
-     */
-    private String getRefreshToken() {
-        return preferences.getString(REFRESH_TOKEN, null);
+    protected int getExpiresIn() {
+        return preferences.getInt(EXPIRES_IN, -1);
     }
 
     /**
      * @return the expires in string value or null if it does not exist.
      */
-    private String getExpiresAt() {
+    protected String getExpiresAt() {
         return preferences.getString(EXPIRES_AT, null);
     }
 
     /**
-     * @return the expires in integer or -1 if it does not exist.
+     * @return the refresh token string or null if it does not exist.
      */
-    private int getExpiresIn() {
-        return preferences.getInt(EXPIRES_IN, -1);
+    protected String getRefreshToken() {
+        return preferences.getString(REFRESH_TOKEN, null);
+    }
+
+    /**
+     * @return the access token string or null if it does not exist.
+     */
+    private String getAccessToken() {
+        return preferences.getString(ACCESS_TOKEN, null);
     }
 
     /**
@@ -133,8 +125,7 @@ public class CredentialsManager {
      * @param expiresIn the expires in va;ue
      */
     private void setTokens(String accessToken, String refreshToken, String tokenType, int expiresIn) {
-
-        Calendar c = Calendar .getInstance();
+        Calendar c = Calendar.getInstance();
         c.add(Calendar.SECOND, expiresIn);
         String expiresAt = Utils.dateFormat.format(c.getTime());
 
@@ -147,9 +138,5 @@ public class CredentialsManager {
         editor.commit();
 
         NetworkProvider.accessToken = accessToken;
-        NetworkProvider.refreshToken = refreshToken;
-        NetworkProvider.tokenType = tokenType;
-        NetworkProvider.expiresIn = expiresIn;
-        NetworkProvider.expiresAt = expiresAt;
     }
 }

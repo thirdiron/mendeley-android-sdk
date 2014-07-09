@@ -2,8 +2,11 @@ package com.mendeley.api.network;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -25,6 +28,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
+import com.mendeley.api.util.Utils;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
@@ -34,16 +38,17 @@ import static junit.framework.Assert.assertNull;
  * using a WebView to display the authentication web page.
  */
 public class AuthenticationManager implements Serializable {
-	private static AuthenticationManager authManager;
-	private static final long serialVersionUID = 1L;
+    public static final String TOKENS_URL = "https://api-oauth2.mendeley.com/oauth/token";
+    public static final String GRANT_TYPE_AUTH = "authorization_code";
+    public static final String GRANT_TYPE_REFRESH = "refresh_token";
+    public static final String GRANT_TYPE_PASSWORD = "password";
+    public static final String REDIRECT_URI = "http://localhost/auth_return";
+    public static final String SCOPE = "all";
+    public static final String RESPONSE_TYPE = "code";
 
-	static final String TOKENS_URL = "https://api-oauth2.mendeley.com/oauth/token";
-	static final String GRANT_TYPE_AUTH = "authorization_code";
-	static final String GRANT_TYPE_REFRESH = "refresh_token";
-    static final String GRANT_TYPE_PASSWORD = "password";
-	static final String REDIRECT_URI = "http://localhost/auth_return";
-	static final String SCOPE = "all";
-	static final String RESPONSE_TYPE = "code";
+    private static final long serialVersionUID = 1L;
+
+    private static AuthenticationManager authManager;
 
 	private final Context context;
     private final String username;
@@ -51,8 +56,8 @@ public class AuthenticationManager implements Serializable {
     private final String clientId;
     private final String clientSecret;
 
-	final CredentialsManager credentialsManager;
-	final AuthenticationInterface authInterface;
+	private final CredentialsManager credentialsManager;
+	private final AuthenticationInterface authInterface;
 
     private Handler refreshHandler;
 
@@ -109,6 +114,33 @@ public class AuthenticationManager implements Serializable {
         assertNotNull("authManager must have been configured", authManager);
 		return authManager;
 	}
+
+    /**
+     * Checks if the current access token has expired
+     *
+     * @return true if authenticated.
+     */
+    protected boolean isAuthenticated() {
+        boolean isAuthenticated = false;
+
+        if (NetworkProvider.accessToken != null && credentialsManager.getExpiresAt() != null) {
+            Date now = new Date();
+            Date expires = null;
+            try {
+                expires = Utils.dateFormat.parse(credentialsManager.getExpiresAt());
+            } catch (ParseException e) {
+                Log.e("", "", e);
+                return false;
+            }
+
+            long diffInMs = expires.getTime() - now.getTime();
+            long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
+
+            isAuthenticated = diffInSec > 0;
+        }
+
+        return isAuthenticated;
+    }
 
     protected String getClientId() {
         return clientId;
@@ -194,7 +226,7 @@ public class AuthenticationManager implements Serializable {
 			}
 		};
 		
-		long delayMillis = immediateExecution ? 0 : (long)((NetworkProvider.expiresIn * 0.9) * 1000);
+		long delayMillis = immediateExecution ? 0 : (long)((credentialsManager.getExpiresIn() * 0.9) * 1000);
 		refreshHandler = new Handler();
 		
 		refreshHandler.postDelayed(runnableNotify, delayMillis);
@@ -303,7 +335,7 @@ public class AuthenticationManager implements Serializable {
         nameValuePairs.add(new BasicNameValuePair("redirect_uri", REDIRECT_URI));
         nameValuePairs.add(new BasicNameValuePair("client_id", clientId));
         nameValuePairs.add(new BasicNameValuePair("client_secret", clientSecret));
-        nameValuePairs.add(new BasicNameValuePair("refresh_token", NetworkProvider.refreshToken));
+        nameValuePairs.add(new BasicNameValuePair("refresh_token", credentialsManager.getRefreshToken()));
         
         httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
