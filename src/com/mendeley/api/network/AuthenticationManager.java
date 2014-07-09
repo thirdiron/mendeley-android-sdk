@@ -25,15 +25,16 @@ import android.util.Log;
 
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+
 /**
  * This class is responsible for authenticating the user, 
  * using a WebView for displaying the authentication web page.  
  *
  */
 public class AuthenticationManager implements Serializable {
-
-
-	private static AuthenticationManager manager;
+	private static AuthenticationManager authManager;
 	private static final long serialVersionUID = 1L;
 	String authorizationCode;	
 	Handler refreshHandler;	
@@ -47,9 +48,9 @@ public class AuthenticationManager implements Serializable {
 	final static String SCOPE = "all";
 	final static String RESPONSE_TYPE = "code";
 
-	Context context;
-	CredentialsManager credentialsManager;	
-	AuthenticationInterface authInterface;
+	final Context context;
+	final CredentialsManager credentialsManager;
+	final AuthenticationInterface authInterface;
 	
 	/**
 	 *  The constructor takes context which will be used for displaying the WebView
@@ -59,16 +60,25 @@ public class AuthenticationManager implements Serializable {
 	 * @param context the context object
 	 * @param authInterface the AuthenticationInterface instance for callbacks
 	 */
-	protected AuthenticationManager (Context context, AuthenticationInterface authInterface) {
+	private AuthenticationManager(Context context, AuthenticationInterface authInterface,
+                                  String clientId, String clientSecret) {
 		this.context = context;
 		this.authInterface = authInterface;
-		credentialsManager = new CredentialsManager(context);
+		credentialsManager = new CredentialsManager(context, clientId, clientSecret);
 	}
-	
+
+    protected static void configure(Context context, AuthenticationInterface authInterface,
+                                    String clientId, String clientSecret) {
+        // TODO: Uncomment the following assertion once MendeleySDK is a singleton
+        // assertNull("configure can only be called once", authManager);
+        authManager = new AuthenticationManager(context, authInterface, clientId, clientSecret);
+	}
+
 	protected static AuthenticationManager getInstance() {
-		return manager;
+        assertNotNull("authManager must have been configured", authManager);
+		return authManager;
 	}
-	
+
 	/**
 	 * Querying the CredentialManager if credentials are already stored on the device.
 	 * 
@@ -103,9 +113,7 @@ public class AuthenticationManager implements Serializable {
 	 * Starting the sign in activity.
 	 */
 	private void startSignInActivity() {
-		manager = this;
 		Intent intent = new Intent(context, SignInActivity.class);
-
 		((Activity) context).startActivity(intent);	
 	}
 	  
@@ -245,14 +253,14 @@ public class AuthenticationManager implements Serializable {
 	}
 
 	protected void authenticated(String authorizationCode) {
-		manager = null;
+		authManager = null;
 		this.authorizationCode = authorizationCode;
 		authInterface.onAuthenticated();
 		createRefreshHandler(false);
 	}
     
 	protected void failedToAuthenticate() {
-		manager = null;
+		authManager = null;
 		authInterface.onAuthenticationFail();
 	}
 }

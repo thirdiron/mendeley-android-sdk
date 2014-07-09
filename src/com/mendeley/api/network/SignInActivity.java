@@ -12,14 +12,18 @@ import android.widget.Button;
 import com.mendeley.api.R;
 
 /**
- * This is activity will show when the user is not authenticated and need to enter his username and password. 
+ * Display the splash screen, with buttons to sign in or create an account.
  *
+ * The "create account" button starts a new web browser activity pointed at the
+ * Mendeley home page.
+ *
+ * The "sign in" button starts DialogActivity to obtain an authorization code, which is
+ * passed to AuthenticationManager.
  */
 public class SignInActivity  extends Activity implements OnClickListener {
-	
 	final static int SIGNIN_RESULT = 0;
 	final static String CREATE_ACCOUNT_URL = "http://www.mendeley.com/";
-	
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,9 +34,24 @@ public class SignInActivity  extends Activity implements OnClickListener {
         ((Button) findViewById(R.id.signinButton)).setOnClickListener(this);
         ((Button) findViewById(R.id.signupButton)).setOnClickListener(this);
     }
-    
+
     /**
-     * Opening a web browser to load the given url
+     * Handling click events on the custom buttons.
+     * Will call DialogActivity or open the create account url in a web browser.
+     */
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.signinButton) {
+            Intent intent = new Intent(this, DialogActivity.class);
+            startActivityForResult(intent, SIGNIN_RESULT);
+        } else if (id == R.id.signupButton) {
+            openUrlInBrowser(CREATE_ACCOUNT_URL);
+        }
+    }
+
+    /**
+     * Opening a system web browser to load the given url
      * @param url the url to load
      */
     private void openUrlInBrowser(String url) {
@@ -43,12 +62,11 @@ public class SignInActivity  extends Activity implements OnClickListener {
     /**
      * Handling on activity result.
      * Will be called after the user logged in in the DialogActivity.
-     * If an authorsation code is received will call authenticated method of the AuthenticationManager
+     * If an authorisation code is received will call authenticated method of the AuthenticationManager
      * otherwise will call failedToAuthenticate.
      */
     @Override
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
-
     	if (resultCode == Activity.RESULT_OK) {
     		switch(requestCode) {
 	    		case SIGNIN_RESULT:
@@ -71,25 +89,6 @@ public class SignInActivity  extends Activity implements OnClickListener {
 	@Override
 	public void onBackPressed() {
 		moveTaskToBack(true);
-	}
-	
-	/**
-	 * Handling click events on the custom buttons.
-	 * Will call DialogActivity or open the create account url in a web browser.
-	 */
-	@Override
-	public void onClick(View v) {
-		
-		int id = v.getId();
-		if (id == R.id.signinButton) {
-			
-			Intent intent = new Intent(this, DialogActivity.class);
-
-			startActivityForResult(intent, SIGNIN_RESULT);	
-			
-		} else if (id == R.id.signupButton) {
-			openUrlInBrowser(CREATE_ACCOUNT_URL);
-		}
 	}
 	
 	@Override

@@ -47,64 +47,46 @@ public class MendeleySDK {
 	protected MendeleyProfileInterface profileInterface;
 	MendeleySignInInterface mendeleySignInInterface;
 
-	public MendeleySDK(Context context, Object callbacks)  {
-		
-		authenticationManager = new AuthenticationManager(context, new AuthenticationInterface() {
-			@Override
-			public void onAuthenticated() {
-				if (mendeleySignInInterface != null) {
-					mendeleySignInInterface.isSignedIn(true);
-				}
-				invokeMethod();
-			}
-			
-			@Override
-			public void onAuthenticationFail() {
-				if (mendeleySignInInterface != null) {
-					mendeleySignInInterface.isSignedIn(false);
-				}
-				Log.e("", "onAuthenticationFail");
-				authenticationManager.authenticate();
-			}
-		});
-		initialiseInterfaces(callbacks);
-
-		if (!hasCredentials()) {
-			authenticationManager.authenticate();
-		}
+	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret)  {
+        init(context, callbacks, clientId, clientSecret);
 	}
 	
-	public MendeleySDK(Context context, Object callbacks, Object signInCallback)  {
-		
-		if (signInCallback instanceof MendeleySignInInterface) {
-			this.mendeleySignInInterface = (MendeleySignInInterface)signInCallback;
-		}
-		
-		authenticationManager = new AuthenticationManager(context, new AuthenticationInterface() {
-			@Override
-			public void onAuthenticated() {
-				if (mendeleySignInInterface != null) {
-					mendeleySignInInterface.isSignedIn(true);
-				}
-				invokeMethod();
-			}
-			
-			@Override
-			public void onAuthenticationFail() {
-				if (mendeleySignInInterface != null) {
-					mendeleySignInInterface.isSignedIn(false);
-				}
-				Log.e("", "onAuthenticationFail");
-				authenticationManager.authenticate();
-			}
-		});
-		initialiseInterfaces(callbacks);
+	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret,
+                       MendeleySignInInterface signInCallback) {
+        this.mendeleySignInInterface = (MendeleySignInInterface) signInCallback;
+        init(context, callbacks, clientId, clientSecret);
+    }
 
-		if (!hasCredentials()) {
-			authenticationManager.authenticate();
-		}
-	}
+    private void init(Context context, Object callbacks, String clientId, String clientSecret) {
+        AuthenticationManager.configure(
+                context,
+                new AuthenticationInterface() {
+                    @Override
+                    public void onAuthenticated() {
+                        if (mendeleySignInInterface != null) {
+                            mendeleySignInInterface.isSignedIn(true);
+                        }
+                        invokeMethod();
+                    }
 
+                    @Override
+                    public void onAuthenticationFail() {
+                        if (mendeleySignInInterface != null) {
+                            mendeleySignInInterface.isSignedIn(false);
+                        }
+                        Log.e("", "onAuthenticationFail");
+                        authenticationManager.authenticate();
+                    }
+                },
+                clientId,
+                clientSecret);
+        authenticationManager = AuthenticationManager.getInstance();
+        initialiseInterfaces(callbacks);
+        if (!hasCredentials()) {
+            authenticationManager.authenticate();
+        }
+    }
+		
 	/**
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 

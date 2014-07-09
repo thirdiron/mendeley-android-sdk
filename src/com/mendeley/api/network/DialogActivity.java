@@ -54,7 +54,7 @@ public class DialogActivity extends Activity {
         
         setContentView(R.layout.dialog_layout);
 
-        credentialsManager = new CredentialsManager(this);
+        credentialsManager = AuthenticationManager.getInstance().credentialsManager;
         
         webView = (WebView) findViewById(R.id.dialogWebView);
 		webView.getSettings().setJavaScriptEnabled(true);

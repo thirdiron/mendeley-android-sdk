@@ -19,17 +19,9 @@ import android.util.Log;
  *
  */
 public class CredentialsManager {
-
-	//7, 542
-	//jwcVcop9EFHGeICghPsq+g== JFajmiqix8+QhNQbcLBKaA==
-	private final static String ouath2ClientId = "JFajmiqix8+QhNQbcLBKaA==";
-	//42FJEXdZ8q4wbQJnMpw7, Bn6R66P6rrtMU7L4
-	//d++XETQEE1X2i7O/8sE98/zII7g4zAvs/eDmDgEvMLM= kAnDvX/xU5GkQe/AQ14m+r/N0WU/DRgk62VjCQ9Xqws=
-    private final static String ouath2ClientSecret = "kAnDvX/xU5GkQe/AQ14m+r/N0WU/DRgk62VjCQ9Xqws=";
-	
+    // Shared preferences keys:
 	private static final String CLIENT_ID = "ouath2ClientId";
 	private static final String CLIENT_SECRET = "ouath2ClientSecret";
-	
 	private static final String ACCESS_TOKEN = "accessToken";
 	private static final String REFRESH_TOKEN = "refreshToken";
 	private static final String EXPIRES_IN = "expiresIn";
@@ -43,18 +35,14 @@ public class CredentialsManager {
 	 * 
 	 * @param context the context object.
 	 */
-	protected CredentialsManager(Context context) {
+	protected CredentialsManager(Context context, String clientId, String clientSecret) {
 		preferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
 		
 		if (preferences.getString(CLIENT_ID, null) == null ||
-			preferences.getString(CLIENT_SECRET, null) == null) {
-			try {
-				setClientID(decrypt(ouath2ClientId));
-				setClientSecret(decrypt(ouath2ClientSecret));
-			} catch (Exception e) {
-				Log.e("", "", e);
-			}
-		} 
+    			preferences.getString(CLIENT_SECRET, null) == null) {
+            setClientID(clientId);
+            setClientSecret(clientSecret);
+		}
 	}
 	
 	/**
@@ -205,43 +193,4 @@ public class CredentialsManager {
 	protected String getClientSecret() {
 		return preferences.getString(CLIENT_SECRET, null);
 	}
-	
-
-    private static byte[] keyBytes = new byte[] { 0x09, 0x0f, 0x07, 0x15, 0x02, 0x04, 0x17, 0x10, 0x00, 0x05, 
-    	0x07, 0x08, 0x09, 0x11, 0x0a, 0x01, 0x0b, 0x0c, 0x0d, 0x0e, 0x12, 0x14, 0x06, 0x11 };
-
-
-    /**
-     * Encrypting text using the private keyBytes byte array.
-     * 
-     * @param clearText the text to encrypt
-     * @return the encrypted text
-     * @throws Exception
-     */
-    public static String encrypt(String clearText) throws Exception {
-        SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
- 
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-        byte[] cipherText = cipher.doFinal(clearText.getBytes());
-
-        return new String(Base64.encode(cipherText, Base64.DEFAULT), "UTF-8");
-    }
-
-    /**
-     * Decrypting text using the private keyBytes byte array.
-     * 
-     * @param cipherText the cipher text to decrypt
-     * @return the clear text string
-     * @throws Exception
-     */
-    public static String decrypt(String cipherText) throws Exception {
-       SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
-
-       Cipher cipher = Cipher.getInstance("AES");
-       cipher.init(Cipher.DECRYPT_MODE, keySpec);
-       byte[] clearText = cipher.doFinal(Base64.decode(cipherText.getBytes(), Base64.DEFAULT));
-
-       return new String(clearText);
-   }
 }
