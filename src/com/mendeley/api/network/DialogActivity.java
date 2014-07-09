@@ -23,7 +23,6 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.mendeley.api.R;
@@ -34,15 +33,11 @@ import com.mendeley.api.R;
  * and a dialog view for larg ones.
  */
 public class DialogActivity extends Activity {
+    private static final String OUATH2_URL = "https://api-oauth2.mendeley.com/oauth/authorize";
 
-	final static double SMALL_SCREEN_SIZE = 7.0;
-	final static String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
+	private static final double SMALL_SCREEN_SIZE = 7.0;
+	private static final String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
 
-	WebView webView;
-	String authorizationCode;	
-	CredentialsManager credentialsManager;
-	JsonParser jsonParser = new JsonParser();	
-	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,9 +49,7 @@ public class DialogActivity extends Activity {
         
         setContentView(R.layout.dialog_layout);
 
-        credentialsManager = AuthenticationManager.getInstance().credentialsManager;
-        
-        webView = (WebView) findViewById(R.id.dialogWebView);
+        WebView webView = (WebView) findViewById(R.id.dialogWebView);
 		webView.getSettings().setJavaScriptEnabled(true);
 		webView.setVerticalScrollBarEnabled(true);
 		webView.setHorizontalScrollBarEnabled(true);
@@ -91,26 +84,25 @@ public class DialogActivity extends Activity {
 	 * 
 	 * @return the url string
 	 */
-	private String getOauth2URL() {
-		
-		StringBuffer urlString = new StringBuffer(AuthenticationManager.OUATH2_URL);
+	private static String getOauth2URL() {
+        AuthenticationManager authenticationManager = AuthenticationManager.getInstance();
+
+        StringBuffer urlString = new StringBuffer(OUATH2_URL);
 		
 		urlString
 		.append("?").append("grant_type=").append(AuthenticationManager.GRANT_TYPE_AUTH)
 		.append("&").append("redirect_uri=").append(AuthenticationManager.REDIRECT_URI)
 		.append("&").append("scope=").append(AuthenticationManager.SCOPE)
 		.append("&").append("response_type=").append(AuthenticationManager.RESPONSE_TYPE)
-		.append("&").append("client_id=").append(credentialsManager.getClientID());
+		.append("&").append("client_id=").append(authenticationManager.getClientId());
 		
 		return urlString.toString();
 	}
 	
 	/**
 	 * A WebViewClient that starts the AuthenticationTask when a new url is loaded.
-	 *
 	 */
     private class MendeleyWebViewClient extends WebViewClient {
-    	
     	@Override
     	public boolean shouldOverrideUrlLoading (WebView view, String url) {
 
@@ -137,17 +129,17 @@ public class DialogActivity extends Activity {
 	 * authorisation code with the result data, which will be received by
 	 * the SignInActivity
 	 */
-    class AuthenticateTask extends AsyncTask<String, Void, String> {
+    private final class AuthenticateTask extends AsyncTask<String, Void, String> {
+        private String authorizationCode;
 
     	protected String getJSONTokenString(String authorizationCode) throws ClientProtocolException, IOException {
     		HttpResponse response = doPost(AuthenticationManager.TOKENS_URL, AuthenticationManager.GRANT_TYPE_AUTH, authorizationCode);
-    		String data = jsonParser.getJsonString(response.getEntity().getContent());
+    		String data = JsonParser.getJsonString(response.getEntity().getContent());
 	           
     		return data;
 		}
     	
     	protected String getAuthorizationCode(String authReturnUrl) {
-    		
     		String AuthorizationCode = null;
 			int index = authReturnUrl.indexOf("code=");	       			
 	        if (index != -1) {
@@ -160,19 +152,16 @@ public class DialogActivity extends Activity {
     	
 		@Override
 		protected String doInBackground(String... params) {
-			
 			String result = null;
 			
 			authorizationCode = getAuthorizationCode(params[0]);			
 			if (authorizationCode != null) {
 				try {
 					String jsonTokenString = getJSONTokenString(authorizationCode);
-					getTokenDetails(jsonTokenString);
-					result = "ok";
-					
+                    AuthenticationManager.getInstance().setTokenDetails(jsonTokenString);
+                    result = "ok";
 				} catch (IOException e) {
 					Log.e("", "", e);
-
 				} catch (JSONException e) {
 					Log.e("", "", e);
 				}
@@ -183,7 +172,6 @@ public class DialogActivity extends Activity {
 		
 		@Override
 		protected void onPostExecute(String result) {
-			
 			Intent resultData = new Intent(); 
 			if (result != null) {
 	        	resultData.putExtra("authorization_code", authorizationCode);
@@ -204,40 +192,24 @@ public class DialogActivity extends Activity {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 */
-	HttpResponse doPost(String url, String grantType, String authorizationCode) throws ClientProtocolException, IOException {
-		
+	private static HttpResponse doPost(String url, String grantType, String authorizationCode)
+            throws ClientProtocolException, IOException {
+        AuthenticationManager authenticationManager = AuthenticationManager.getInstance();
+
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost(url);
         
-        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(5);
+        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("grant_type", grantType));
-        nameValuePairs.add(new BasicNameValuePair("redirect_uri", "http://localhost/auth_return"));
+        nameValuePairs.add(new BasicNameValuePair("redirect_uri", AuthenticationManager.REDIRECT_URI));
         nameValuePairs.add(new BasicNameValuePair("code", authorizationCode));
-        nameValuePairs.add(new BasicNameValuePair("client_id", credentialsManager.getClientID()));
-        nameValuePairs.add(new BasicNameValuePair("client_secret", credentialsManager.getClientSecret()));
+        nameValuePairs.add(new BasicNameValuePair("client_id", authenticationManager.getClientId()));
+        nameValuePairs.add(new BasicNameValuePair("client_secret", authenticationManager.getClientSecret()));
         
         httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
         HttpResponse response = httpclient.execute(httppost);
 		  
 		return response;  
-	}
-	
-    /**
-     * Extracting the token details from the token string and sending them to the CredentialManager.
-     * 
-     * @param tokenString
-     * @throws JSONException
-     */
-	private void getTokenDetails(String tokenString) throws JSONException {
-		
-		JSONObject tokenObject = new JSONObject(tokenString);
-
-		String accessToken = tokenObject.getString("access_token");
-		String refreshToken = tokenObject.getString("refresh_token");	
-		String tokenType = tokenObject.getString("token_type");
-		int expiresIn = tokenObject.getInt("expires_in");
-
-		credentialsManager.setTokens(accessToken, refreshToken, tokenType, expiresIn);	
 	}
 }

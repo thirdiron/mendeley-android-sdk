@@ -13,15 +13,15 @@ import android.content.SharedPreferences.Editor;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * This class is responsible for storing and retrieving the credentials when needed.
- * Credentials are kept in SharedPreferences using the application context. 
- *
+ * Credentials are kept in SharedPreferences.
  */
 public class CredentialsManager {
     // Shared preferences keys:
-	private static final String CLIENT_ID = "ouath2ClientId";
-	private static final String CLIENT_SECRET = "ouath2ClientSecret";
 	private static final String ACCESS_TOKEN = "accessToken";
 	private static final String REFRESH_TOKEN = "refreshToken";
 	private static final String EXPIRES_IN = "expiresIn";
@@ -30,94 +30,26 @@ public class CredentialsManager {
  
 	private SharedPreferences preferences;
  
-	/**
-	 * The constructor takes a context instance which will be used to store the credentials in the SharedPreferences.
-	 * 
-	 * @param context the context object.
-	 */
-	protected CredentialsManager(Context context, String clientId, String clientSecret) {
-		preferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
-		
-		if (preferences.getString(CLIENT_ID, null) == null ||
-    			preferences.getString(CLIENT_SECRET, null) == null) {
-            setClientID(clientId);
-            setClientSecret(clientSecret);
-		}
+	protected CredentialsManager(SharedPreferences preferences) {
+        this.preferences = preferences;
 	}
-	
-	/**
-	 * Storing the token details in the shared preferences.
-	 * Also storing the token details in the appropriate NetworkProvider static String objects for convenience.
-	 * 
-	 * @param accessToken the access toekn string
-	 * @param refreshToken the refresh token string
-	 * @param tokenType the token type string
-	 * @param expiresIn the expires in va;ue
-	 */
-	protected void setTokens(String accessToken, String refreshToken, String tokenType, int expiresIn) {
 
-		Calendar c = Calendar .getInstance();		
-		c.add(Calendar.SECOND, expiresIn);
-        String expiresAt = Utils.dateFormat.format(c.getTime());
-		
-		Editor editor = preferences.edit();
-		editor.putString(ACCESS_TOKEN, accessToken);
-		editor.putString(REFRESH_TOKEN, refreshToken);
-		editor.putString(TOKEN_TYPE, tokenType);
-		editor.putString(EXPIRES_AT, expiresAt);
-		editor.putInt(EXPIRES_IN, expiresIn);
-		editor.commit();
+    protected void setTokenDetails(String tokenString) throws JSONException {
+        JSONObject tokenObject = new JSONObject(tokenString);
 
-		NetworkProvider.accessToken = accessToken;
-		NetworkProvider.refreshToken = refreshToken;	
-		NetworkProvider.tokenType = tokenType;
-		NetworkProvider.expiresIn = expiresIn;
-		NetworkProvider.expiresAt = expiresAt;
-	}
-	
-	/**
-	 * @return the access token string or null if it does not exist.
-	 */
-	protected String getAccessToken() {
-		return preferences.getString(ACCESS_TOKEN, null);
-	}
-	
-	/**
-	 * @return the refresh token string or null if it does not exist.
-	 */
-	protected String getRefreshToken() {
-		return preferences.getString(REFRESH_TOKEN, null);
-	}
-	
-	
-	/**
-	 * @return the expires in string value or null if it does not exist.
-	 */
-	protected String getExpiresAt() {
-		return preferences.getString(EXPIRES_AT, null);
-	}
-	
-	/**
-	 * @return the expires in integer or -1 if it does not exist.
-	 */
-	protected int getExpiresIn() {
-		return preferences.getInt(EXPIRES_IN, -1);
-	}
-	
-	/**
-	 * @return the token type string or null if it does not exist.
-	 */
-	protected String getTokenType() {
-		return preferences.getString(TOKEN_TYPE, null);
-	}
+        String accessToken = tokenObject.getString("access_token");
+        String refreshToken = tokenObject.getString("refresh_token");
+        String tokenType = tokenObject.getString("token_type");
+        int expiresIn = tokenObject.getInt("expires_in");
+
+        setTokens(accessToken, refreshToken, tokenType, expiresIn);
+    }
 	
 	/**
 	 * Removing the credentials from the SharedPreferences as well as the NetworkProvider static string objects.
 	 */
 	protected void clearCredentials() {
 		Editor editor = preferences.edit();
-		editor.remove(CLIENT_ID);
-		editor.remove(CLIENT_SECRET);
 		editor.remove(ACCESS_TOKEN);
 		editor.remove(REFRESH_TOKEN);
 		editor.remove(EXPIRES_AT);
@@ -138,10 +70,8 @@ public class CredentialsManager {
 	 * 
 	 * @return true of all credentials exist, false otherwise.
 	 */
-	protected boolean hasCredentials() {
-
-		boolean hasCredentials = getClientID() != null && 
-				getClientSecret() != null && 
+	protected boolean checkCredentialsAndCopyToNetworkProvider() {
+		boolean hasCredentials =
 				getAccessToken() != null &&
 				getRefreshToken() != null && 
 				getExpiresIn() != -1 && 
@@ -157,40 +87,69 @@ public class CredentialsManager {
 		
 		return hasCredentials;
 	}
-	
-	/**
-	 * Adding the client id credential to the SharedPreferences
-	 * 
-	 * @param ouath2ClientId the client id string
-	 */
-	protected void setClientID(String ouath2ClientId) {
-		Editor editor = preferences.edit();
-		editor.putString(CLIENT_ID, ouath2ClientId);
-		editor.commit();
-	}
- 
-	/**
-	 * Adding the client secret to the SharedPreferences
-	 * 
-	 * @param ouath2ClientSecret the client secret string
-	 */
-	protected void setClientSecret(String ouath2ClientSecret) {
-		Editor editor = preferences.edit();
-		editor.putString(CLIENT_SECRET, ouath2ClientSecret);
-		editor.commit();
-	}
- 
-	/**
-	 * @return the client id string
-	 */
-	protected String getClientID() {
-		return preferences.getString(CLIENT_ID, null);
-	}
- 
-	/**
-	 * @return the client secret string
-	 */
-	protected String getClientSecret() {
-		return preferences.getString(CLIENT_SECRET, null);
-	}
+
+    /**
+     * @return the access token string or null if it does not exist.
+     */
+    private String getAccessToken() {
+        return preferences.getString(ACCESS_TOKEN, null);
+    }
+
+    /**
+     * @return the refresh token string or null if it does not exist.
+     */
+    private String getRefreshToken() {
+        return preferences.getString(REFRESH_TOKEN, null);
+    }
+
+    /**
+     * @return the expires in string value or null if it does not exist.
+     */
+    private String getExpiresAt() {
+        return preferences.getString(EXPIRES_AT, null);
+    }
+
+    /**
+     * @return the expires in integer or -1 if it does not exist.
+     */
+    private int getExpiresIn() {
+        return preferences.getInt(EXPIRES_IN, -1);
+    }
+
+    /**
+     * @return the token type string or null if it does not exist.
+     */
+    private String getTokenType() {
+        return preferences.getString(TOKEN_TYPE, null);
+    }
+
+    /**
+     * Storing the token details in the shared preferences.
+     * Also storing the token details in the appropriate NetworkProvider static String objects for convenience.
+     *
+     * @param accessToken the access toekn string
+     * @param refreshToken the refresh token string
+     * @param tokenType the token type string
+     * @param expiresIn the expires in va;ue
+     */
+    private void setTokens(String accessToken, String refreshToken, String tokenType, int expiresIn) {
+
+        Calendar c = Calendar .getInstance();
+        c.add(Calendar.SECOND, expiresIn);
+        String expiresAt = Utils.dateFormat.format(c.getTime());
+
+        Editor editor = preferences.edit();
+        editor.putString(ACCESS_TOKEN, accessToken);
+        editor.putString(REFRESH_TOKEN, refreshToken);
+        editor.putString(TOKEN_TYPE, tokenType);
+        editor.putString(EXPIRES_AT, expiresAt);
+        editor.putInt(EXPIRES_IN, expiresIn);
+        editor.commit();
+
+        NetworkProvider.accessToken = accessToken;
+        NetworkProvider.refreshToken = refreshToken;
+        NetworkProvider.tokenType = tokenType;
+        NetworkProvider.expiresIn = expiresIn;
+        NetworkProvider.expiresAt = expiresAt;
+    }
 }
