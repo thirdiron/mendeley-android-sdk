@@ -142,7 +142,7 @@ public class JsonParser {
 		List<DocumentId> documentIds = new ArrayList<DocumentId>();
 		JSONArray jsonArray = new JSONArray(jsonString);
 		for (int i = 0; i < jsonArray.length(); i++) {	
-			documentIds.add(parseDocumentId(jsonArray.getString(i)));
+			documentIds.add(parseDocumentId(jsonArray.get(i).toString()));
 		}
 		
 		return documentIds;
