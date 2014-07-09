@@ -41,7 +41,6 @@ public class AuthenticationManager implements Serializable {
     public static final String GRANT_TYPE_AUTH = "authorization_code";
     public static final String GRANT_TYPE_REFRESH = "refresh_token";
     public static final String GRANT_TYPE_PASSWORD = "password";
-    public static final String REDIRECT_URI = "http://localhost/auth_return";
     public static final String SCOPE = "all";
     public static final String RESPONSE_TYPE = "code";
 
@@ -54,6 +53,7 @@ public class AuthenticationManager implements Serializable {
     private final String password;
     private final String clientId;
     private final String clientSecret;
+    private final String redirectUri;
 
 	private final CredentialsManager credentialsManager;
 	private final AuthenticationInterface authInterface;
@@ -68,14 +68,16 @@ public class AuthenticationManager implements Serializable {
 	 * @param context the context object
 	 * @param authInterface the AuthenticationInterface instance for callbacks
 	 */
-    private AuthenticationManager(Context context, AuthenticationInterface authInterface,
-                                  String clientId, String clientSecret) {
+    private AuthenticationManager(Context context,
+    		                      AuthenticationInterface authInterface,
+                                  String clientId, String clientSecret, String redirectUri) {
         this.context = context;
         this.username = null;
         this.password = null;
         this.authInterface = authInterface;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
 
         SharedPreferences preferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
         credentialsManager = new SharedPreferencesCredentialsManager(preferences);
@@ -83,30 +85,31 @@ public class AuthenticationManager implements Serializable {
 
     private AuthenticationManager(String username, String password,
                                   AuthenticationInterface authInterface,
-                                  String clientId, String clientSecret) {
+                                  String clientId, String clientSecret, String redirectUri) {
         this.context = null;
         this.username = username;
         this.password = password;
         this.authInterface = authInterface;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
 
         credentialsManager = new InMemoryCredentialsManager();
     }
 
     protected static void configure(Context context, AuthenticationInterface authInterface,
-                                    String clientId, String clientSecret) {
+                                    String clientId, String clientSecret, String redirectUri) {
         // TODO: Uncomment the following assertion once MendeleySDK is a singleton
         // assertNull("configure can only be called once", authManager);
-        authManager = new AuthenticationManager(context, authInterface, clientId, clientSecret);
+        authManager = new AuthenticationManager(context, authInterface, clientId, clientSecret, redirectUri);
 	}
 
     protected static void configure(String username, String password,
                                     AuthenticationInterface authInterface,
-                                    String clientId, String clientSecret) {
+                                    String clientId, String clientSecret, String redirectUri) {
         // TODO: Uncomment the following assertion once MendeleySDK is a singleton
         // assertNull("configure can only be called once", authManager);
-        authManager = new AuthenticationManager(username, password, authInterface, clientId, clientSecret);
+        authManager = new AuthenticationManager(username, password, authInterface, clientId, clientSecret, redirectUri);
     }
 
     protected static AuthenticationManager getInstance() {
@@ -149,6 +152,10 @@ public class AuthenticationManager implements Serializable {
         return clientSecret;
     }
 
+    protected String getRedirectUri() {
+        return redirectUri;
+    }
+
     /**
 	 * Querying the CredentialManager if credentials are already stored on the device.
 	 * 
@@ -173,7 +180,7 @@ public class AuthenticationManager implements Serializable {
 	 */
 	public void authenticate() {
 		if (checkCredentialsAndCopyToNetworkProvider()) {
-			createRefreshHandler(true);
+            createRefreshHandler(true);
 		} else {
 			startSignInFlow();
 		}
@@ -191,7 +198,7 @@ public class AuthenticationManager implements Serializable {
         new PasswordAuthenticationTask().execute();
     }
 
-	/**
+    /**
 	 * Starting the sign in activity.
 	 */
 	private void startSignInActivity() {
@@ -331,7 +338,7 @@ public class AuthenticationManager implements Serializable {
         
         List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("grant_type", GRANT_TYPE_REFRESH));
-        nameValuePairs.add(new BasicNameValuePair("redirect_uri", REDIRECT_URI));
+        nameValuePairs.add(new BasicNameValuePair("redirect_uri", redirectUri));
         nameValuePairs.add(new BasicNameValuePair("client_id", clientId));
         nameValuePairs.add(new BasicNameValuePair("client_secret", clientSecret));
         nameValuePairs.add(new BasicNameValuePair("refresh_token", credentialsManager.getRefreshToken()));

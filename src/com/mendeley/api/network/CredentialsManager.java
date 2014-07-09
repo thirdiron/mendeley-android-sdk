@@ -1,10 +1,6 @@
 package com.mendeley.api.network;
 
-import com.mendeley.api.util.Utils;
-
 import org.json.JSONException;
-
-import java.util.Calendar;
 
 public interface CredentialsManager {
     public void setTokenDetails(String tokenString) throws JSONException;

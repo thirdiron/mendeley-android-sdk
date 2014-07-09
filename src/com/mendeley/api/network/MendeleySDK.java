@@ -54,8 +54,8 @@ public class MendeleySDK {
      * @param clientId your app's Mendeley ID, from the registration process
      * @param clientSecret your app's client secret, from the registration process
      */
-	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret)  {
-        initWithWebSignIn(context, callbacks, clientId, clientSecret);
+	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret, String redirectUri)  {
+        initWithWebSignIn(context, callbacks, clientId, clientSecret, redirectUri);
 	}
 
     /**
@@ -63,10 +63,10 @@ public class MendeleySDK {
      *
      * @param signInCallback used to receive sign in/out events.
      */
-	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret,
+	public MendeleySDK(Context context, Object callbacks, String clientId, String clientSecret, String redirectUri,
                        MendeleySignInInterface signInCallback) {
         this.mendeleySignInInterface = signInCallback;
-        initWithWebSignIn(context, callbacks, clientId, clientSecret);
+        initWithWebSignIn(context, callbacks, clientId, clientSecret, redirectUri);
     }
 
     /**
@@ -75,26 +75,28 @@ public class MendeleySDK {
      * Developer applications should not use this constructor, instead they should pass a context.
      * This constructor is intended for unit testing the SDK.
      */
-    public MendeleySDK(String username, String password, Object callbacks, String clientId, String clientSecret)  {
-        initWithPasswordSignIn(username, password, callbacks, clientId, clientSecret);
+    public MendeleySDK(String username, String password, Object callbacks, String clientId, String clientSecret, String redirectUri)  {
+        initWithPasswordSignIn(username, password, callbacks, clientId, clientSecret, redirectUri);
     }
 
-    private void initWithWebSignIn(Context context, Object callbacks, String clientId, String clientSecret) {
+    private void initWithWebSignIn(Context context, Object callbacks, String clientId, String clientSecret, String redirectUri) {
         AuthenticationManager.configure(
                 context,
                 createAuthenticationInterface(),
                 clientId,
-                clientSecret);
+                clientSecret,
+                redirectUri);
         init(callbacks);
     }
 
-    private void initWithPasswordSignIn(String username, String password, Object callbacks, String clientId, String clientSecret) {
+    private void initWithPasswordSignIn(String username, String password, Object callbacks, String clientId, String clientSecret, String redirectUri) {
         AuthenticationManager.configure(
                 username,
                 password,
                 createAuthenticationInterface(),
                 clientId,
-                clientSecret);
+                clientSecret,
+                redirectUri);
         init(callbacks);
     }
 

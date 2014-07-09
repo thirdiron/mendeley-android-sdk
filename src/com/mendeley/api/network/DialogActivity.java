@@ -91,7 +91,7 @@ public class DialogActivity extends Activity {
 		
 		urlString
 		.append("?").append("grant_type=").append(AuthenticationManager.GRANT_TYPE_AUTH)
-		.append("&").append("redirect_uri=").append(AuthenticationManager.REDIRECT_URI)
+		.append("&").append("redirect_uri=").append(authenticationManager.getRedirectUri())
 		.append("&").append("scope=").append(AuthenticationManager.SCOPE)
 		.append("&").append("response_type=").append(AuthenticationManager.RESPONSE_TYPE)
 		.append("&").append("client_id=").append(authenticationManager.getClientId());
@@ -201,7 +201,7 @@ public class DialogActivity extends Activity {
         
         List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("grant_type", grantType));
-        nameValuePairs.add(new BasicNameValuePair("redirect_uri", AuthenticationManager.REDIRECT_URI));
+        nameValuePairs.add(new BasicNameValuePair("redirect_uri", authenticationManager.getRedirectUri()));
         nameValuePairs.add(new BasicNameValuePair("code", authorizationCode));
         nameValuePairs.add(new BasicNameValuePair("client_id", authenticationManager.getClientId()));
         nameValuePairs.add(new BasicNameValuePair("client_secret", authenticationManager.getClientSecret()));
