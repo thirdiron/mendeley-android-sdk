@@ -231,13 +231,10 @@ public class AuthenticationManager implements Serializable {
 					result = "ok";
 				} 
 				catch (JSONException e) {
-					Log.e("", "", e);
 					return result;
 				} catch (ClientProtocolException e) {
-					Log.e("", "", e);
 					return result;
 				} catch (IOException e) {
-					Log.e("", "", e);
 					return result;
 				}
 

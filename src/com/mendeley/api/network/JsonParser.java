@@ -16,6 +16,7 @@ import org.json.JSONObject;
 
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Education;
 import com.mendeley.api.model.Employment;
 import com.mendeley.api.model.File;
@@ -137,11 +138,11 @@ public class JsonParser {
 	 * @return the list of string document ids
 	 * @throws JSONException
 	 */
-	protected static List<String> parseDocumentIds(String jsonString) throws JSONException {
-		List<String> documentIds = new ArrayList<String>();
+	protected static List<DocumentId> parseDocumentIds(String jsonString) throws JSONException {
+		List<DocumentId> documentIds = new ArrayList<DocumentId>();
 		JSONArray jsonArray = new JSONArray(jsonString);
-		for (int i = 0; i < jsonArray.length(); i++) {
-			documentIds.add(jsonArray.getString(i));
+		for (int i = 0; i < jsonArray.length(); i++) {	
+			documentIds.add(parseDocumentId(jsonArray.getString(i)));
 		}
 		
 		return documentIds;
@@ -199,6 +200,25 @@ public class JsonParser {
 		return mendeleyFile.build();
 	}
 	
+	protected static DocumentId parseDocumentId(String jsonString) throws JSONException {
+		DocumentId.Builder mendeleyDocumentId = new DocumentId.Builder();
+		
+		JSONObject documentObject = new JSONObject(jsonString);
+		
+		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
+				 documentObject.keys(); keysIter.hasNext();) {
+		  
+			String key = keysIter.next();
+			switch (key) {			  
+				case "id":
+					mendeleyDocumentId.setDocumentId(documentObject.getString(key));
+					break;
+			}
+		}
+		
+		return mendeleyDocumentId.build();
+	}
+	
 	/**
 	 * Creating a list of Folder objects from a json string
 	 * 
@@ -228,10 +248,11 @@ public class JsonParser {
 	 */
 	protected static Folder parseFolder(String jsonString) throws JSONException {
 		
+		Folder.Builder mendeleyFolder = new Folder.Builder();
+		
 		JSONObject folderObject = new JSONObject(jsonString);
 		
-		String folderName = folderObject.getString("name");
-		Folder folder = new Folder(folderName);
+		mendeleyFolder.setName(folderObject.getString("name"));
 		
 		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
 				folderObject.keys(); keysIter.hasNext();) {
@@ -240,21 +261,21 @@ public class JsonParser {
 			switch (key) {
 			  
 				case "parent_id":
-					folder.parentId = folderObject.getString(key);
+					mendeleyFolder.setParentId(folderObject.getString(key));
 					break;
 				case "id":
-					folder.id = folderObject.getString(key);
+					mendeleyFolder.setId(folderObject.getString(key));
 					break;
 				case "group_id":
-					folder.groupId = folderObject.getString(key);
+					mendeleyFolder.setGroupId(folderObject.getString(key));
 					break;
 				case "added":
-					folder.added = folderObject.getString(key);
+					mendeleyFolder.setAdded(folderObject.getString(key));
 					break;
 			}
 		}
 		
-		return folder;
+		return mendeleyFolder.build();
 	}
 	
 	/**

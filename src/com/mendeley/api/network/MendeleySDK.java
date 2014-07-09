@@ -121,7 +121,7 @@ public class MendeleySDK {
                 if (mendeleySignInInterface != null) {
                     mendeleySignInInterface.isSignedIn(false);
                 }
-                Log.e("", "onAuthenticationFail");
+                authenticationManager.authenticate();
             }
         };
     }
@@ -382,6 +382,17 @@ public class MendeleySDK {
 			 				 null, 
 		 				 	 null)) {
 			documentNetworkProvider.cancelGetDocuments();
+		}
+	}
+	
+    /**
+	 *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+	 */
+	public void cancelGetFolders() throws InterfaceNotImplementedException {
+		if (checkNetworkCall(documentInterface,
+			 				 null, 
+		 				 	 null)) {
+			folderNetworkProvider.cancelGetFolders();
 		}
 	}
 	
