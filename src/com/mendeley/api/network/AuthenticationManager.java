@@ -37,7 +37,7 @@ import static junit.framework.Assert.assertNull;
  * using a WebView to display the authentication web page.
  */
 public class AuthenticationManager implements Serializable {
-    public static final String TOKENS_URL = "https://api-oauth2.mendeley.com/oauth/token";
+    public static final String TOKENS_URL = "https://api.mendeley.com/oauth/token";
     public static final String GRANT_TYPE_AUTH = "authorization_code";
     public static final String GRANT_TYPE_REFRESH = "refresh_token";
     public static final String GRANT_TYPE_PASSWORD = "password";

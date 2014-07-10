@@ -2,15 +2,10 @@ package com.mendeley.api.network;
 
 import java.util.Calendar;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-
 import com.mendeley.api.util.Utils;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -21,6 +16,8 @@ import org.json.JSONObject;
  * Credentials are kept in SharedPreferences.
  */
 public class SharedPreferencesCredentialsManager implements CredentialsManager {
+	private static final String TAG = SharedPreferencesCredentialsManager.class.getSimpleName();
+	
     // Shared preferences keys:
 	private static final String ACCESS_TOKEN = "accessToken";
 	private static final String REFRESH_TOKEN = "refreshToken";
@@ -36,12 +33,22 @@ public class SharedPreferencesCredentialsManager implements CredentialsManager {
 
     @Override
     public void setTokenDetails(String tokenString) throws JSONException {
-        JSONObject tokenObject = new JSONObject(tokenString);
-
-        String accessToken = tokenObject.getString("access_token");
-        String refreshToken = tokenObject.getString("refresh_token");
-        String tokenType = tokenObject.getString("token_type");
-        int expiresIn = tokenObject.getInt("expires_in");
+    	String accessToken;
+    	String refreshToken;
+    	String tokenType;
+    	int expiresIn;
+    	try {
+	        JSONObject tokenObject = new JSONObject(tokenString);
+	
+	        accessToken = tokenObject.getString("access_token");
+	        refreshToken = tokenObject.getString("refresh_token");
+	        tokenType = tokenObject.getString("token_type");
+	        expiresIn = tokenObject.getInt("expires_in");
+    	} catch(JSONException e) {
+    		// If the client credentials are incorrect, the tokenString contains an error message
+    		Log.e(TAG, "Error token string: " + tokenString);
+    		throw e;
+    	}
 
         setTokens(accessToken, refreshToken, tokenType, expiresIn);
     }
