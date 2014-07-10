@@ -123,8 +123,6 @@ public class AuthenticationManager implements Serializable {
      * @return true if authenticated.
      */
     protected boolean isAuthenticated() {
-        boolean isAuthenticated = false;
-
         if (NetworkProvider.accessToken != null && credentialsManager.getExpiresAt() != null) {
             Date now = new Date();
             Date expires = null;
@@ -138,10 +136,10 @@ public class AuthenticationManager implements Serializable {
             long diffInMs = expires.getTime() - now.getTime();
             long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
 
-            isAuthenticated = diffInSec > 0;
+            return diffInSec > 0;
+        } else {
+        	return false;
         }
-
-        return isAuthenticated;
     }
 
     protected String getClientId() {

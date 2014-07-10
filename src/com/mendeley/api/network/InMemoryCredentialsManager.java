@@ -18,8 +18,10 @@ public class InMemoryCredentialsManager implements CredentialsManager {
         refreshToken = tokenObject.getString("refresh_token");
         tokenType = tokenObject.getString("token_type");
         expiresIn = tokenObject.getInt("expires_in");
-
+        
         expiresAt = SharedPreferencesCredentialsManager.generateExpiresAtFromExpiresIn(expiresIn);
+        
+        NetworkProvider.accessToken = accessToken;
     }
 
     @Override

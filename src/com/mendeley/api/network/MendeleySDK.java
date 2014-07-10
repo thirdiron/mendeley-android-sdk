@@ -79,6 +79,20 @@ public class MendeleySDK {
         initWithPasswordSignIn(username, password, callbacks, clientId, clientSecret, redirectUri);
     }
 
+    /**
+     * Obtain a handle to the SDK (internal use only).
+     * <p>
+     * Developer applications should not use this constructor, instead they should pass a context.
+     * This constructor is intended for unit testing the SDK.
+     * 
+     * @param signInCallback used to receive sign in/out events.
+     */
+    public MendeleySDK(String username, String password, Object callbacks, String clientId, String clientSecret, String redirectUri,
+    		MendeleySignInInterface signInCallback)  {
+        this.mendeleySignInInterface = signInCallback;
+        initWithPasswordSignIn(username, password, callbacks, clientId, clientSecret, redirectUri);
+    }
+
     private void initWithWebSignIn(Context context, Object callbacks, String clientId, String clientSecret, String redirectUri) {
         AuthenticationManager.configure(
                 context,
@@ -628,11 +642,9 @@ public class MendeleySDK {
 				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
 				authenticationManager.authenticate();
 			}
-			
-		} else {
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	/**
