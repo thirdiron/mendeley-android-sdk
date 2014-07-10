@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -33,7 +32,7 @@ import com.mendeley.api.R;
  * and a dialog view for larg ones.
  */
 public class DialogActivity extends Activity {
-    private static final String OUATH2_URL = "https://api-oauth2.mendeley.com/oauth/authorize";
+    private static final String OAUTH2_URL = "https://api.mendeley.com/oauth/authorize";
 
 	private static final double SMALL_SCREEN_SIZE = 7.0;
 	private static final String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
@@ -87,7 +86,7 @@ public class DialogActivity extends Activity {
 	private static String getOauth2URL() {
         AuthenticationManager authenticationManager = AuthenticationManager.getInstance();
 
-        StringBuffer urlString = new StringBuffer(OUATH2_URL);
+        StringBuffer urlString = new StringBuffer(OAUTH2_URL);
 		
 		urlString
 		.append("?").append("grant_type=").append(AuthenticationManager.GRANT_TYPE_AUTH)

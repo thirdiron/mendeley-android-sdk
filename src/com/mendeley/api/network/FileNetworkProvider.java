@@ -225,7 +225,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator)+1);
 
 			String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
-			String link = "<https://mix.mendeley.com/documents/"+documentId+">; rel=\"document\"";
+			String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
 
 			FileInputStream fileInputStream = null;
 			

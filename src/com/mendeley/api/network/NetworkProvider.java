@@ -29,7 +29,7 @@ import com.mendeley.api.network.components.Page;
  *
  */
 public class NetworkProvider {
-	protected static final String apiUrl = "https://mix.mendeley.com:443/";
+	protected static final String apiUrl = "https://api.mendeley.com/";
 	
 	protected static String accessToken = null;
 
