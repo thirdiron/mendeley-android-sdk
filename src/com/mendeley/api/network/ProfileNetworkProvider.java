@@ -74,10 +74,9 @@ public class ProfileNetworkProvider extends NetworkProvider {
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-profiles.1+json");
 				con.connect();
 
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				

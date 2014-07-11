@@ -263,10 +263,9 @@ public class FileNetworkProvider extends NetworkProvider {
 			    fileInputStream.close();
 				con.connect();
 
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 
@@ -335,10 +334,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-file.1+json");
 				con.connect();
 
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else if (!isCancelled()) {			
 				
@@ -415,15 +413,14 @@ public class FileNetworkProvider extends NetworkProvider {
 				con.setInstanceFollowRedirects(false);
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new FileDownloadException(getErrorMessage(con), fileId);
 				} else {		
 					con.disconnect();
 					
-					con = getDownloadConnection(response.location, "GET");
+					con = getDownloadConnection(location, "GET");
 					con.connect();
 					
 					int responseCode = con.getResponseCode();
@@ -521,10 +518,9 @@ public class FileNetworkProvider extends NetworkProvider {
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				

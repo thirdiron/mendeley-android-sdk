@@ -382,10 +382,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -434,10 +433,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con = getConnection(url, "POST");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -497,10 +495,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
@@ -557,10 +554,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
 					con.connect();
 
-					response.responseCode = con.getResponseCode();
-					getResponseHeaders(con.getHeaderFields(), response, next);
+					getResponseHeaders();
 					
-					if (response.responseCode != getExpectedResponse()) {
+					if (con.getResponseCode() != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
 					} else {
 
@@ -618,10 +614,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					con.addRequestProperty("Content-type", "application/vnd.mendeley-document-type.1+json"); 
 					con.connect();
 
-					response.responseCode = con.getResponseCode();
-					getResponseHeaders(con.getHeaderFields(), response, next);
+					getResponseHeaders();
 					
-					if (response.responseCode != getExpectedResponse()) {
+					if (con.getResponseCode() != getExpectedResponse()) {
 						return new HttpResponseException(getErrorMessage(con));
 					} else if (!isCancelled()) {
 
@@ -689,10 +684,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json"); 
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 				
-				if (response.responseCode != 200) {
+				if (con.getResponseCode() != 200) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else if (!isCancelled()) {			
 				

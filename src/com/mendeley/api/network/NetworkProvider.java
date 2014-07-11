@@ -21,7 +21,6 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.network.components.MendeleyResponse;
 import com.mendeley.api.network.components.Page;
 
 /**
@@ -65,66 +64,6 @@ public class NetworkProvider {
 	}
 	
 	/**
-	 * Extracting the headers from the given HttpsURLConnection object.
-	 * 
-	 * @param response the response object to hold header data
-	 * @throws IOException
-	 */
-	protected void getResponseHeaders(Map<String, List<String>> headersMap, MendeleyResponse response, Page next)
-			throws IOException {
-
-		for (String key : headersMap.keySet()) {
-
-			if (key != null) {
-				switch (key) {
-					case "Date":
-						response.date = headersMap.get(key).get(0);	
-						break;
-					case "Vary":
-						response.vary = headersMap.get(key).get(0);	
-						break;
-					case "Content-Type":
-						response.contentType = headersMap.get(key).get(0);	
-						break;
-					case "X-Mendeley-Trace-Id":
-						response.traceId = headersMap.get(key).get(0);	
-						break;
-					case "Connection":
-						response.connection = headersMap.get(key).get(0);	
-						break;
-					case "Link":
-						List<String> links = headersMap.get(key);
-						String linkString = null;
-						for (String link : links) {
-							try {
-								linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
-							} catch (IndexOutOfBoundsException e) {}
-							if (link.indexOf("next") != -1) {
-								next.link = linkString;
-							}
-                            // "last" and "prev" links are not used
-						}
-						break;
-					case "Mendeley-Count":
-                        // Unused
-						break;
-					case "Content-Length":
-						response.contentLength = headersMap.get(key).get(0);	
-						break;
-					case "Content-Encoding":
-						response.contentEncoding = headersMap.get(key).get(0);	
-						break;
-					case "Location":
-						response.location = headersMap.get(key).get(0);	
-						break;
-				}
-			} else {
-				response.header = headersMap.get(key).get(0);	
-			}
-		}		
-	}
-	
-	/**
 	 * Creates an error message string from a given URLConnection object,
 	 * which includes the response code, response message and the error stream from the server
 	 * 
@@ -160,16 +99,54 @@ public class NetworkProvider {
 	 * The class holds MendeleyResponse and stream objects that should be used in the subclasses.
 	 */
 	protected abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException> {
-
-		MendeleyResponse response = new MendeleyResponse();
 		Page next = new Page();
+        String location;
+
 		InputStream is = null;
 		OutputStream os = null;
 		HttpsURLConnection con = null;
 		
 		protected abstract int getExpectedResponse();
-		
-		protected void closeConnection() {
+
+        /**
+         * Extracting the headers from the given HttpsURLConnection object.
+         */
+        protected void getResponseHeaders() throws IOException {
+            Map<String, List<String>> headersMap = con.getHeaderFields();
+            for (String key : headersMap.keySet()) {
+                if (key != null) {
+                    switch (key) {
+                        case "Date":
+                        case "Vary":
+                        case "Content-Type":
+                        case "X-Mendeley-Trace-Id":
+                        case "Connection":
+                        case "Content-Length":
+                        case "Content-Encoding":
+                        case "Mendeley-Count":
+                            // Unused
+                            break;
+                        case "Location":
+                            location = headersMap.get(key).get(0);
+                        case "Link":
+                            List<String> links = headersMap.get(key);
+                            String linkString = null;
+                            for (String link : links) {
+                                try {
+                                    linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
+                                } catch (IndexOutOfBoundsException e) {}
+                                if (link.indexOf("next") != -1) {
+                                    next.link = linkString;
+                                }
+                                // "last" and "prev" links are not used
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        protected void closeConnection() {
 			if (con != null) {
 				con.disconnect();
 			}	
@@ -189,7 +166,6 @@ public class NetworkProvider {
 		
 		@Override
 		protected void onPostExecute(MendeleyException exception) {	
-			response.mendeleyException = exception;
 			if (exception == null) {
 				onSuccess();
 			} else {
@@ -204,7 +180,6 @@ public class NetworkProvider {
 		protected abstract void onSuccess();
 		
 		protected abstract void onFailure(MendeleyException exception);
-
 	}
 	
 	/**

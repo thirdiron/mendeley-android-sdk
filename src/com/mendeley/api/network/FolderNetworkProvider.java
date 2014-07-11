@@ -346,10 +346,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -398,10 +397,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = id;
@@ -459,10 +457,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = params[2];
@@ -504,7 +501,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-			
+
 			String url = params[0];
 			String jsonString = params[1];
 
@@ -521,10 +518,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
@@ -585,10 +581,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-documentids.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -645,10 +640,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -704,10 +698,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else if (!isCancelled()) {				
 				
