@@ -23,9 +23,8 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Document;
-import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
-import com.mendeley.api.network.components.DocumentRequestParameters;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.params.DocumentRequestParameters;
+import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
 /**
@@ -50,7 +49,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param appInterface the instance of MendeleyDocumentInterface
 	 */
-	protected DocumentNetworkProvider(MendeleyDocumentInterface appInterface) {
+    public DocumentNetworkProvider(MendeleyDocumentInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
@@ -69,7 +68,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 *  
 	 * @param documentId the document if to delete
 	 */
-	protected void doDeleteDocument(String documentId) {	
+    public void doDeleteDocument(String documentId) {
 		 String[] paramsArray = new String[]{getDeleteDocumentUrl(documentId), documentId};			
 		 new DeleteDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -79,7 +78,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param document the document to post
 	 */
-	protected void doPostDocument(Document document) {
+    public void doPostDocument(Document document) {
 
 		JsonParser parser = new JsonParser();
 		try {
@@ -105,7 +104,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param documentId the document id to trash
 	 */
-	protected void doPostTrashDocument(String documentId) {
+    public void doPostTrashDocument(String documentId) {
 		String[] paramsArray = new String[]{getTrashDocumentUrl(documentId), documentId};			
 		new PostTrashDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -137,7 +136,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param documentId the document id
 	 * @param params the document request parameters
 	 */
-	protected void doGetDocument(String documentId, DocumentRequestParameters params) {
+    public void doGetDocument(String documentId, DocumentRequestParameters params) {
 		String[] paramsArray = new String[]{getGetDocumentUrl(documentId, params)};			
 		new GetDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -200,7 +199,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentTypesTask.
 	 */
-	protected void doGetDocumentTypes() {
+    public void doGetDocumentTypes() {
 		String[] paramsArray = new String[]{documentTypesUrl};			
 		new GetDocumentTypesTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 	  
 	}
@@ -211,7 +210,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param params the document request parameters
 	 */
-	protected void doGetDocuments(DocumentRequestParameters params) {
+    public void doGetDocuments(DocumentRequestParameters params) {
 		try {
 			getDocumentsTask = new GetDocumentsTask();		
 			
@@ -226,7 +225,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	/**
 	 * Cancelling GetDocumentsTask if it is currently running
 	 */
-	protected void cancelGetDocuments() {
+    public void cancelGetDocuments() {
 		if (getDocumentsTask != null) {
 			getDocumentsTask.cancel(true);
 		}
@@ -235,7 +234,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	/**
 	 * Cancelling GetDocumentTypesTask if it is currently running
 	 */
-	protected void cancelGetDocumentTypes() {
+    public void cancelGetDocumentTypes() {
 		if (getDocumentTypesTask != null) {
 			getDocumentTypesTask.cancel(true);
 		}
@@ -247,7 +246,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param next reference to next page
 	 */
-	protected void doGetDocuments(Page next) {
+	public void doGetDocuments(Page next) {
 		if (Page.isValidPage(next)) {
 			String[] paramsArray = new String[]{next.link};			
 			new GetDocumentsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
@@ -283,7 +282,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param date the date object
 	 * @param document the Document to patch
 	 */
-	protected void doPatchDocument(String documentId, Date date, Document document) {
+    public void doPatchDocument(String documentId, Date date, Document document) {
 
 		String dateString = null;
 		

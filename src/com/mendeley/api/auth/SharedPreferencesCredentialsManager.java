@@ -1,7 +1,8 @@
-package com.mendeley.api.network;
+package com.mendeley.api.auth;
 
 import java.util.Calendar;
 
+import com.mendeley.api.network.NetworkProvider;
 import com.mendeley.api.util.Utils;
 
 import android.content.SharedPreferences;

@@ -21,7 +21,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
 import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.params.Page;
 
 /**
  * This class provides common functionality for the other network providers that subclass it.
@@ -30,7 +30,7 @@ import com.mendeley.api.network.components.Page;
 public class NetworkProvider {
 	protected static final String apiUrl = "https://api.mendeley.com/";
 	
-	protected static String accessToken = null;
+	public static String accessToken = null;
 
 	@SuppressLint("SimpleDateFormat")
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");

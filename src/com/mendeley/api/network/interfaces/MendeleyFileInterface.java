@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.params.Page;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from file network calls.

@@ -1,4 +1,8 @@
-package com.mendeley.api.network;
+package com.mendeley.api.auth;
+
+import com.mendeley.api.auth.CredentialsManager;
+import com.mendeley.api.auth.SharedPreferencesCredentialsManager;
+import com.mendeley.api.network.NetworkProvider;
 
 import org.json.JSONException;
 import org.json.JSONObject;

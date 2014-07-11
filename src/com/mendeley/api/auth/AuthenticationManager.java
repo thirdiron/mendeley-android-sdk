@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.auth;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,6 +26,9 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
+import com.mendeley.api.activity.SignInActivity;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.NetworkProvider;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.util.Utils;
 
@@ -97,22 +100,22 @@ public class AuthenticationManager implements Serializable {
         credentialsManager = new InMemoryCredentialsManager();
     }
 
-    protected static void configure(Context context, AuthenticationInterface authInterface,
-                                    String clientId, String clientSecret, String redirectUri) {
+    public static void configure(Context context, AuthenticationInterface authInterface,
+                                 String clientId, String clientSecret, String redirectUri) {
         // TODO: Uncomment the following assertion once MendeleySDK is a singleton
         // assertNull("configure can only be called once", authManager);
         authManager = new AuthenticationManager(context, authInterface, clientId, clientSecret, redirectUri);
 	}
 
-    protected static void configure(String username, String password,
-                                    AuthenticationInterface authInterface,
-                                    String clientId, String clientSecret, String redirectUri) {
+    public static void configure(String username, String password,
+                                 AuthenticationInterface authInterface,
+                                 String clientId, String clientSecret, String redirectUri) {
         // TODO: Uncomment the following assertion once MendeleySDK is a singleton
         // assertNull("configure can only be called once", authManager);
         authManager = new AuthenticationManager(username, password, authInterface, clientId, clientSecret, redirectUri);
     }
 
-    protected static AuthenticationManager getInstance() {
+    public static AuthenticationManager getInstance() {
         assertNotNull("authManager must have been configured", authManager);
 		return authManager;
 	}
@@ -122,7 +125,7 @@ public class AuthenticationManager implements Serializable {
      *
      * @return true if authenticated.
      */
-    protected boolean isAuthenticated() {
+    public boolean isAuthenticated() {
         if (NetworkProvider.accessToken != null && credentialsManager.getExpiresAt() != null) {
             Date now = new Date();
             Date expires = null;
@@ -142,15 +145,15 @@ public class AuthenticationManager implements Serializable {
         }
     }
 
-    protected String getClientId() {
+    public String getClientId() {
         return clientId;
     }
 
-    protected String getClientSecret() {
+    public String getClientSecret() {
         return clientSecret;
     }
 
-    protected String getRedirectUri() {
+    public String getRedirectUri() {
         return redirectUri;
     }
 
@@ -159,14 +162,14 @@ public class AuthenticationManager implements Serializable {
 	 * 
 	 * @return true if credentials exists, false otherwise.
 	 */
-	protected boolean checkCredentialsAndCopyToNetworkProvider() {
+    public boolean checkCredentialsAndCopyToNetworkProvider() {
 		return credentialsManager.checkCredentialsAndCopyToNetworkProvider();
 	}
 	
 	/**
 	 * Forwarding a call to the AuthenticationManager to clear user credentials from the device.
 	 */
-	protected void clearCredentials() {
+    public void clearCredentials() {
 		credentialsManager.clearCredentials();
 	}
 	
@@ -370,12 +373,12 @@ public class AuthenticationManager implements Serializable {
         return response;
     }
 
-    protected void authenticated() {
+    public void authenticated() {
 		authInterface.onAuthenticated();
 		createRefreshHandler(false);
 	}
     
-	protected void failedToAuthenticate() {
+	public void failedToAuthenticate() {
 		authInterface.onAuthenticationFail();
 	}
 }

@@ -1,20 +1,24 @@
-package com.mendeley.api.network;
+package com.mendeley.api;
 
 import java.lang.reflect.Method;
-import java.text.ParseException;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.mendeley.api.auth.AuthenticationManager;
+import com.mendeley.api.auth.UserCredentials;
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.network.components.DocumentRequestParameters;
-import com.mendeley.api.network.components.FileRequestParameters;
-import com.mendeley.api.network.components.FolderRequestParameters;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.network.DocumentNetworkProvider;
+import com.mendeley.api.network.FileNetworkProvider;
+import com.mendeley.api.network.FolderNetworkProvider;
+import com.mendeley.api.network.ProfileNetworkProvider;
+import com.mendeley.api.params.DocumentRequestParameters;
+import com.mendeley.api.params.FileRequestParameters;
+import com.mendeley.api.params.FolderRequestParameters;
+import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
@@ -22,7 +26,6 @@ import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 import com.mendeley.api.network.interfaces.MendeleyInterface;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 import com.mendeley.api.network.interfaces.MendeleySignInInterface;
-import com.mendeley.api.util.Utils;
 
 /**
  * This class should be instantiated with the calling activity context.
@@ -32,6 +35,18 @@ import com.mendeley.api.util.Utils;
  * and is also checked to see which interfaces the activity implements for sending callbacks once a network task has finished.
  */
 public class MendeleySDK {
+    public static class ClientCredentials {
+        public final String clientId;
+        public final String clientSecret;
+        public final String redirectUri;
+
+        public ClientCredentials(String clientId, String clientSecret, String redirectUri) {
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+            this.redirectUri = redirectUri;
+        }
+    }
+
 	protected AuthenticationManager authenticationManager;
 	protected MethodtoInvoke methodToInvoke;
 	

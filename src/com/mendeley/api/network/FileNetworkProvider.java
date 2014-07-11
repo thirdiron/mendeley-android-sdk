@@ -21,8 +21,8 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.File;
-import com.mendeley.api.network.components.FileRequestParameters;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.params.FileRequestParameters;
+import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
@@ -42,7 +42,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param appInterface the instance of MendeleyFileInterface
 	 */
-	FileNetworkProvider(MendeleyFileInterface appInterface) {
+    public FileNetworkProvider(MendeleyFileInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
@@ -96,7 +96,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param params the file request parameters
 	 */
-	protected void doGetFiles(FileRequestParameters params) {		
+    public void doGetFiles(FileRequestParameters params) {
 		try {
 			getFilesTask = new GetFilesTask();		
 
@@ -113,7 +113,7 @@ public class FileNetworkProvider extends NetworkProvider {
      *
      * @param next reference to next page
      */
-    protected void doGetFiles(Page next) {
+    public void doGetFiles(Page next) {
         if (Page.isValidPage(next)) {
         	
         	String[] paramsArray = new String[]{next.link};			
@@ -139,7 +139,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to get
 	 * @param folderPath the path in which to save the file
 	 */
-	protected void doGetFile(final String fileId, final String documentId, final String folderPath) {
+    public void doGetFile(final String fileId, final String documentId, final String folderPath) {
 		final GetFileTask fileTask = new GetFileTask();
 		fileTaskMap.put(fileId, fileTask);
 		String[] params = new String[]{getGetFileUrl(fileId), folderPath, fileId, documentId};
@@ -150,7 +150,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * Cancelling the NetworkTask that is currently download the file with the given fileId.
 	 * @param fileId the id of the file 
 	 */
-	protected void cancelDownload(String fileId) {
+    public void cancelDownload(String fileId) {
 		GetFileTask task = (GetFileTask) fileTaskMap.get(fileId);
 		if (task != null) {
 			task.cancel(true);
@@ -160,7 +160,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	/**
 	 * Cancelling GetFilesTask if it is currently running
 	 */
-	protected void cancelGetFiles() {
+    public void cancelGetFiles() {
 		if (getFilesTask != null) {
 			getFilesTask.cancel(true);
 		}
@@ -181,7 +181,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param fileId the id of the file to delete
 	 */
-	protected void doDeleteFile(String fileId) { Log.e("", "fileId to delete: " + fileId);
+    public void doDeleteFile(String fileId) { Log.e("", "fileId to delete: " + fileId);
 	
 		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
 		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
@@ -194,7 +194,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param documentId the id of the document the file is related to
 	 * @param filePath the absolute file path
 	 */
-	protected void doPostFile(String contentType, String documentId, String filePath) {
+    public void doPostFile(String contentType, String documentId, String filePath) {
 		
 		String[] paramsArray = new String[]{contentType, documentId, filePath};			
 		new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
