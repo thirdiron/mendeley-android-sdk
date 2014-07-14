@@ -50,10 +50,22 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @return the url string
 	 */
 	protected String getGetFoldersUrl(FolderRequestParameters params) {
-		String url = foldersUrl;
+		boolean firstParam = true;
+		StringBuilder url = new StringBuilder();
+		url.append(foldersUrl);
+
 		if (params != null) {
 			if (params.groupId != null) {
-				url += "?group_id="+params.groupId;
+				url.append(firstParam?"?":"&").append("group_id="+params.groupId);
+				firstParam = false;
+			}
+			if (params.limit != null) {
+				url.append(firstParam?"?":"&").append("limit="+params.limit);
+				firstParam = false;
+			}
+			if (params.marker != null) {
+				url.append(firstParam?"?":"&").append("marker="+params.marker);
+				firstParam = false;
 			}
 		}
 		

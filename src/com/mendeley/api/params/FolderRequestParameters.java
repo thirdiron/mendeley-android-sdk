@@ -16,5 +16,11 @@ public class FolderRequestParameters extends MendeleyRequest {
 	 */
 	public Integer limit;
 	
+	/**
+	 * A marker for the last key in the previous page
+	 */
+	public String marker;
+	
+	
 
 }

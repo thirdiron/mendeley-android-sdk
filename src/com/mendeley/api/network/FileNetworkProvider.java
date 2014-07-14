@@ -82,8 +82,8 @@ public class FileNetworkProvider extends NetworkProvider {
 				url.append(firstParam?"?":"&").append("marker="+params.marker);
 				firstParam = false;
 			}
-			if (params.reverse != null) {
-				url.append(firstParam?"?":"&").append("reverse="+params.reverse);
+			if (params.catalogId != null) {
+				url.append(firstParam?"?":"&").append("catalog_id="+params.catalogId);
 				firstParam = false;
 			}
 		}

@@ -37,8 +37,9 @@ public class FileRequestParameters extends MendeleyRequest {
 	 */
 	public String marker;
 	
+	
 	/**
-	 * A flag to indicate that the scrolling direction has switched
+	 * The catalog ID.
 	 */
-	public Boolean reverse;
+	public String catalogId;
 }
