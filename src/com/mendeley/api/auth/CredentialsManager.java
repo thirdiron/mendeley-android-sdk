@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.auth;
 
 import org.json.JSONException;
 

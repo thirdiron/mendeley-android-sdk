@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.activity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +25,8 @@ import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.mendeley.api.R;
+import com.mendeley.api.auth.AuthenticationManager;
+import com.mendeley.api.network.JsonParser;
 
 /**
  * This activity will show the login web interface in a webview.

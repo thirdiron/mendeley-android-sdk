@@ -3,7 +3,6 @@ package com.mendeley.api.network;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -20,10 +19,8 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.network.DocumentNetworkProvider.GetDocumentsTask;
-import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
-import com.mendeley.api.network.components.FolderRequestParameters;
-import com.mendeley.api.network.components.Page;
+import com.mendeley.api.params.FolderRequestParameters;
+import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
 /**
@@ -42,7 +39,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param appInterface the instance of MendeleyFolderInterface
 	 */
-	FolderNetworkProvider(MendeleyFolderInterface appInterface) {
+    public FolderNetworkProvider(MendeleyFolderInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
@@ -66,7 +63,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	/**
 	 * Cancelling GetFoldersTask if it is currently running
 	 */
-	protected void cancelGetFolders() {
+    public void cancelGetFolders() {
 		if (getFoldersTask != null) {
 			getFoldersTask.cancel(true);
 		}
@@ -78,7 +75,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param params folder request parameters object
 	 */
-	protected void doGetFolders(FolderRequestParameters params) {
+    public void doGetFolders(FolderRequestParameters params) {
 		getFoldersTask = new GetFoldersTask();		
 		String[] paramsArray = new String[]{getGetFoldersUrl(params)};			
 		getFoldersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
@@ -89,7 +86,7 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    protected void doGetFolders(Page next) {
+    public void doGetFolders(Page next) {
         if (Page.isValidPage(next)) {
     		String[] paramsArray = new String[]{next.link};			
             new GetFoldersTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
@@ -113,7 +110,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the folder id to get
 	 */
-	protected void doGetFolder(String folderId) {
+    public void doGetFolder(String folderId) {
 		String[] paramsArray = new String[]{getGetFolderUrl(folderId)};			
 		new GetFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -133,7 +130,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the folder id
 	 */
-	protected void doGetFolderDocumentIds(String folderId) {
+    public void doGetFolderDocumentIds(String folderId) {
 		String[] paramsArray = new String[]{getGetFolderDocumentIdsUrl(folderId), folderId};			
 		new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
 	}
@@ -143,7 +140,7 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    protected void doGetFolderDocumentIds(Page next) {
+    public void doGetFolderDocumentIds(Page next) {
         if (Page.isValidPage(next)) {
     		String[] paramsArray = new String[]{next.link};			
             new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
@@ -157,7 +154,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folder the folder to post
 	 */
-	protected void doPostFolder(Folder folder) {
+    public void doPostFolder(Folder folder) {
 
 		JsonParser parser = new JsonParser();
 		try {
@@ -184,7 +181,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the folder id
 	 * @param documentId the id of the document to add to the folder
 	 */
-	protected void doPostDocumentToFolder(String folderId, String documentId) {
+    public void doPostDocumentToFolder(String folderId, String documentId) {
 		String documentString = null;
 		if (documentId != null && !documentId.isEmpty()) {
 			JsonParser parser = new JsonParser();
@@ -213,7 +210,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the id of the folder to delete
 	 */
-	protected void doDeleteFolder(String folderId) {
+    public void doDeleteFolder(String folderId) {
 		String[] paramsArray = new String[]{getDeleteFolderUrl(folderId), folderId};			
 		new DeleteFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -234,7 +231,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the id of the folder
 	 * @param documentId the id of the document to delete
 	 */
-	protected void doDeleteDocumentFromFolder(String folderId, String documentId) {
+    public void doDeleteDocumentFromFolder(String folderId, String documentId) {
 		String[] paramsArray = new String[]{getDeleteDocumentFromFolderUrl(folderId, documentId), documentId};			
 		new DeleteDocumentFromFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -255,7 +252,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param folderId the folder id to patch
 	 * @param folder the Folder object
 	 */
-	protected void doPatchFolder(String folderId, Folder folder) {
+    public void doPatchFolder(String folderId, Folder folder) {
 		JsonParser parser = new JsonParser();
 		String folderString = null;
 		try {
@@ -346,10 +343,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					documentId = id;
@@ -398,10 +394,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con = getConnection(url, "DELETE");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = id;
@@ -459,10 +454,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 					folderId = params[2];
@@ -504,7 +498,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-			
+
 			String url = params[0];
 			String jsonString = params[1];
 
@@ -521,10 +515,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				writer.close();
 				os.close();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {
 
@@ -585,10 +578,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-documentids.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -645,10 +637,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
@@ -704,10 +695,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
 				con.connect();
 				
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else if (!isCancelled()) {				
 				

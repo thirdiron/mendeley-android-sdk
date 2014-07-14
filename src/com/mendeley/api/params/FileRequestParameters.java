@@ -1,4 +1,4 @@
-package com.mendeley.api.network.components;
+package com.mendeley.api.params;
 
 /**
  * This class represents parameters for file SDK requests

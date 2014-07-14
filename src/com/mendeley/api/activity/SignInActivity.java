@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import com.mendeley.api.R;
+import com.mendeley.api.auth.AuthenticationManager;
 
 /**
  * Display the splash screen, with buttons to sign in or create an account.

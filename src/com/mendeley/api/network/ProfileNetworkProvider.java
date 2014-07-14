@@ -22,7 +22,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	private static String profilesUrl = apiUrl + "profiles/";
 	MendeleyProfileInterface appInterface;
 	
-	ProfileNetworkProvider(MendeleyProfileInterface appInterface) {
+	public ProfileNetworkProvider(MendeleyProfileInterface appInterface) {
 		this.appInterface = appInterface;
 	}
 	
@@ -30,7 +30,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 *  Executing GetProfileTask
 	 * 
 	 */
-	protected void doGetMyProfile() {
+    public void doGetMyProfile() {
 		String[] paramsArray = new String[]{profilesUrl, "me"};			
 		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
 	}
@@ -40,7 +40,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param profileId the profile id to get
 	 */
-	protected void doGetProfile(String profileId) {		
+    public void doGetProfile(String profileId) {
 		String[] paramsArray = new String[]{profilesUrl, profileId};			
 		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
@@ -74,10 +74,9 @@ public class ProfileNetworkProvider extends NetworkProvider {
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-profiles.1+json");
 				con.connect();
 
-				response.responseCode = con.getResponseCode();
-				getResponseHeaders(con.getHeaderFields(), response, next);
+				getResponseHeaders();
 
-				if (response.responseCode != getExpectedResponse()) {
+				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
 				
