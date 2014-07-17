@@ -60,6 +60,8 @@ public class AuthenticationManager implements Serializable {
 
 	private final CredentialsManager credentialsManager;
 	private final AuthenticationInterface authInterface;
+	
+	private static final String TAG = AuthenticationManager.class.getSimpleName();
 
     private Handler refreshHandler;
 
@@ -132,7 +134,7 @@ public class AuthenticationManager implements Serializable {
             try {
                 expires = Utils.dateFormat.parse(credentialsManager.getExpiresAt());
             } catch (ParseException e) {
-                Log.e("", "", e);
+                Log.e(TAG, "", e);
                 return false;
             }
 
@@ -307,13 +309,13 @@ public class AuthenticationManager implements Serializable {
                 result = "ok";
             }
             catch (JSONException e) {
-                Log.e("", "", e);
+                Log.e(TAG, "", e);
                 return result;
             } catch (ClientProtocolException e) {
-                Log.e("", "", e);
+                Log.e(TAG, "", e);
                 return result;
             } catch (IOException e) {
-                Log.e("", "", e);
+                Log.e(TAG, "", e);
                 return result;
             }
 

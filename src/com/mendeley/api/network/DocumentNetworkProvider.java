@@ -158,6 +158,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.view != null) {
 				paramsString.append(firstParam?"?":"&").append("view="+params.view);
 				firstParam = false;
+			} else {
+				paramsString.append(firstParam?"?":"&").append("view=all");
+				firstParam = false;
 			}
 			if (params.groupId != null) {
 				paramsString.append(firstParam?"?":"&").append("group_id="+params.groupId);

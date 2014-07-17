@@ -38,7 +38,8 @@ public class DialogActivity extends Activity {
 
 	private static final double SMALL_SCREEN_SIZE = 7.0;
 	private static final String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
-
+	private static final String TAG = DialogActivity.class.getSimpleName();
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,9 +163,9 @@ public class DialogActivity extends Activity {
                     AuthenticationManager.getInstance().setTokenDetails(jsonTokenString);
                     result = "ok";
 				} catch (IOException e) {
-					Log.e("", "", e);
+					Log.e(TAG, "", e);
 				} catch (JSONException e) {
-					Log.e("", "", e);
+					Log.e(TAG, "", e);
 				}
 			}
 			

@@ -59,8 +59,9 @@ public class MendeleySDK {
 	protected MendeleyFolderInterface folderInterface;
 	protected MendeleyFileInterface fileInterface;
 	protected MendeleyProfileInterface profileInterface;
-	MendeleySignInInterface mendeleySignInInterface;
+	private MendeleySignInInterface mendeleySignInInterface;
 
+	private static final String TAG = MendeleySDK.class.getSimpleName();
     /**
      * Obtain a handle to the SDK.
      *
@@ -528,11 +529,11 @@ public class MendeleySDK {
      *
      * @param folderId id of the folder for which to get the document ids
      */
-    public void getFolderDocumentIds(String folderId) throws InterfaceNotImplementedException {
+    public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId) throws InterfaceNotImplementedException {
         if (checkNetworkCall(folderInterface,
-                new Class[]{String.class},
-                new Object[]{folderId})) {
-            folderNetworkProvider.doGetFolderDocumentIds(folderId);
+                new Class[]{FolderRequestParameters.class, String.class},
+                new Object[]{parameters, folderId})) {
+            folderNetworkProvider.doGetFolderDocumentIds(parameters, folderId);
         }
     }
 
@@ -541,11 +542,11 @@ public class MendeleySDK {
      *
      * @param next reference to next results page
      */
-    public void getFolderDocumentIds(Page next) throws InterfaceNotImplementedException {
+    public void getFolderDocumentIds(Page next, String folderId) throws InterfaceNotImplementedException {
         if (checkNetworkCall(folderInterface,
-                new Class[]{String.class},
-                new Object[]{next})) {
-            folderNetworkProvider.doGetFolderDocumentIds(next);
+                new Class[]{String.class, String.class},
+                new Object[]{next, folderId})) {
+            folderNetworkProvider.doGetFolderDocumentIds(next, folderId);
         }
     }
 
@@ -686,7 +687,7 @@ public class MendeleySDK {
 				}
 			}
 			catch (Exception e) {
-				Log.e("", "", e);
+				Log.e(TAG, "", e);
 			}
 		}
 	}

@@ -12,6 +12,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
@@ -49,12 +50,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * @param params folder request parameters object
 	 * @return the url string
 	 */
-	protected String getGetFoldersUrl(FolderRequestParameters params) {
-		boolean firstParam = true;
+	protected String getGetFoldersUrl(FolderRequestParameters params, String requestUrl) {
 		StringBuilder url = new StringBuilder();
-		url.append(foldersUrl);
 
+		url.append(requestUrl==null?foldersUrl:requestUrl);
+		
 		if (params != null) {
+			boolean firstParam = true;
 			if (params.groupId != null) {
 				url.append(firstParam?"?":"&").append("group_id="+params.groupId);
 				firstParam = false;
@@ -70,6 +72,10 @@ public class FolderNetworkProvider extends NetworkProvider{
 		}
 		
 		return url.toString();
+	}
+	
+	protected String getGetFoldersUrl(FolderRequestParameters params) {
+		return getGetFoldersUrl(params, null);
 	}
 	
 	/**
@@ -142,8 +148,8 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the folder id
 	 */
-    public void doGetFolderDocumentIds(String folderId) {
-		String[] paramsArray = new String[]{getGetFolderDocumentIdsUrl(folderId), folderId};			
+    public void doGetFolderDocumentIds(FolderRequestParameters params, String folderId) {
+		String[] paramsArray = new String[]{getGetFoldersUrl(params, getGetFolderDocumentIdsUrl(folderId)), folderId};			
 		new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
 	}
 
@@ -152,9 +158,9 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    public void doGetFolderDocumentIds(Page next) {
+    public void doGetFolderDocumentIds(Page next, String folderId) {
         if (Page.isValidPage(next)) {
-    		String[] paramsArray = new String[]{next.link};			
+    		String[] paramsArray = new String[]{next.link, folderId};			
             new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
         } else {
             appInterface.onFolderDocumentIdsNotReceived(new NoMorePagesException());
@@ -584,7 +590,6 @@ public class FolderNetworkProvider extends NetworkProvider{
 			if (params.length > 1) {
 				folderId = params[1];
 			}
-
 			try {
 				con = getConnection(url, "GET");
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-documentids.1+json");

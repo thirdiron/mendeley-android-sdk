@@ -35,7 +35,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	private GetFilesTask getFilesTask;
 	
 	private static String filesUrl = apiUrl + "files";
-	MendeleyFileInterface appInterface;
+	private MendeleyFileInterface appInterface;
+	private static final String TAG = FileNetworkProvider.class.getSimpleName();
 	
 	/**
 	 * Constructor that takes MendeleyFileInterface instance which will be used to send callbacks to the application
@@ -54,11 +55,11 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @throws UnsupportedEncodingException 
 	 */
 	protected String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
-		boolean firstParam = true;
 		StringBuilder url = new StringBuilder();
 		url.append(filesUrl);
 		
 		if (params != null) {
+			boolean firstParam = true;
 			if (params.documentId != null) {
 				url.append(firstParam?"?":"&").append("document_id="+params.documentId);
 				firstParam = false;
@@ -181,7 +182,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param fileId the id of the file to delete
 	 */
-    public void doDeleteFile(String fileId) { Log.e("", "fileId to delete: " + fileId);
+    public void doDeleteFile(String fileId) {
 	
 		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
 		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
