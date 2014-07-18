@@ -22,6 +22,7 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
+import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
@@ -630,7 +631,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 						
 						return null;
 					} else {
-						return new MendeleyException("Operation cancelled by the user");
+						return new UserCancelledException();
 					}
 					
 				} catch (IOException | JSONException e) {
@@ -643,7 +644,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onDocumentTypesNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	appInterface.onDocumentTypesNotReceived(new UserCancelledException());
 	    	getDocumentTypesTask = null;
 	    }
 		
@@ -700,7 +701,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 					
 					return null;
 				} else {
-					return new MendeleyException("Operation cancelled by the user");
+					return new UserCancelledException();
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -712,7 +713,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onDocumentsNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	appInterface.onDocumentsNotReceived(new UserCancelledException());
 	    	getDocumentsTask = null;
 	    }
 		

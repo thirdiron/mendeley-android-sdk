@@ -20,6 +20,7 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
+import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.Page;
@@ -349,7 +350,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					
 					return null;
 				} else {
-					return new MendeleyException("Operation cancelled by the user");
+					return new UserCancelledException();
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -361,7 +362,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onFilesNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	appInterface.onFilesNotReceived(new UserCancelledException());
 	    	getFilesTask = null;
 	    }
 		

@@ -18,6 +18,7 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
+import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -726,7 +727,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 
 					return null;
 				} else {
-					return new MendeleyException("Operation cancelled by the user");
+					return new UserCancelledException();
 				}
 				 
 			}	catch (IOException | JSONException e) {
@@ -738,7 +739,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onFoldersNotReceived(new MendeleyException("Operation cancelled by the user"));	
+	    	appInterface.onFoldersNotReceived(new UserCancelledException());
 	    	getFoldersTask = null;
 	    }
 	    

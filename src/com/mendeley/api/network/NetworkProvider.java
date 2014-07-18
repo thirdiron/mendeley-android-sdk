@@ -109,7 +109,7 @@ public class NetworkProvider {
 		protected abstract int getExpectedResponse();
 
         /**
-         * Extracting the headers from the given HttpsURLConnection object.
+         * Extracts the headers from the given HttpsURLConnection object.
          */
         protected void getResponseHeaders() throws IOException {
             Map<String, List<String>> headersMap = con.getHeaderFields();
