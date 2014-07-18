@@ -279,50 +279,17 @@ public class FolderNetworkProvider extends NetworkProvider{
 	
     /* TASKS */
 
-    /**
-     * Executing the api call for getting folders in the background.
-     * Calling the appropriate JsonParser method to parse the json string to object
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
-     */
-    private class GetFoldersTask extends NetworkTask {
+    private class GetFoldersTask extends GetNetworkTask {
         List<Folder> folders;
 
         @Override
-        protected int getExpectedResponse() {
-            return 200;
+        protected void processJsonString(String jsonString) throws JSONException {
+            folders = JsonParser.parseFolderList(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-            String url = params[0];
-
-            try {
-                con = getConnection(url, "GET");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else if (!isCancelled()) {
-
-                    is = con.getInputStream();
-                    String jsonString = getJsonString(is);
-
-                    folders = JsonParser.parseFolderList(jsonString);
-
-                    return null;
-                } else {
-                    return new UserCancelledException();
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-folder.1+json";
         }
 
         @Override
@@ -341,50 +308,17 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
     }
 
-    /**
-     * Executing the api call for getting a folder in the background.
-     * Calling the appropriate JsonParser method to parse the json string to object
-     * and send the data to the relevant callback method in the MendeleyFolderInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
-    private class GetFolderTask extends NetworkTask {
+    private class GetFolderTask extends GetNetworkTask {
         Folder folder;
 
         @Override
-        protected int getExpectedResponse() {
-            return 200;
+        protected void processJsonString(String jsonString) throws JSONException {
+            folder = JsonParser.parseFolder(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-
-            try {
-                con = getConnection(url, "GET");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-
-                    is = con.getInputStream();
-                    String jsonString = getJsonString(is);
-
-                    folder = JsonParser.parseFolder(jsonString);
-
-                    return null;
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-folder.1+json";
         }
 
         @Override

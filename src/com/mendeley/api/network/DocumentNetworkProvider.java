@@ -290,50 +290,17 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
     /* TASKS */
 
-    /**
-     * Executing the api call for posting a document in the background.
-     * sending the data to the relevant callback method in the MendeleyDocumentInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
-    private class GetDocumentsTask extends NetworkTask {
+    private class GetDocumentsTask extends GetNetworkTask {
         List<Document> documents;
 
         @Override
-        protected int getExpectedResponse() {
-            return 200;
+        protected void processJsonString(String jsonString) throws JSONException {
+            documents = JsonParser.parseDocumentList(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-            String url = params[0];
-
-            try {
-                con = getConnection(url, "GET");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != 200) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else if (!isCancelled()) {
-
-                    is = con.getInputStream();
-                    String jsonString = getJsonString(is);
-
-                    documents = JsonParser.parseDocumentList(jsonString);
-
-                    return null;
-                } else {
-                    return new UserCancelledException();
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
         }
 
         @Override
@@ -352,50 +319,17 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
     }
 
-    /**
-     * Executing the api call for getting a document in the background.
-     * sending the data to the relevant callback method in the MendeleyDocumentInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
-    private class GetDocumentTask extends NetworkTask {
+    private class GetDocumentTask extends GetNetworkTask {
         Document document;
-        String date;
 
         @Override
-        protected int getExpectedResponse() {
-            return 200;
+        protected void processJsonString(String jsonString) throws JSONException {
+            document = JsonParser.parseDocument(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-
-            try {
-                con = getConnection(url, "GET");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-
-                    is = con.getInputStream();
-                    String jsonString = getJsonString(is);
-
-                    document = JsonParser.parseDocument(jsonString);
-
-                    return null;
-                }
-
-            } catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
         }
 
         @Override

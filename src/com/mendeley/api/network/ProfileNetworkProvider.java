@@ -29,8 +29,8 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 *  Executing GetProfileTask
 	 */
     public void doGetMyProfile() {
-		String[] paramsArray = new String[]{profilesUrl, "me"};			
-		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
+		String[] paramsArray = new String[] { profilesUrl + "me" };
+		new GetMyProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
 	/**
@@ -39,75 +39,57 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * @param profileId the profile id to get
 	 */
     public void doGetProfile(String profileId) {
-		String[] paramsArray = new String[]{profilesUrl, profileId};			
+		String[] paramsArray = new String[] { profilesUrl + profileId };
 		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
 
-    /* TASK */
+    /* TASKS */
 
-	/**
-	 * Executing the api call for getting the user profile in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to Profile object 
-	 * and send the data to the relevant callback method in the MendeleyProfileInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
-	 */
-	private class GetProfileTask extends NetworkTask {
+	private class GetMyProfileTask extends GetNetworkTask {
 		Profile profile;
-		String id;
 
-		@Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
-			id = params[1];			
-			url += id;
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            profile = JsonParser.parseProfile(jsonString);
+        }
 
-			try {
-				con = getConnection(url, "GET");
-				con.addRequestProperty("Content-type", "application/vnd.mendeley-profiles.1+json");
-				con.connect();
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-profiles.1+json";
+        }
 
-				getResponseHeaders();
-
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else {			
-				
-					is = con.getInputStream();
-					String jsonString = getJsonString(is);					
-			
-					profile = JsonParser.parseProfile(jsonString);
-					
-					return null;
-				}
-			}	catch (IOException | JSONException e) {			
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {
-			if (id.equals("me")) {
-				appInterface.onMyProfileReceived(profile);
-			} else {
-				appInterface.onProfileReceived(profile);
-			}		
+    		appInterface.onMyProfileReceived(profile);
 		}
 		
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			if (id.equals("me")) {
-				appInterface.onMyProfileNotReceived(exception);
-			} else {
-				appInterface.onProfileNotReceived(exception);
-			}		
+    		appInterface.onMyProfileNotReceived(exception);
 		}
 	}
+
+    private class GetProfileTask extends GetNetworkTask {
+        Profile profile;
+
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            profile = JsonParser.parseProfile(jsonString);
+        }
+
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-profiles.1+json";
+        }
+
+        @Override
+        protected void onSuccess() {
+            appInterface.onProfileReceived(profile);
+        }
+
+        @Override
+        protected void onFailure(MendeleyException exception) {
+            appInterface.onProfileNotReceived(exception);
+        }
+    }
 }

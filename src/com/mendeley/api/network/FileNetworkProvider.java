@@ -199,160 +199,20 @@ public class FileNetworkProvider extends NetworkProvider {
 
     /* TASKS */
 
-    /**
-	 * Executing the api call for posting file in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to objects 
-	 * and send the data to the relevant callback method in the MendeleyFileInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
-	private class PostFileTask extends NetworkTask {
-		File file;
-
-		@Override
-		protected int getExpectedResponse() {
-			return 201;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-
-			String contentType = params[0];
-			String documentId = params[1];
-			String filePath = params[2];
-			String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator)+1);
-
-			String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
-			String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
-
-			FileInputStream fileInputStream = null;
-			
-			try {
-				java.io.File sourceFile = new java.io.File(filePath);
-				fileInputStream = new FileInputStream(sourceFile);
-				int bytesAvailable;
-				int maxBufferSize = 4096;
-				int bufferSize;
-				byte[] buffer;
-				int bytesRead;
-				
-				con = getConnection(filesUrl, "POST");
-				con.addRequestProperty("Content-Disposition", contentDisposition);
-				con.addRequestProperty("Content-type", contentType);
-				con.addRequestProperty("Link", link);
-
-				os = new DataOutputStream(con.getOutputStream());
-
-			    bytesAvailable = fileInputStream.available();
-			    bufferSize = Math.min(bytesAvailable, maxBufferSize);
-			    buffer = new byte[bufferSize];
-			 
-			    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-			 
-			    while (bytesRead > 0)
-			    {
-			    	os.write(buffer, 0, bufferSize);
-			        bytesAvailable = fileInputStream.available();
-			        bufferSize = Math.min(bytesAvailable, maxBufferSize);
-			        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-			    }
-
-			    os.close();
-			    fileInputStream.close();
-				con.connect();
-
-				getResponseHeaders();
-
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else {			
-
-					is = con.getInputStream();
-					String jsonString = getJsonString(is);					
-					is.close();
-			
-					file = JsonParser.parseFile(jsonString);
-					
-					return null;
-				}
-				 
-			}	catch (IOException | JSONException e) {
-				return new JsonParsingException(e.getMessage());
-			} catch (NullPointerException e) {
-				return new MendeleyException(e.getMessage());
-			} 
-			finally {
-				closeConnection();
-				if (fileInputStream != null) {
-					try {
-						fileInputStream.close();
-						fileInputStream = null;
-					} catch (IOException e) {
-						return new JsonParsingException(e.getMessage());
-					}
-				}
-			}
-		}
-		
-		@Override
-		protected void onSuccess() {
-			appInterface.onFilePosted(file);
-		}
-
-		@Override
-		protected void onFailure(MendeleyException exception) {
-			appInterface.onFileNotPosted(exception);				
-		}
-	}
-	
-	/**
-	 * Executing the api call for getting files in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to objects 
-	 * and send the data to the relevant callback method in the MendeleyFileInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
-	private class GetFilesTask extends NetworkTask {
+	private class GetFilesTask extends GetNetworkTask {
 		List<File> files;
 
-		@Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            files = JsonParser.parseFileList(jsonString);
+        }
 
-			try {
-				con = getConnection(url, "GET");
-				con.addRequestProperty("Content-type", "application/vnd.mendeley-file.1+json");
-				con.connect();
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-file.1+json";
+        }
 
-				getResponseHeaders();
-
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else if (!isCancelled()) {			
-				
-					is = con.getInputStream();
-					String jsonString = getJsonString(is);					
-			
-					files = JsonParser.parseFileList(jsonString);
-					
-					return null;
-				} else {
-					return new UserCancelledException();
-				}
-				 
-			}	catch (IOException | JSONException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-	    @Override
+        @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	appInterface.onFilesNotReceived(new UserCancelledException());
 	    }
@@ -366,7 +226,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		protected void onFailure(MendeleyException exception) {		
 			appInterface.onFilesNotReceived(exception);		
 		}
-	}
+    }
 	
 	/**
 	 * Executing the api call for getting a file in the background.
@@ -482,8 +342,114 @@ public class FileNetworkProvider extends NetworkProvider {
 			appInterface.onFileNotReceived(exception);				
 		}
 	}
-	
-	/**
+
+    /**
+     * Executing the api call for posting file in the background.
+     * Calling the appropriate JsonParser method to parse the json string to objects
+     * and send the data to the relevant callback method in the MendeleyFileInterface.
+     * If the call response code is different than expected or an exception is being thrown in the process
+     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
+     */
+    private class PostFileTask extends NetworkTask {
+        File file;
+
+        @Override
+        protected int getExpectedResponse() {
+            return 201;
+        }
+
+        @Override
+        protected MendeleyException doInBackground(String... params) {
+
+            String contentType = params[0];
+            String documentId = params[1];
+            String filePath = params[2];
+            String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator)+1);
+
+            String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
+            String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
+
+            FileInputStream fileInputStream = null;
+
+            try {
+                java.io.File sourceFile = new java.io.File(filePath);
+                fileInputStream = new FileInputStream(sourceFile);
+                int bytesAvailable;
+                int maxBufferSize = 4096;
+                int bufferSize;
+                byte[] buffer;
+                int bytesRead;
+
+                con = getConnection(filesUrl, "POST");
+                con.addRequestProperty("Content-Disposition", contentDisposition);
+                con.addRequestProperty("Content-type", contentType);
+                con.addRequestProperty("Link", link);
+
+                os = new DataOutputStream(con.getOutputStream());
+
+                bytesAvailable = fileInputStream.available();
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                buffer = new byte[bufferSize];
+
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                while (bytesRead > 0)
+                {
+                    os.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                }
+
+                os.close();
+                fileInputStream.close();
+                con.connect();
+
+                getResponseHeaders();
+
+                if (con.getResponseCode() != getExpectedResponse()) {
+                    return new HttpResponseException(getErrorMessage(con));
+                } else {
+
+                    is = con.getInputStream();
+                    String jsonString = getJsonString(is);
+                    is.close();
+
+                    file = JsonParser.parseFile(jsonString);
+
+                    return null;
+                }
+
+            }	catch (IOException | JSONException e) {
+                return new JsonParsingException(e.getMessage());
+            } catch (NullPointerException e) {
+                return new MendeleyException(e.getMessage());
+            }
+            finally {
+                closeConnection();
+                if (fileInputStream != null) {
+                    try {
+                        fileInputStream.close();
+                        fileInputStream = null;
+                    } catch (IOException e) {
+                        return new JsonParsingException(e.getMessage());
+                    }
+                }
+            }
+        }
+
+        @Override
+        protected void onSuccess() {
+            appInterface.onFilePosted(file);
+        }
+
+        @Override
+        protected void onFailure(MendeleyException exception) {
+            appInterface.onFileNotPosted(exception);
+        }
+    }
+
+    /**
 	 * Executing the api call for deleting a file in the background.
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
