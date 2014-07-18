@@ -8,12 +8,15 @@ import android.util.Log;
 
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.DocumentNetworkProvider;
 import com.mendeley.api.network.FileNetworkProvider;
 import com.mendeley.api.network.FolderNetworkProvider;
+import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.ProfileNetworkProvider;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
@@ -165,19 +168,21 @@ public class MendeleySDK {
      *
      * @param parameters holds optional query parameters, will be ignored if null
      */
-    public void getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
+    public RequestHandle getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
         if (checkNetworkCall(documentInterface,
                 new Class[]{DocumentRequestParameters.class},
                 new Object[]{parameters})) {
-            documentNetworkProvider.doGetDocuments(parameters);
+            return documentNetworkProvider.doGetDocuments(parameters);
+        } else {
+            return NullRequest.get();
         }
     }
 
     /**
      * Retrieve a list of documents in the user's library.
      */
-    public void getDocuments() throws InterfaceNotImplementedException {
-        getDocuments((DocumentRequestParameters) null);
+    public RequestHandle getDocuments() throws InterfaceNotImplementedException {
+        return getDocuments((DocumentRequestParameters) null);
     }
 
     /**
@@ -185,22 +190,13 @@ public class MendeleySDK {
      *
      * @next reference to next page returned by a previous onDocumentsReceived() callback.
      */
-    public void getDocuments(Page next) throws InterfaceNotImplementedException {
+    public RequestHandle getDocuments(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(documentInterface,
                 new Class[]{DocumentRequestParameters.class},
                 new Object[]{next})) {
-            documentNetworkProvider.doGetDocuments(next);
-        }
-    }
-
-    /**
-     *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
-     */
-    public void cancelGetDocuments() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                null,
-                null)) {
-            documentNetworkProvider.cancelGetDocuments();
+            return documentNetworkProvider.doGetDocuments(next);
+        } else {
+            return NullRequest.get();
         }
     }
 
@@ -283,22 +279,13 @@ public class MendeleySDK {
      *
      * @throws InterfaceNotImplementedException
      */
-    public void getDocumentTypes() throws InterfaceNotImplementedException {
+    public RequestHandle getDocumentTypes() throws InterfaceNotImplementedException {
         if (checkNetworkCall(documentInterface,
                 null,
                 null)) {
-            documentNetworkProvider.doGetDocumentTypes();
-        }
-    }
-
-    /**
-     *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
-     */
-    public void cancelGetDocumentTypes() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                null,
-                null)) {
-            documentNetworkProvider.cancelGetDocumentTypes();
+            return documentNetworkProvider.doGetDocumentTypes();
+        } else {
+            return NullRequest.get();
         }
     }
 
@@ -309,19 +296,21 @@ public class MendeleySDK {
      *
      * @param parameters holds optional query parameters, will be ignored if null
      */
-    public void getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
+    public RequestHandle getFiles(FileRequestParameters parameters) throws InterfaceNotImplementedException {
         if (checkNetworkCall(fileInterface,
                 new Class[]{FileRequestParameters.class},
                 new Object[]{parameters})) {
-            fileNetworkProvider.doGetFiles(parameters);
+            return fileNetworkProvider.doGetFiles(parameters);
+        } else {
+            return NullRequest.get();
         }
     }
 
     /**
      *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
      */
-    public void getFiles() throws InterfaceNotImplementedException {
-        getFiles((FileRequestParameters) null);
+    public RequestHandle getFiles() throws InterfaceNotImplementedException {
+        return getFiles((FileRequestParameters) null);
     }
 
     /**
@@ -329,11 +318,13 @@ public class MendeleySDK {
      *
      * @param next returned from previous getFiles() call
      */
-    public void getFiles(Page next) throws InterfaceNotImplementedException {
+    public RequestHandle getFiles(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(fileInterface,
                 new Class[]{FileRequestParameters.class},
                 new Object[]{next})) {
-            fileNetworkProvider.doGetFiles(next);
+            return fileNetworkProvider.doGetFiles(next);
+        } else {
+            return NullRequest.get();
         }
     }
 
@@ -362,17 +353,6 @@ public class MendeleySDK {
                 new Class[]{String.class},
                 new Object[]{fileId})) {
             fileNetworkProvider.cancelDownload(fileId);
-        }
-    }
-
-    /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
-     */
-    public void cancelGetFiles() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(fileInterface,
-                null,
-                null)) {
-            fileNetworkProvider.cancelGetFiles();
         }
     }
 
@@ -441,19 +421,21 @@ public class MendeleySDK {
 	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFolders(FolderRequestParameters parameters) throws InterfaceNotImplementedException {
+	public RequestHandle getFolders(FolderRequestParameters parameters) throws InterfaceNotImplementedException {
 		if (checkNetworkCall(folderInterface,
 			 				 new Class[]{FolderRequestParameters.class}, 
 			 				 new Object[]{parameters})) {
-			folderNetworkProvider.doGetFolders(parameters);
-		}
+			return folderNetworkProvider.doGetFolders(parameters);
+		} else {
+            return NullRequest.get();
+        }
 	}
 
     /**
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      */
-    public void getFolders() throws InterfaceNotImplementedException {
-        getFolders((FolderRequestParameters) null);
+    public RequestHandle getFolders() throws InterfaceNotImplementedException {
+        return getFolders((FolderRequestParameters) null);
     }
 
     /**
@@ -462,22 +444,13 @@ public class MendeleySDK {
      * @param next reference to next page
      * @throws InterfaceNotImplementedException
      */
-    public void getFolders(Page next) throws InterfaceNotImplementedException {
+    public RequestHandle getFolders(Page next) throws InterfaceNotImplementedException {
         if (checkNetworkCall(folderInterface,
                 new Class[]{FolderRequestParameters.class},
                 new Object[]{next})) {
-            folderNetworkProvider.doGetFolders(next);
-        }
-    }
-
-    /**
-     *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
-     */
-    public void cancelGetFolders() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                null,
-                null)) {
-            folderNetworkProvider.cancelGetFolders();
+            return folderNetworkProvider.doGetFolders(next);
+        } else {
+            return NullRequest.get();
         }
     }
 

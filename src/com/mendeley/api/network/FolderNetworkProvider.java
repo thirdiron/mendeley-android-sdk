@@ -14,6 +14,7 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -30,12 +31,9 @@ import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
  *
  */
 public class FolderNetworkProvider extends NetworkProvider{
-	
 	private static String foldersUrl = apiUrl + "folders";
 	MendeleyFolderInterface appInterface;
-	
-	private GetFoldersTask getFoldersTask;
-	
+
 	/**
 	 * Constructor that takes MendeleyFolderInterface instance which will be used to send callbacks to the application
 	 * 
@@ -46,58 +44,15 @@ public class FolderNetworkProvider extends NetworkProvider{
 	}
 	
 	/**
-	 * Building the url for get folders
-	 * 
-	 * @param params folder request parameters object
-	 * @return the url string
-	 */
-	protected String getGetFoldersUrl(FolderRequestParameters params, String requestUrl) {
-		StringBuilder url = new StringBuilder();
-
-		url.append(requestUrl==null?foldersUrl:requestUrl);
-		
-		if (params != null) {
-			boolean firstParam = true;
-			if (params.groupId != null) {
-				url.append(firstParam?"?":"&").append("group_id="+params.groupId);
-				firstParam = false;
-			}
-			if (params.limit != null) {
-				url.append(firstParam?"?":"&").append("limit="+params.limit);
-				firstParam = false;
-			}
-			if (params.marker != null) {
-				url.append(firstParam?"?":"&").append("marker="+params.marker);
-				firstParam = false;
-			}
-		}
-		
-		return url.toString();
-	}
-	
-	protected String getGetFoldersUrl(FolderRequestParameters params) {
-		return getGetFoldersUrl(params, null);
-	}
-	
-	/**
-	 * Cancelling GetFoldersTask if it is currently running
-	 */
-    public void cancelGetFolders() {
-		if (getFoldersTask != null) {
-			getFoldersTask.cancel(true);
-		}
-	}
-	
-
-	/**
 	 * Getting the appropriate url string and executes the GetFoldersTask
 	 * 
 	 * @param params folder request parameters object
 	 */
-    public void doGetFolders(FolderRequestParameters params) {
-		getFoldersTask = new GetFoldersTask();		
-		String[] paramsArray = new String[]{getGetFoldersUrl(params)};			
-		getFoldersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+    public RequestHandle doGetFolders(FolderRequestParameters params) {
+		String[] paramsArray = new String[]{getGetFoldersUrl(params)};
+        GetFoldersTask getFoldersTask = new GetFoldersTask();
+        getFoldersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        return getFoldersTask;
 	}
 
     /**
@@ -105,25 +60,18 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    public void doGetFolders(Page next) {
+    public RequestHandle doGetFolders(Page next) {
         if (Page.isValidPage(next)) {
-    		String[] paramsArray = new String[]{next.link};			
-            new GetFoldersTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+    		String[] paramsArray = new String[]{next.link};
+            GetFoldersTask getFoldersTask = new GetFoldersTask();
+            new GetFoldersTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getFoldersTask;
         } else {
             appInterface.onFoldersNotReceived(new NoMorePagesException());
+            return NullRequest.get();
         }
     }
 
-    /**
-	 * Building the url for get folder
-	 * 
-	 * @param folderId the folder id to get
-	 * @return the url string
-	 */
-	protected String getGetFolderUrl(String folderId) {
-		return foldersUrl+"/"+folderId;
-	}
-	
 	/**
 	 * Getting the appropriate url string and executes the GetFolderTask
 	 * 
@@ -132,16 +80,6 @@ public class FolderNetworkProvider extends NetworkProvider{
     public void doGetFolder(String folderId) {
 		String[] paramsArray = new String[]{getGetFolderUrl(folderId)};			
 		new GetFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
-	}
-	
-	/**
-	 * Building the url for get folder document ids
-	 * 
-	 * @param folderId the folder id
-	 * @return the url string
-	 */
-	protected String getGetFolderDocumentIdsUrl(String folderId) {
-		return foldersUrl + "/"+folderId + "/documents";
 	}
 
 	/**
@@ -282,8 +220,62 @@ public class FolderNetworkProvider extends NetworkProvider{
 		String[] paramsArray = new String[]{getPatchFolderUrl(folderId), folderId, folderString};			
 		new PatchFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
-	
-	/**
+
+    /**
+     * Building the url for get folders
+     *
+     * @param params folder request parameters object
+     * @return the url string
+     */
+    protected String getGetFoldersUrl(FolderRequestParameters params, String requestUrl) {
+        StringBuilder url = new StringBuilder();
+
+        url.append(requestUrl==null?foldersUrl:requestUrl);
+
+        if (params != null) {
+            boolean firstParam = true;
+            if (params.groupId != null) {
+                url.append(firstParam?"?":"&").append("group_id="+params.groupId);
+                firstParam = false;
+            }
+            if (params.limit != null) {
+                url.append(firstParam?"?":"&").append("limit="+params.limit);
+                firstParam = false;
+            }
+            if (params.marker != null) {
+                url.append(firstParam?"?":"&").append("marker="+params.marker);
+                firstParam = false;
+            }
+        }
+
+        return url.toString();
+    }
+
+    protected String getGetFoldersUrl(FolderRequestParameters params) {
+        return getGetFoldersUrl(params, null);
+    }
+
+    /**
+     * Building the url for get folder
+     *
+     * @param folderId the folder id to get
+     * @return the url string
+     */
+    protected String getGetFolderUrl(String folderId) {
+        return foldersUrl+"/"+folderId;
+    }
+
+    /**
+     * Building the url for get folder document ids
+     *
+     * @param folderId the folder id
+     * @return the url string
+     */
+    protected String getGetFolderDocumentIdsUrl(String folderId) {
+        return foldersUrl + "/"+folderId + "/documents";
+    }
+
+    /**
 	 * Executing the api call for patching a folder in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
@@ -695,7 +687,6 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
 	protected class GetFoldersTask extends NetworkTask {
-
 		List<Folder> folders;
 
 		@Override
@@ -705,7 +696,6 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-
 			String url = params[0];
 			
 			try {
@@ -722,8 +712,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 						
-					JsonParser parser = new JsonParser();
-					folders = parser.parseFolderList(jsonString);
+					folders = JsonParser.parseFolderList(jsonString);
 
 					return null;
 				} else {
@@ -740,7 +729,6 @@ public class FolderNetworkProvider extends NetworkProvider{
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	appInterface.onFoldersNotReceived(new UserCancelledException());
-	    	getFoldersTask = null;
 	    }
 	    
 		@Override

@@ -18,6 +18,7 @@ import org.json.JSONException;
 
 import android.os.AsyncTask;
 
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -40,9 +41,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	
 	public static SimpleDateFormat patchDateFormat =  new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 	
-	private GetDocumentsTask getDocumentsTask;
-	private GetDocumentTypesTask getDocumentTypesTask;
-
 	protected MendeleyDocumentInterface appInterface;
 	
 	/**
@@ -53,8 +51,43 @@ public class DocumentNetworkProvider extends NetworkProvider {
     public DocumentNetworkProvider(MendeleyDocumentInterface appInterface) {
 		this.appInterface = appInterface;
 	}
-	
-	/**
+
+    /**
+     * Getting the appropriate url string and executes the GetDocumentsTask.
+     *
+     * @param params the document request parameters
+     */
+    public RequestHandle doGetDocuments(DocumentRequestParameters params) {
+        try {
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params) };
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask();
+            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getDocumentsTask;
+        }
+        catch (UnsupportedEncodingException e) {
+            appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Getting the appropriate url string and executes the GetDocumentsTask.
+     *
+     * @param next reference to next page
+     */
+    public RequestHandle doGetDocuments(Page next) {
+        if (Page.isValidPage(next)) {
+            String[] paramsArray = new String[]{next.link};
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask();
+            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getDocumentsTask;
+        } else {
+            appInterface.onDocumentsNotReceived(new NoMorePagesException());
+            return NullRequest.get();
+        }
+    }
+
+    /**
 	 * Building the url for deleting document
 	 * 
 	 * @param documentId the id of the document to delete
@@ -203,62 +236,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	/**
 	 * Getting the appropriate url string and executes the GetDocumentTypesTask.
 	 */
-    public void doGetDocumentTypes() {
-		String[] paramsArray = new String[]{documentTypesUrl};			
-		new GetDocumentTypesTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 	  
+    public RequestHandle doGetDocumentTypes() {
+		String[] paramsArray = new String[] { documentTypesUrl };
+        GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask();
+		getDocumentTypesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        return getDocumentTypesTask;
 	}
-	
-	
-	/**
-	 * Getting the appropriate url string and executes the GetDocumentsTask.
-	 * 
-	 * @param params the document request parameters
-	 */
-    public void doGetDocuments(DocumentRequestParameters params) {
-		try {
-			getDocumentsTask = new GetDocumentsTask();		
-			
-			String[] paramsArray = new String[]{getGetDocumentsUrl(params)};			
-			getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
-		}
-		catch (UnsupportedEncodingException e) {
-            appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
-        }
-	}
-	
-	/**
-	 * Cancelling GetDocumentsTask if it is currently running
-	 */
-    public void cancelGetDocuments() {
-		if (getDocumentsTask != null) {
-			getDocumentsTask.cancel(true);
-		}
-	}
-	
-	/**
-	 * Cancelling GetDocumentTypesTask if it is currently running
-	 */
-    public void cancelGetDocumentTypes() {
-		if (getDocumentTypesTask != null) {
-			getDocumentTypesTask.cancel(true);
-		}
-	}
-	
-	
-	/**
-	 * Getting the appropriate url string and executes the GetDocumentsTask.
-	 * 
-	 * @param next reference to next page
-	 */
-	public void doGetDocuments(Page next) {
-		if (Page.isValidPage(next)) {
-			String[] paramsArray = new String[]{next.link};			
-			new GetDocumentsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
-		} else {
-            appInterface.onDocumentsNotReceived(new NoMorePagesException());
-		}
-	}
-	
+
 	/**
 	 * private method for formating date
 	 * 
@@ -287,7 +271,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @param document the Document to patch
 	 */
     public void doPatchDocument(String documentId, Date date, Document document) {
-
 		String dateString = null;
 		
 		if (date != null) {
@@ -311,7 +294,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class PatchDocumentTask extends NetworkTask {
-
 		String documentId = null;
 		
 		@Override
@@ -367,7 +349,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class DeleteDocumentTask extends NetworkTask {
-
 		String documentId = null;
 		
 		@Override
@@ -598,7 +579,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetDocumentTypesTask extends NetworkTask {
-
 		Map<String, String> typesMap;
 		String date;
 		
@@ -626,8 +606,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 						is = con.getInputStream();
 						String jsonString = getJsonString(is);					
 
-						JsonParser parser = new JsonParser();
-						typesMap = parser.parseDocumentTypes(jsonString);
+						typesMap = JsonParser.parseDocumentTypes(jsonString);
 						
 						return null;
 					} else {
@@ -641,26 +620,21 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				}
 		}
 		
-		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	appInterface.onDocumentTypesNotReceived(new UserCancelledException());
-	    	getDocumentTypesTask = null;
 	    }
 		
 		@Override
 		protected void onSuccess() {
 			appInterface.onDocumentTypesReceived(typesMap);
-			getDocumentTypesTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			appInterface.onDocumentTypesNotReceived(exception);
-			getDocumentTypesTask = null;
 		}
 	}
-
 
 	/**
 	 * Executing the api call for posting a document in the background.
@@ -669,7 +643,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetDocumentsTask extends NetworkTask {
-
 		List<Document> documents;
 
 		@Override
@@ -714,19 +687,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	appInterface.onDocumentsNotReceived(new UserCancelledException());
-	    	getDocumentsTask = null;
 	    }
 		
 		@Override
 		protected void onSuccess() {
 			appInterface.onDocumentsReceived(documents, next);
-			getDocumentsTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			appInterface.onDocumentsNotReceived(exception);
-			getDocumentsTask = null;
 		}
 	}
 

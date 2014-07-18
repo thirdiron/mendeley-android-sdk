@@ -20,12 +20,12 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.params.Page;
 
 /**
  * This class provides common functionality for the other network providers that subclass it.
- *
  */
 public class NetworkProvider {
 	protected static final String apiUrl = "https://api.mendeley.com/";
@@ -36,11 +36,9 @@ public class NetworkProvider {
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	/**
-	 * Inner class that extends HttpEntityEnclosingRequestBase to provide PATCH request method.
-	 *
+	 * Extends HttpEntityEnclosingRequestBase to provide PATCH request method.
 	 */
 	public static class HttpPatch extends HttpEntityEnclosingRequestBase {
-
 	    public final static String METHOD_NAME = "PATCH";
 
 	    public HttpPatch() {
@@ -93,95 +91,7 @@ public class NetworkProvider {
 		}
 		return message;
 	}
-	
-	/**
-	 * AsyncTask class is extended by all AsyncTasks in the NetworkProvider subclasses
-	 * The class holds MendeleyResponse and stream objects that should be used in the subclasses.
-	 */
-	protected abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException> {
-		Page next = new Page();
-        String location;
 
-		InputStream is = null;
-		OutputStream os = null;
-		HttpsURLConnection con = null;
-		
-		protected abstract int getExpectedResponse();
-
-        /**
-         * Extracts the headers from the given HttpsURLConnection object.
-         */
-        protected void getResponseHeaders() throws IOException {
-            Map<String, List<String>> headersMap = con.getHeaderFields();
-            for (String key : headersMap.keySet()) {
-                if (key != null) {
-                    switch (key) {
-                        case "Date":
-                        case "Vary":
-                        case "Content-Type":
-                        case "X-Mendeley-Trace-Id":
-                        case "Connection":
-                        case "Content-Length":
-                        case "Content-Encoding":
-                        case "Mendeley-Count":
-                            // Unused
-                            break;
-                        case "Location":
-                            location = headersMap.get(key).get(0);
-                        case "Link":
-                            List<String> links = headersMap.get(key);
-                            String linkString = null;
-                            for (String link : links) {
-                                try {
-                                    linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
-                                } catch (IndexOutOfBoundsException e) {}
-                                if (link.indexOf("next") != -1) {
-                                    next.link = linkString;
-                                }
-                                // "last" and "prev" links are not used
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-
-        protected void closeConnection() {
-			if (con != null) {
-				con.disconnect();
-			}	
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e) {
-				}
-			}
-			if (os != null) {
-				try {
-					os.close();
-				} catch (IOException e) {
-				}
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(MendeleyException exception) {	
-			if (exception == null) {
-				onSuccess();
-			} else {
-				onFailure(exception);
-			}
-		}
-
-		protected void onProgressUpdate(Integer[] progress) {
-			super.onProgressUpdate();
-		}
-		
-		protected abstract void onSuccess();
-		
-		protected abstract void onFailure(MendeleyException exception);
-	}
-	
 	/**
 	 * Creates an error message string from a given HttpResponse object,
 	 * which includes the response code, response message and the error stream from the server
@@ -297,13 +207,11 @@ public class NetworkProvider {
 	 * @throws IOException
 	 */
 	protected String getJsonString(InputStream stream) throws IOException {
-
 		StringBuffer data = new StringBuffer();
 		InputStreamReader isReader = null;
 		BufferedReader br = null;
 		
 		try {
-			
 			isReader = new InputStreamReader(stream); 
             br = new BufferedReader(isReader);
             String brl = ""; 
@@ -324,12 +232,9 @@ public class NetworkProvider {
 		return apiUrl;
 	}
 	
-	
 	/**
 	 * public default constructor for testing.
 	 */
 	public NetworkProvider() {
-		
 	}
-	
 }

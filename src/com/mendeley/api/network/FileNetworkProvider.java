@@ -15,6 +15,7 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.FileDownloadException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
@@ -31,10 +32,8 @@ import com.mendeley.api.network.interfaces.MendeleyFileInterface;
  *
  */
 public class FileNetworkProvider extends NetworkProvider {
-	
 	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
-	private GetFilesTask getFilesTask;
-	
+
 	private static String filesUrl = apiUrl + "files";
 	private MendeleyFileInterface appInterface;
 	private static final String TAG = FileNetworkProvider.class.getSimpleName();
@@ -49,64 +48,20 @@ public class FileNetworkProvider extends NetworkProvider {
 	}
 	
 	/**
-	 * Building the url for get files
-	 * 
-	 * @param params the file request parameters
-	 * @return the url string
-	 * @throws UnsupportedEncodingException 
-	 */
-	protected String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
-		StringBuilder url = new StringBuilder();
-		url.append(filesUrl);
-		
-		if (params != null) {
-			boolean firstParam = true;
-			if (params.documentId != null) {
-				url.append(firstParam?"?":"&").append("document_id="+params.documentId);
-				firstParam = false;
-			}
-			if (params.groupId != null) {
-				url.append(firstParam?"?":"&").append("group_id="+params.groupId);
-				firstParam = false;
-			}
-			if (params.addedSince != null) {
-				url.append(firstParam?"?":"&").append("added_since="+URLEncoder.encode(params.addedSince, "ISO-8859-1"));
-				firstParam = false;
-			}
-			if (params.deletedSince != null) {
-				url.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
-			}
-			if (params.limit != null) {
-				url.append(firstParam?"?":"&").append("limit="+params.limit);
-				firstParam = false;
-			}
-			if (params.marker != null) {
-				url.append(firstParam?"?":"&").append("marker="+params.marker);
-				firstParam = false;
-			}
-			if (params.catalogId != null) {
-				url.append(firstParam?"?":"&").append("catalog_id="+params.catalogId);
-				firstParam = false;
-			}
-		}
-		
-		return url.toString();
-	}
-
-	/**
 	 * Getting the appropriate url string and executes the GetFilesTask
 	 * 
 	 * @param params the file request parameters
 	 */
-    public void doGetFiles(FileRequestParameters params) {
+    public RequestHandle doGetFiles(FileRequestParameters params) {
 		try {
-			getFilesTask = new GetFilesTask();		
-
-			String[] paramsArray = new String[]{getGetFilesUrl(params)};
+            String[] paramsArray = new String[] { getGetFilesUrl(params) };
+			GetFilesTask getFilesTask = new GetFilesTask();
 			getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getFilesTask;
 		}
 		catch (UnsupportedEncodingException e) {
             appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
+            return NullRequest.get();
 		}
 	}
 
@@ -115,26 +70,18 @@ public class FileNetworkProvider extends NetworkProvider {
      *
      * @param next reference to next page
      */
-    public void doGetFiles(Page next) {
+    public RequestHandle doGetFiles(Page next) {
         if (Page.isValidPage(next)) {
-        	
-        	String[] paramsArray = new String[]{next.link};			
-            new GetFilesTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        	String[] paramsArray = new String[]{next.link};
+            GetFilesTask getFilesTask = new GetFilesTask();
+            getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getFilesTask;
         } else {
             appInterface.onFilesNotReceived(new NoMorePagesException());
+            return NullRequest.get();
         }
     }
 
-    /**
-	 * Building the url for get files
-	 * 
-	 * @param fileId the id of the file to get
-	 * @return the url string
-	 */
-	protected String getGetFileUrl(String fileId) {
-		return filesUrl+"/"+fileId;
-	}
-	
 	/**
 	 *  Getting the appropriate url string and executes the GetFileTask
 	 * 
@@ -158,26 +105,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			task.cancel(true);
 		}
 	}
-	
-	/**
-	 * Cancelling GetFilesTask if it is currently running
-	 */
-    public void cancelGetFiles() {
-		if (getFilesTask != null) {
-			getFilesTask.cancel(true);
-		}
-	}
-	
-	/**
-	 * Building the url for delete files
-	 * 
-	 * @param fileId the id of the file to delete
-	 * @return the url string
-	 */
-	protected String getDeleteFileUrl(String fileId) {
-		return filesUrl+"/"+fileId;
-	}
-	
+
 	/**
 	 * Getting the appropriate url string and executes the DeleteFileTask
 	 * 
@@ -201,8 +129,73 @@ public class FileNetworkProvider extends NetworkProvider {
 		String[] paramsArray = new String[]{contentType, documentId, filePath};			
 		new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
-	
-	/**
+
+    /**
+     * Building the url for get files
+     *
+     * @param fileId the id of the file to get
+     * @return the url string
+     */
+    protected String getGetFileUrl(String fileId) {
+        return filesUrl+"/"+fileId;
+    }
+
+    /**
+     * Building the url for delete files
+     *
+     * @param fileId the id of the file to delete
+     * @return the url string
+     */
+    protected String getDeleteFileUrl(String fileId) {
+        return filesUrl + "/" + fileId;
+    }
+
+    /**
+     * Building the url for get files
+     *
+     * @param params the file request parameters
+     * @return the url string
+     * @throws UnsupportedEncodingException
+     */
+    protected String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
+        StringBuilder url = new StringBuilder();
+        url.append(filesUrl);
+
+        if (params != null) {
+            boolean firstParam = true;
+            if (params.documentId != null) {
+                url.append(firstParam?"?":"&").append("document_id="+params.documentId);
+                firstParam = false;
+            }
+            if (params.groupId != null) {
+                url.append(firstParam?"?":"&").append("group_id="+params.groupId);
+                firstParam = false;
+            }
+            if (params.addedSince != null) {
+                url.append(firstParam?"?":"&").append("added_since="+URLEncoder.encode(params.addedSince, "ISO-8859-1"));
+                firstParam = false;
+            }
+            if (params.deletedSince != null) {
+                url.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
+            }
+            if (params.limit != null) {
+                url.append(firstParam?"?":"&").append("limit="+params.limit);
+                firstParam = false;
+            }
+            if (params.marker != null) {
+                url.append(firstParam?"?":"&").append("marker="+params.marker);
+                firstParam = false;
+            }
+            if (params.catalogId != null) {
+                url.append(firstParam?"?":"&").append("catalog_id="+params.catalogId);
+                firstParam = false;
+            }
+        }
+
+        return url.toString();
+    }
+
+    /**
 	 * Executing the api call for posting file in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
@@ -318,7 +311,6 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	protected class GetFilesTask extends NetworkTask {
-
 		List<File> files;
 
 		@Override
@@ -328,7 +320,6 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-
 			String url = params[0];
 
 			try {
@@ -345,8 +336,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 			
-					JsonParser parser = new JsonParser();
-					files = parser.parseFileList(jsonString);
+					files = JsonParser.parseFileList(jsonString);
 					
 					return null;
 				} else {
@@ -363,19 +353,16 @@ public class FileNetworkProvider extends NetworkProvider {
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	appInterface.onFilesNotReceived(new UserCancelledException());
-	    	getFilesTask = null;
 	    }
 		
 		@Override
 		protected void onSuccess() {		
 			appInterface.onFilesReceived(files, next);
-			getFilesTask = null;
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
 			appInterface.onFilesNotReceived(exception);		
-			getFilesTask = null;
 		}
 	}
 	
