@@ -1,16 +1,12 @@
 package com.mendeley.api.network;
 
-import java.io.IOException;
-
 import org.json.JSONException;
 
 import android.os.AsyncTask;
 
-import com.mendeley.api.exceptions.HttpResponseException;
-import com.mendeley.api.exceptions.JsonParsingException;
+import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
-import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
 import static com.mendeley.api.network.NetworkUtils.*;
 
@@ -19,18 +15,14 @@ import static com.mendeley.api.network.NetworkUtils.*;
  */
 public class ProfileNetworkProvider extends NetworkProvider {
 	private static String profilesUrl = API_URL + "profiles/";
-	MendeleyProfileInterface appInterface;
-	
-	public ProfileNetworkProvider(MendeleyProfileInterface appInterface) {
-		this.appInterface = appInterface;
-	}
-	
+
 	/**
-	 *  Executing GetProfileTask
+	 *  Executing GetMyProfileTask
 	 */
-    public void doGetMyProfile() {
+    public void doGetMyProfile(GetProfileCallback callback) {
 		String[] paramsArray = new String[] { profilesUrl + "me" };
-		new GetMyProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        GetProfileTask task = new GetProfileTask(callback);
+		task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
 	/**
@@ -38,39 +30,23 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param profileId the profile id to get
 	 */
-    public void doGetProfile(String profileId) {
+    public void doGetProfile(String profileId, GetProfileCallback callback) {
 		String[] paramsArray = new String[] { profilesUrl + profileId };
-		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+        GetProfileTask task = new GetProfileTask(callback);
+		task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 
     /* TASKS */
 
-	private class GetMyProfileTask extends GetNetworkTask {
-		Profile profile;
-
-        @Override
-        protected void processJsonString(String jsonString) throws JSONException {
-            profile = JsonParser.parseProfile(jsonString);
-        }
-
-        @Override
-        protected String getContentType() {
-            return "application/vnd.mendeley-profiles.1+json";
-        }
-
-        @Override
-		protected void onSuccess() {
-    		appInterface.onMyProfileReceived(profile);
-		}
-		
-		@Override
-		protected void onFailure(MendeleyException exception) {
-    		appInterface.onMyProfileNotReceived(exception);
-		}
-	}
-
     private class GetProfileTask extends GetNetworkTask {
-        Profile profile;
+        private Profile profile;
+
+        private final GetProfileCallback callback;
+
+        private GetProfileTask(GetProfileCallback callback) {
+            super();
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -84,12 +60,12 @@ public class ProfileNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onSuccess() {
-            appInterface.onProfileReceived(profile);
+            callback.onProfileReceived(profile);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onProfileNotReceived(exception);
+            callback.onProfileNotReceived(exception);
         }
     }
 }

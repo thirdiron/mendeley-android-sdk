@@ -9,6 +9,7 @@ import android.util.Log;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
@@ -27,7 +28,6 @@ import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 import com.mendeley.api.network.interfaces.MendeleyInterface;
-import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 import com.mendeley.api.network.interfaces.MendeleySignInInterface;
 
 /**
@@ -61,7 +61,6 @@ public class MendeleySDK {
 	protected MendeleyDocumentInterface documentInterface;
 	protected MendeleyFolderInterface folderInterface;
 	protected MendeleyFileInterface fileInterface;
-	protected MendeleyProfileInterface profileInterface;
 	private MendeleySignInInterface mendeleySignInInterface;
 
 	private static final String TAG = MendeleySDK.class.getSimpleName();
@@ -392,10 +391,9 @@ public class MendeleySDK {
      *
      * @throws InterfaceNotImplementedException
      */
-    public void getMyProfile() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(profileInterface,
-                null, null)) {
-            profileNetworkProvider.doGetMyProfile();
+    public void getMyProfile(GetProfileCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(null, null)) {
+            profileNetworkProvider.doGetMyProfile(callback);
         }
     }
 
@@ -405,11 +403,9 @@ public class MendeleySDK {
      *
      * @throws InterfaceNotImplementedException
      */
-    public void getProfile(String profileId) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(profileInterface,
-                new Class[]{String.class},
-                new Object[]{profileId})) {
-            profileNetworkProvider.doGetProfile(profileId);
+    public void getProfile(String profileId, GetProfileCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(new Class[]{String.class}, new Object[]{profileId})) {
+            profileNetworkProvider.doGetProfile(profileId, callback);
         }
     }
 
@@ -603,20 +599,16 @@ public class MendeleySDK {
 			fileInterface = (MendeleyFileInterface) callbacks;
 		}
 		
-		if (callbacks instanceof MendeleyProfileInterface) {
-			profileInterface = (MendeleyProfileInterface) callbacks;
-		}
-		
 		documentNetworkProvider = new DocumentNetworkProvider(documentInterface);
 		fileNetworkProvider = new FileNetworkProvider(fileInterface);
-		profileNetworkProvider = new ProfileNetworkProvider(profileInterface);
+		profileNetworkProvider = new ProfileNetworkProvider();
 		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
 	} 
 		
 	/**
-	 * First checking that the MendeleyInterface has been instantiated for sending callbacks to the application, if not throwing InterfaceNotImplementedException.
-	 * Then checking if client is authenticated, if false initialising the MethodToInvoke object with the calling method name and its arguments
-	 * and calling authenticate on the AuthenticationManager, else returns true.
+	 * First checks that the MendeleyInterface has been instantiated for sending callbacks to the application; if not throws InterfaceNotImplementedException.
+	 * Then checks if client is authenticated, if false initialises the MethodToInvoke object with the calling method name and its arguments
+	 * and calls authenticate on the AuthenticationManager, else returns true.
 	 * 
 	 * @param mendeleyInterface the instance of MendeleyInterface that will be used for the callbacks
 	 * @param classes of the arguments of the calling method
@@ -641,7 +633,30 @@ public class MendeleySDK {
 		return true;
 	}
 
-	/**
+    /**
+     * Checks if client is authenticated, if false initialises the MethodToInvoke object with the calling method name and its arguments
+     * and calls authenticate on the AuthenticationManager, else returns true.
+     *
+     * @param classes of the arguments of the calling method
+     * @param values of the arguments of the calling method
+     * @return true if network call can be executed
+     * @throws InterfaceNotImplementedException
+     */
+    private boolean checkNetworkCall(@SuppressWarnings("rawtypes") Class[] classes, Object[] values) throws InterfaceNotImplementedException {
+        if (!authenticationManager.isAuthenticated()) {
+            if (classes == null) {
+                methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
+                authenticationManager.authenticate();
+            } else {
+                methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
+                authenticationManager.authenticate();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
 	 * Invoking the method stored in the MethodToInvoke object.
 	 */
 	private void invokeMethod() {

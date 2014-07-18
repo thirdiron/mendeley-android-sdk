@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.params.Page;
+import com.mendeley.api.util.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,18 +68,8 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
         if (con != null) {
             con.disconnect();
         }
-        if (is != null) {
-            try {
-                is.close();
-            } catch (IOException e) {
-            }
-        }
-        if (os != null) {
-            try {
-                os.close();
-            } catch (IOException e) {
-            }
-        }
+        Utils.closeQuietly(is);
+        Utils.closeQuietly(os);
     }
 
     @Override
