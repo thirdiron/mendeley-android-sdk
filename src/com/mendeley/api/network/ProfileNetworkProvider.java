@@ -12,11 +12,13 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
+import static com.mendeley.api.network.NetworkUtils.*;
+
 /**
  * NetworkProvider class for Profile API calls
  */
 public class ProfileNetworkProvider extends NetworkProvider {
-	private static String profilesUrl = apiUrl + "profiles/";
+	private static String profilesUrl = API_URL + "profiles/";
 	MendeleyProfileInterface appInterface;
 	
 	public ProfileNetworkProvider(MendeleyProfileInterface appInterface) {

@@ -29,13 +29,17 @@ import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 
+import com.mendeley.api.network.NetworkUtils;
+
+import static com.mendeley.api.network.NetworkUtils.*;
+
 /**
  * NetworkProvider class for Documents API calls
  */
 public class DocumentNetworkProvider extends NetworkProvider {
-	private static String documentsUrl = apiUrl + "documents";
+	private static String documentsUrl = API_URL + "documents";
 	
-	private static String documentTypesUrl = apiUrl + "document_types";
+	private static String documentTypesUrl = API_URL + "document_types";
 	
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 	

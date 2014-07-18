@@ -12,7 +12,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.HttpResponseException;
@@ -26,11 +25,13 @@ import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
+import static com.mendeley.api.network.NetworkUtils.*;
+
 /**
  * NetworkProvider class for Folder API calls
  */
 public class FolderNetworkProvider extends NetworkProvider{
-	private static String foldersUrl = apiUrl + "folders";
+	private static String foldersUrl = API_URL + "folders";
 	MendeleyFolderInterface appInterface;
 
 	/**

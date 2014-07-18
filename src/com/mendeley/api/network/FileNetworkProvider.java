@@ -13,7 +13,6 @@ import java.util.Map;
 import org.json.JSONException;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.FileDownloadException;
@@ -27,13 +26,15 @@ import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
+import static com.mendeley.api.network.NetworkUtils.*;
+
 /**
  * NetworkProvider class for Files API calls
  */
 public class FileNetworkProvider extends NetworkProvider {
 	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
 
-	private static String filesUrl = apiUrl + "files";
+	private static String filesUrl = API_URL + "files";
 	private MendeleyFileInterface appInterface;
 	private static final String TAG = FileNetworkProvider.class.getSimpleName();
 	
