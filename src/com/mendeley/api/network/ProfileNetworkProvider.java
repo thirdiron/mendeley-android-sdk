@@ -10,15 +10,12 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
-import com.mendeley.api.network.FileNetworkProvider.PostFileTask;
 import com.mendeley.api.network.interfaces.MendeleyProfileInterface;
 
 /**
  * NetworkProvider class for Profile API calls
- *
  */
 public class ProfileNetworkProvider extends NetworkProvider {
-
 	private static String profilesUrl = apiUrl + "profiles/";
 	MendeleyProfileInterface appInterface;
 	
@@ -28,7 +25,6 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	
 	/**
 	 *  Executing GetProfileTask
-	 * 
 	 */
     public void doGetMyProfile() {
 		String[] paramsArray = new String[]{profilesUrl, "me"};			
@@ -44,7 +40,9 @@ public class ProfileNetworkProvider extends NetworkProvider {
 		String[] paramsArray = new String[]{profilesUrl, profileId};			
 		new GetProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
 	}
-	
+
+    /* TASK */
+
 	/**
 	 * Executing the api call for getting the user profile in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to Profile object 
@@ -52,8 +50,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * creates a new MendeleyException with the relevant information which will be passed to the application via the callback.
 	 */
-	protected class GetProfileTask extends NetworkTask {
-
+	private class GetProfileTask extends NetworkTask {
 		Profile profile;
 		String id;
 
@@ -64,7 +61,6 @@ public class ProfileNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected MendeleyException doInBackground(String... params) {
-
 			String url = params[0];
 			id = params[1];			
 			url += id;
@@ -83,8 +79,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
 					is = con.getInputStream();
 					String jsonString = getJsonString(is);					
 			
-					JsonParser parser = new JsonParser();
-					profile = parser.parseProfile(jsonString);
+					profile = JsonParser.parseProfile(jsonString);
 					
 					return null;
 				}

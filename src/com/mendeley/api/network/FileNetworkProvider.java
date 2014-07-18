@@ -29,7 +29,6 @@ import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
 /**
  * NetworkProvider class for Files API calls
- *
  */
 public class FileNetworkProvider extends NetworkProvider {
 	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
@@ -94,19 +93,21 @@ public class FileNetworkProvider extends NetworkProvider {
 		String[] params = new String[]{getGetFileUrl(fileId), folderPath, fileId, documentId};
 		fileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	}
-	
-	/**
-	 * Cancelling the NetworkTask that is currently download the file with the given fileId.
-	 * @param fileId the id of the file 
-	 */
-    public void cancelDownload(String fileId) {
-		GetFileTask task = (GetFileTask) fileTaskMap.get(fileId);
-		if (task != null) {
-			task.cancel(true);
-		}
-	}
 
-	/**
+    /**
+     *  Building the url string with the parameters and executes the PostFileTask
+     *
+     * @param contentType content type of the file
+     * @param documentId the id of the document the file is related to
+     * @param filePath the absolute file path
+     */
+    public void doPostFile(String contentType, String documentId, String filePath) {
+
+        String[] paramsArray = new String[]{contentType, documentId, filePath};
+        new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+    }
+
+    /**
 	 * Getting the appropriate url string and executes the DeleteFileTask
 	 * 
 	 * @param fileId the id of the file to delete
@@ -117,38 +118,18 @@ public class FileNetworkProvider extends NetworkProvider {
 		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
-	/**
-	 *  Building the url string with the parameters and executes the PostFileTask
-	 * 
-	 * @param contentType content type of the file
-	 * @param documentId the id of the document the file is related to
-	 * @param filePath the absolute file path
-	 */
-    public void doPostFile(String contentType, String documentId, String filePath) {
-		
-		String[] paramsArray = new String[]{contentType, documentId, filePath};			
-		new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
-	}
-
     /**
-     * Building the url for get files
-     *
-     * @param fileId the id of the file to get
-     * @return the url string
+     * Cancelling the NetworkTask that is currently download the file with the given fileId.
+     * @param fileId the id of the file
      */
-    protected String getGetFileUrl(String fileId) {
-        return filesUrl+"/"+fileId;
+    public void cancelDownload(String fileId) {
+        GetFileTask task = (GetFileTask) fileTaskMap.get(fileId);
+        if (task != null) {
+            task.cancel(true);
+        }
     }
 
-    /**
-     * Building the url for delete files
-     *
-     * @param fileId the id of the file to delete
-     * @return the url string
-     */
-    protected String getDeleteFileUrl(String fileId) {
-        return filesUrl + "/" + fileId;
-    }
+    /* URLS */
 
     /**
      * Building the url for get files
@@ -157,7 +138,7 @@ public class FileNetworkProvider extends NetworkProvider {
      * @return the url string
      * @throws UnsupportedEncodingException
      */
-    protected String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
+    String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
         StringBuilder url = new StringBuilder();
         url.append(filesUrl);
 
@@ -196,14 +177,35 @@ public class FileNetworkProvider extends NetworkProvider {
     }
 
     /**
+     * Building the url for get files
+     *
+     * @param fileId the id of the file to get
+     * @return the url string
+     */
+    String getGetFileUrl(String fileId) {
+        return filesUrl+"/"+fileId;
+    }
+
+    /**
+     * Building the url for delete files
+     *
+     * @param fileId the id of the file to delete
+     * @return the url string
+     */
+    String getDeleteFileUrl(String fileId) {
+        return filesUrl + "/" + fileId;
+    }
+
+    /* TASKS */
+
+    /**
 	 * Executing the api call for posting file in the background.
 	 * Calling the appropriate JsonParser method to parse the json string to objects 
 	 * and send the data to the relevant callback method in the MendeleyFileInterface.
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class PostFileTask extends NetworkTask {
-
+	private class PostFileTask extends NetworkTask {
 		File file;
 
 		@Override
@@ -268,8 +270,7 @@ public class FileNetworkProvider extends NetworkProvider {
 					String jsonString = getJsonString(is);					
 					is.close();
 			
-					JsonParser parser = new JsonParser();
-					file = parser.parseFile(jsonString);
+					file = JsonParser.parseFile(jsonString);
 					
 					return null;
 				}
@@ -310,7 +311,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFilesTask extends NetworkTask {
+	private class GetFilesTask extends NetworkTask {
 		List<File> files;
 
 		@Override
@@ -373,8 +374,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class GetFileTask extends NetworkTask {
-
+	private class GetFileTask extends NetworkTask {
 		List<File> files;
 		byte[] fileData;
 		String fileName;
@@ -439,7 +439,6 @@ public class FileNetworkProvider extends NetworkProvider {
 						return null;
 					}
 				}
-				 
 			}	catch (IOException e) {
 				return new FileDownloadException(e.getMessage(), fileId);
 			} finally {
@@ -489,7 +488,7 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	protected class DeleteFileTask extends NetworkTask {
+	private class DeleteFileTask extends NetworkTask {
 		List<File> files;
 		String fileId;
 
@@ -512,9 +511,7 @@ public class FileNetworkProvider extends NetworkProvider {
 				if (con.getResponseCode() != getExpectedResponse()) {
 					return new HttpResponseException(getErrorMessage(con));
 				} else {			
-				
 					fileId = id;
-
 					return null;
 				}
 				 
@@ -537,7 +534,5 @@ public class FileNetworkProvider extends NetworkProvider {
 	}
 
 	// Testing
-	
 	public FileNetworkProvider() {}
-	
 }
