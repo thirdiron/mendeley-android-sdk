@@ -4,6 +4,9 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.util.Log;
 
 import com.mendeley.api.auth.AuthenticationManager;
@@ -109,6 +112,11 @@ public class MendeleySDK {
                        ClientCredentials clientCredentials, UserCredentials userCredentials)  {
         this.mendeleySignInInterface = signInCallback;
         initWithPasswordSignIn(userCredentials, callbacks, clientCredentials);
+    }
+
+    public static String getVersion(Context context) {
+        Resources resources = context.getResources();
+        return resources.getString(R.string.version_name);
     }
 
     private void initWithWebSignIn(Context context, Object callbacks, ClientCredentials clientCredentials) {
