@@ -69,11 +69,11 @@ public class MendeleyRequest {
 		/**
 		 * modified.
 		 */
-		MODIFIED("modified"),
+		MODIFIED("last_modified"),
 		/**
 		 * added.
 		 */
-		ADDED("added"),
+		ADDED("created"),
 		/**
 		 * title.
 		 */
