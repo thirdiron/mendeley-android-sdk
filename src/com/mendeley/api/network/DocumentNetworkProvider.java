@@ -155,8 +155,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * @param documentId the document if to delete
      */
     public void doDeleteDocument(String documentId) {
-        String[] paramsArray = new String[]{getDeleteDocumentUrl(documentId), documentId};
-        new DeleteDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        String[] paramsArray = new String[] { getDeleteDocumentUrl(documentId) };
+        new DeleteDocumentTask(documentId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -519,36 +519,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * If the call response code is different than expected or an exception is being thrown in the process
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
-    private class DeleteDocumentTask extends NetworkTask {
-        String documentId = null;
+    private class DeleteDocumentTask extends DeleteNetworkTask {
+        private final String documentId;
 
-        @Override
-        protected int getExpectedResponse() {
-            return 204;
-        }
-
-        @Override
-        protected MendeleyException doInBackground(String... params) {
-            String url = params[0];
-            String id = params[1];
-
-            try {
-                con = getConnection(url, "DELETE");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-                    documentId = id;
-                    return null;
-                }
-            }	catch (IOException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        public DeleteDocumentTask(String documentId) {
+            super();
+            this.documentId = documentId;
         }
 
         @Override

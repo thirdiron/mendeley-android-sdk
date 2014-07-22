@@ -138,8 +138,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to delete
 	 */
     public void doDeleteFile(String fileId) {
-		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
-		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+		String[] paramsArray = new String[]{ getDeleteFileUrl(fileId) };
+		new DeleteFileTask(fileId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
     /**
@@ -469,41 +469,14 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	private class DeleteFileTask extends NetworkTask {
-		List<File> files;
-		String fileId;
+	private class DeleteFileTask extends DeleteNetworkTask {
+		private final String fileId;
 
-		@Override
-		protected int getExpectedResponse() {
-			return 204;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
-			String id = params[1];
+        public DeleteFileTask(String fileId) {
+            this.fileId = fileId;
+        }
 
-			try {
-				con = getConnection(url, "DELETE");
-				con.connect();
-				
-				getResponseHeaders();
-
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else {			
-					fileId = id;
-					return null;
-				}
-				 
-			}	catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {	
 			appInterface.onFileDeleted(fileId);
 		}

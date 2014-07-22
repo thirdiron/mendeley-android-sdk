@@ -146,8 +146,8 @@ public class FolderNetworkProvider extends NetworkProvider{
      * @param folderId the id of the folder to delete
      */
     public void doDeleteFolder(String folderId) {
-        String[] paramsArray = new String[]{getDeleteFolderUrl(folderId), folderId};
-        new DeleteFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        String[] paramsArray = new String[] { getDeleteFolderUrl(folderId) };
+        new DeleteFolderTask(folderId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -177,8 +177,8 @@ public class FolderNetworkProvider extends NetworkProvider{
      * @param documentId the id of the document to delete
      */
     public void doDeleteDocumentFromFolder(String folderId, String documentId) {
-        String[] paramsArray = new String[]{getDeleteDocumentFromFolderUrl(folderId, documentId), documentId};
-        new DeleteDocumentFromFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        String[] paramsArray = new String[] { getDeleteDocumentFromFolderUrl(folderId, documentId) };
+        new DeleteDocumentFromFolderTask(documentId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /* URLS */
@@ -456,37 +456,11 @@ public class FolderNetworkProvider extends NetworkProvider{
      * If the call response code is different than expected or an exception is being thrown in the process
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
-    private class DeleteFolderTask extends NetworkTask {
-        String folderId = null;
+    private class DeleteFolderTask extends DeleteNetworkTask {
+        private final String folderId;
 
-        @Override
-        protected int getExpectedResponse() {
-            return 204;
-        }
-
-        @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-            String id = params[1];
-
-            try {
-                con = getConnection(url, "DELETE");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-                    folderId = id;
-                    return null;
-                }
-            }	catch (IOException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        private DeleteFolderTask(String folderId) {
+            this.folderId = folderId;
         }
 
         @Override
@@ -566,40 +540,14 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-    private class DeleteDocumentFromFolderTask extends NetworkTask {
-		String documentId = null;
-		
-		@Override
-		protected int getExpectedResponse() {
-			return 204;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			
-			String url = params[0];
-			String id = params[1];
+    private class DeleteDocumentFromFolderTask extends DeleteNetworkTask {
+		private final String documentId;
 
-			try {
-				con = getConnection(url, "DELETE");
-				con.connect();
-				
-				getResponseHeaders();
+        public DeleteDocumentFromFolderTask(String documentId) {
+            this.documentId = documentId;
+        }
 
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else {
-					documentId = id;
-					return null;
-				}
-			}	catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {
 			appInterface.onFolderDocumentDeleted(documentId);
 		}
