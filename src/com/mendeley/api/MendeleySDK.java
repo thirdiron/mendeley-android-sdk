@@ -1,5 +1,6 @@
 package com.mendeley.api;
 
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Date;
 
@@ -376,6 +377,22 @@ public class MendeleySDK {
                 new Class[]{String.class, String.class, String.class},
                 new Object[]{contentType, documentId, filePath})) {
             fileNetworkProvider.doPostFile(contentType, documentId, filePath);
+        }
+    }
+
+    /**
+     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     *
+     * @param contentType the content type of the file
+     * @param documentId the id of the document the file is related to
+     * @param inputStream provides the data to be uploaded
+     * @throws InterfaceNotImplementedException
+     */
+    public void postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(fileInterface,
+                new Class[] { String.class, String.class, InputStream.class, String.class },
+                new Object[] { contentType, documentId, inputStream, fileName })) {
+            fileNetworkProvider.doPostFile(contentType, documentId, inputStream, fileName);
         }
     }
 

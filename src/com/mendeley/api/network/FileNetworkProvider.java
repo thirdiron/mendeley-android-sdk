@@ -2,8 +2,10 @@ package com.mendeley.api.network;
 
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import com.mendeley.api.model.File;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.MendeleyFileInterface;
+import com.mendeley.api.util.Utils;
 
 import static com.mendeley.api.network.NetworkUtils.*;
 
@@ -103,9 +106,30 @@ public class FileNetworkProvider extends NetworkProvider {
      * @param filePath the absolute file path
      */
     public void doPostFile(String contentType, String documentId, String filePath) {
+        String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator) + 1);
+        String[] paramsArray = new String[] { contentType, documentId, fileName };
 
-        String[] paramsArray = new String[]{contentType, documentId, filePath};
-        new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        java.io.File sourceFile = new java.io.File(filePath);
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(sourceFile);
+        } catch (FileNotFoundException e) {
+            appInterface.onFileNotPosted(new MendeleyException("File " + filePath + " not found"));
+            return;
+        }
+        new PostFileTask(inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+    }
+
+    /**
+     *  Building the url string with the parameters and executes the PostFileTask
+     *
+     * @param contentType content type of the file
+     * @param documentId the id of the document the file is related to
+     * @param inputStream provides the data to upload
+     */
+    public void doPostFile(String contentType, String documentId, InputStream inputStream, String fileName) {
+        String[] paramsArray = new String[] { contentType, documentId, fileName };
+        new PostFileTask(inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -114,7 +138,6 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * @param fileId the id of the file to delete
 	 */
     public void doDeleteFile(String fileId) {
-	
 		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
 		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
@@ -351,7 +374,14 @@ public class FileNetworkProvider extends NetworkProvider {
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
     private class PostFileTask extends NetworkTask {
-        File file;
+        private final InputStream inputStream;
+
+        private File file;
+
+        public PostFileTask(InputStream inputStream) {
+            super();
+            this.inputStream = inputStream;
+        }
 
         @Override
         protected int getExpectedResponse() {
@@ -360,24 +390,18 @@ public class FileNetworkProvider extends NetworkProvider {
 
         @Override
         protected MendeleyException doInBackground(String... params) {
-
             String contentType = params[0];
             String documentId = params[1];
-            String filePath = params[2];
-            String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator)+1);
+            String fileName = params[2];
 
             String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
             String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
 
-            FileInputStream fileInputStream = null;
-
             try {
-                java.io.File sourceFile = new java.io.File(filePath);
-                fileInputStream = new FileInputStream(sourceFile);
                 int bytesAvailable;
-                int maxBufferSize = 4096;
+                final int MAX_BUF_SIZE = 65536;
                 int bufferSize;
-                byte[] buffer;
+                final byte[] buffer = new byte[MAX_BUF_SIZE];
                 int bytesRead;
 
                 con = getConnection(filesUrl, "POST");
@@ -387,22 +411,20 @@ public class FileNetworkProvider extends NetworkProvider {
 
                 os = new DataOutputStream(con.getOutputStream());
 
-                bytesAvailable = fileInputStream.available();
-                bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                buffer = new byte[bufferSize];
-
-                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                bytesAvailable = inputStream.available();
+                bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
+                bytesRead = inputStream.read(buffer, 0, bufferSize);
 
                 while (bytesRead > 0)
                 {
                     os.write(buffer, 0, bufferSize);
-                    bytesAvailable = fileInputStream.available();
-                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                    bytesAvailable = inputStream.available();
+                    bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
+                    bytesRead = inputStream.read(buffer, 0, bufferSize);
                 }
 
                 os.close();
-                fileInputStream.close();
+                inputStream.close();
                 con.connect();
 
                 getResponseHeaders();
@@ -419,22 +441,14 @@ public class FileNetworkProvider extends NetworkProvider {
 
                     return null;
                 }
-
-            }	catch (IOException | JSONException e) {
+            } catch (IOException | JSONException e) {
                 return new JsonParsingException(e.getMessage());
             } catch (NullPointerException e) {
                 return new MendeleyException(e.getMessage());
             }
             finally {
                 closeConnection();
-                if (fileInputStream != null) {
-                    try {
-                        fileInputStream.close();
-                        fileInputStream = null;
-                    } catch (IOException e) {
-                        return new JsonParsingException(e.getMessage());
-                    }
-                }
+                Utils.closeQuietly(inputStream);
             }
         }
 
