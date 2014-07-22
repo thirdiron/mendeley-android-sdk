@@ -13,6 +13,13 @@ import android.util.Log;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
+import com.mendeley.api.callbacks.document.GetDocumentsCallback;
+import com.mendeley.api.callbacks.document.PatchDocumentCallback;
+import com.mendeley.api.callbacks.document.PostDocumentCallback;
+import com.mendeley.api.callbacks.document.TrashDocumentCallback;
 import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.GetFileCallback;
 import com.mendeley.api.callbacks.file.GetFilesCallback;
@@ -32,7 +39,6 @@ import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
 import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 import com.mendeley.api.network.interfaces.MendeleyInterface;
 import com.mendeley.api.network.interfaces.MendeleySignInInterface;
@@ -65,7 +71,6 @@ public class MendeleySDK {
 	protected ProfileNetworkProvider profileNetworkProvider;
 	protected FolderNetworkProvider folderNetworkProvider;
 	
-	protected MendeleyDocumentInterface documentInterface;
 	protected MendeleyFolderInterface folderInterface;
 	private MendeleySignInInterface mendeleySignInInterface;
 
@@ -178,11 +183,11 @@ public class MendeleySDK {
      *
      * @param parameters holds optional query parameters, will be ignored if null
      */
-    public RequestHandle getDocuments(DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{DocumentRequestParameters.class},
-                new Object[]{parameters})) {
-            return documentNetworkProvider.doGetDocuments(parameters);
+    public RequestHandle getDocuments(DocumentRequestParameters parameters, GetDocumentsCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { DocumentRequestParameters.class, GetDocumentsCallback.class },
+                new Object[] { parameters, callback })) {
+            return documentNetworkProvider.doGetDocuments(parameters, callback);
         } else {
             return NullRequest.get();
         }
@@ -191,8 +196,8 @@ public class MendeleySDK {
     /**
      * Retrieve a list of documents in the user's library.
      */
-    public RequestHandle getDocuments() throws InterfaceNotImplementedException {
-        return getDocuments((DocumentRequestParameters) null);
+    public RequestHandle getDocuments(GetDocumentsCallback callback) {
+        return getDocuments((DocumentRequestParameters) null, callback);
     }
 
     /**
@@ -200,11 +205,11 @@ public class MendeleySDK {
      *
      * @next reference to next page returned by a previous onDocumentsReceived() callback.
      */
-    public RequestHandle getDocuments(Page next) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{DocumentRequestParameters.class},
-                new Object[]{next})) {
-            return documentNetworkProvider.doGetDocuments(next);
+    public RequestHandle getDocuments(Page next, GetDocumentsCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { DocumentRequestParameters.class, GetDocumentsCallback.class },
+                new Object[] { next, callback })) {
+            return documentNetworkProvider.doGetDocuments(next, callback);
         } else {
             return NullRequest.get();
         }
@@ -215,13 +220,12 @@ public class MendeleySDK {
      *
      * @param documentId the document id to get
      * @param parameters holds optional query parameters, will be ignored if null
-     * @throws InterfaceNotImplementedException
      */
-    public void getDocument(String documentId, DocumentRequestParameters parameters) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{String.class,DocumentRequestParameters.class},
-                new Object[]{documentId, parameters})) {
-            documentNetworkProvider.doGetDocument(documentId, parameters);
+    public void getDocument(String documentId, DocumentRequestParameters parameters, GetDocumentCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { String.class, DocumentRequestParameters.class, GetDocumentCallback.class },
+                new Object[] { documentId, parameters, callback })) {
+            documentNetworkProvider.doGetDocument(documentId, parameters, callback);
         }
     }
 
@@ -229,13 +233,12 @@ public class MendeleySDK {
      * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
      *
      * @param document the document object to be posted
-     * @throws InterfaceNotImplementedException
      */
-    public void postDocument(Document document) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{Document.class},
-                new Object[]{document})) {
-            documentNetworkProvider.doPostDocument(document);
+    public void postDocument(Document document, PostDocumentCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { Document.class, PostDocumentCallback.class },
+                new Object[] { document, callback })) {
+            documentNetworkProvider.doPostDocument(document, callback);
         }
     }
 
@@ -246,13 +249,12 @@ public class MendeleySDK {
      * @param documentId the id of the document to be patched
      * @param date for the api condition if unmodified since.
      * @param document the document object
-     * @throws InterfaceNotImplementedException
      */
-    public void patchDocument(String documentId, Date date, Document document) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{String.class, Date.class, Document.class},
-                new Object[]{documentId, date, document})) {
-            documentNetworkProvider.doPatchDocument(documentId, date, document);
+    public void patchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { String.class, Date.class, Document.class, PatchDocumentCallback.class },
+                new Object[] { documentId, date, document, callback })) {
+            documentNetworkProvider.doPatchDocument(documentId, date, document, callback);
         }
     }
 
@@ -260,13 +262,12 @@ public class MendeleySDK {
      * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
      *
      * @param documentId the document id to be trashed
-     * @throws InterfaceNotImplementedException
      */
-    public void trashDocument(String documentId) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{String.class},
-                new Object[]{documentId})) {
-            documentNetworkProvider.doPostTrashDocument(documentId);
+    public void trashDocument(String documentId, TrashDocumentCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { String.class, TrashDocumentCallback.class },
+                new Object[] { documentId, callback })) {
+            documentNetworkProvider.doPostTrashDocument(documentId, callback);
         }
     }
 
@@ -274,26 +275,23 @@ public class MendeleySDK {
      * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
      *
      * @param documentId the document id to be deleted
-     * @throws InterfaceNotImplementedException
      */
-    public void deleteDocument(String documentId) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                new Class[]{String.class},
-                new Object[]{documentId})) {
-            documentNetworkProvider.doDeleteDocument(documentId);
+    public void deleteDocument(String documentId, DeleteDocumentCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { String.class, DeleteDocumentCallback.class },
+                new Object[] { documentId, callback })) {
+            documentNetworkProvider.doDeleteDocument(documentId, callback);
         }
     }
 
     /**
      *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
-     *
-     * @throws InterfaceNotImplementedException
      */
-    public RequestHandle getDocumentTypes() throws InterfaceNotImplementedException {
-        if (checkNetworkCall(documentInterface,
-                null,
-                null)) {
-            return documentNetworkProvider.doGetDocumentTypes();
+    public RequestHandle getDocumentTypes(GetDocumentTypesCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { GetDocumentTypesCallback.class },
+                new Object[] { callback })) {
+            return documentNetworkProvider.doGetDocumentTypes(callback);
         } else {
             return NullRequest.get();
         }
@@ -306,7 +304,7 @@ public class MendeleySDK {
      *
      * @param parameters holds optional query parameters, will be ignored if null
      */
-    public RequestHandle getFiles(FileRequestParameters parameters, GetFilesCallback callback) throws InterfaceNotImplementedException {
+    public RequestHandle getFiles(FileRequestParameters parameters, GetFilesCallback callback) {
         if (checkNetworkCall(
                 new Class[] { FileRequestParameters.class, GetFilesCallback.class },
                 new Object[] { parameters, callback })) {
@@ -319,7 +317,7 @@ public class MendeleySDK {
     /**
      *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
      */
-    public RequestHandle getFiles(GetFilesCallback callback) throws InterfaceNotImplementedException {
+    public RequestHandle getFiles(GetFilesCallback callback) {
         return getFiles((FileRequestParameters) null, callback);
     }
 
@@ -328,7 +326,7 @@ public class MendeleySDK {
      *
      * @param next returned from previous getFiles() call
      */
-    public RequestHandle getFiles(Page next, GetFilesCallback callback) throws InterfaceNotImplementedException {
+    public RequestHandle getFiles(Page next, GetFilesCallback callback) {
         if (checkNetworkCall(
                 new Class[] { FileRequestParameters.class, GetFilesCallback.class },
                 new Object[] { next, callback })) {
@@ -343,9 +341,8 @@ public class MendeleySDK {
      *
      * @param fileId the id of the file to get
      * @param folderPath the path in which to save the file
-     * @throws InterfaceNotImplementedException
      */
-    public void getFile(String fileId, String documentId, String folderPath, GetFileCallback callback) throws InterfaceNotImplementedException {
+    public void getFile(String fileId, String documentId, String folderPath, GetFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, String.class, GetFileCallback.class },
                 new Object[] { fileId, documentId, folderPath, callback })) {
@@ -358,7 +355,7 @@ public class MendeleySDK {
      *
      * @param fileId the id of the file
      */
-    public void cancelDownload(String fileId) throws InterfaceNotImplementedException {
+    public void cancelDownload(String fileId) {
         if (checkNetworkCall(
                 new Class[] { String.class },
                 new Object[] { fileId })) {
@@ -372,9 +369,8 @@ public class MendeleySDK {
      * @param contentType the content type of the file
      * @param documentId the id of the document the file is related to
      * @param filePath the absolute file path
-     * @throws InterfaceNotImplementedException
      */
-    public void postFile(String contentType, String documentId, String filePath, PostFileCallback callback) throws InterfaceNotImplementedException {
+    public void postFile(String contentType, String documentId, String filePath, PostFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, String.class, PostFileCallback.class },
                 new Object[] { contentType, documentId, filePath, callback })) {
@@ -388,9 +384,8 @@ public class MendeleySDK {
      * @param contentType the content type of the file
      * @param documentId the id of the document the file is related to
      * @param inputStream provides the data to be uploaded
-     * @throws InterfaceNotImplementedException
      */
-    public void postFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) throws InterfaceNotImplementedException {
+    public void postFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, InputStream.class, String.class, PostFileCallback.class },
                 new Object[] { contentType, documentId, inputStream, fileName, callback })) {
@@ -400,10 +395,8 @@ public class MendeleySDK {
 
     /**
      *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
-     *
-     * @throws InterfaceNotImplementedException
      */
-    public void deleteFile(String fileId, DeleteFileCallback callback) throws InterfaceNotImplementedException {
+    public void deleteFile(String fileId, DeleteFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, DeleteFileCallback.class },
                 new Object[] { fileId, callback })) {
@@ -415,10 +408,8 @@ public class MendeleySDK {
 
     /**
      * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
-     *
-     * @throws InterfaceNotImplementedException
      */
-    public void getMyProfile(GetProfileCallback callback) throws InterfaceNotImplementedException {
+    public void getMyProfile(GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { GetProfileCallback.class },
                              new Object[] { callback })) {
             profileNetworkProvider.doGetMyProfile(callback);
@@ -428,10 +419,8 @@ public class MendeleySDK {
 
     /**
      * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
-     *
-     * @throws InterfaceNotImplementedException
      */
-    public void getProfile(String profileId, GetProfileCallback callback) throws InterfaceNotImplementedException {
+    public void getProfile(String profileId, GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, GetProfileCallback.class },
                              new Object[] { profileId, callback })) {
             profileNetworkProvider.doGetProfile(profileId, callback);
@@ -615,16 +604,11 @@ public class MendeleySDK {
 	 * @param callbacks the requester's callbacks.
 	 */
 	private void initialiseInterfaces(Object callbacks) {
-		
-		if (callbacks instanceof MendeleyDocumentInterface) {
-			documentInterface = (MendeleyDocumentInterface) callbacks;
-		}
-		
 		if (callbacks instanceof MendeleyFolderInterface) {
 			folderInterface = (MendeleyFolderInterface) callbacks;
 		}
 		
-		documentNetworkProvider = new DocumentNetworkProvider(documentInterface);
+		documentNetworkProvider = new DocumentNetworkProvider();
         fileNetworkProvider = new FileNetworkProvider();
 		profileNetworkProvider = new ProfileNetworkProvider();
 		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
@@ -667,7 +651,7 @@ public class MendeleySDK {
      * @return true if network call can be executed
      * @throws InterfaceNotImplementedException
      */
-    private boolean checkNetworkCall(@SuppressWarnings("rawtypes") Class[] classes, Object[] values) throws InterfaceNotImplementedException {
+    private boolean checkNetworkCall(@SuppressWarnings("rawtypes") Class[] classes, Object[] values) {
         if (!authenticationManager.isAuthenticated()) {
             if (classes == null) {
                 methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
