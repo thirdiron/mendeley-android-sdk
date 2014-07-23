@@ -1,4 +1,4 @@
-package com.mendeley.api.network.interfaces;
+package com.mendeley.api.auth;
 
 
 /**

@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.util.Log;
 
@@ -33,10 +31,8 @@ import com.mendeley.api.callbacks.folder.PatchFolderCallback;
 import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
 import com.mendeley.api.callbacks.folder.PostFolderCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
-import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
-import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.DocumentNetworkProvider;
 import com.mendeley.api.network.FileNetworkProvider;
 import com.mendeley.api.network.FolderNetworkProvider;
@@ -46,9 +42,8 @@ import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
-import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyInterface;
-import com.mendeley.api.network.interfaces.MendeleySignInInterface;
+import com.mendeley.api.auth.AuthenticationInterface;
+import com.mendeley.api.callbacks.MendeleySignInInterface;
 
 /**
  * This class should be instantiated with the calling activity context.
@@ -437,9 +432,8 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param parameters holds optional query parameters, will be ignored if null
-	 * @throws InterfaceNotImplementedException
 	 */
-	public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) throws InterfaceNotImplementedException {
+	public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) {
 		if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFoldersCallback.class },
 			 				 new Object[] { parameters, callback })) {
 			return folderNetworkProvider.doGetFolders(parameters, callback);
@@ -451,7 +445,7 @@ public class MendeleySDK {
     /**
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      */
-    public RequestHandle getFolders(GetFoldersCallback callback) throws InterfaceNotImplementedException {
+    public RequestHandle getFolders(GetFoldersCallback callback) {
         return getFolders((FolderRequestParameters) null, callback);
     }
 
@@ -459,9 +453,8 @@ public class MendeleySDK {
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      *
      * @param next reference to next page
-     * @throws InterfaceNotImplementedException
      */
-    public RequestHandle getFolders(Page next, GetFoldersCallback callback) throws InterfaceNotImplementedException {
+    public RequestHandle getFolders(Page next, GetFoldersCallback callback) {
         if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFolderCallback.class },
                              new Object[] { next, callback })) {
             return folderNetworkProvider.doGetFolders(next, callback);
@@ -474,9 +467,8 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId id of the folder to get
-	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFolder(String folderId, GetFolderCallback callback) throws InterfaceNotImplementedException {
+	public void getFolder(String folderId, GetFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, GetFolderCallback.class },
 			 				 new Object[] { folderId, callback })) {
 			folderNetworkProvider.doGetFolder(folderId, callback);
@@ -487,9 +479,8 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folder the folder object to post
-	 * @throws InterfaceNotImplementedException
 	 */
-	public void postFolder(Folder folder, PostFolderCallback callback) throws InterfaceNotImplementedException {
+	public void postFolder(Folder folder, PostFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { Folder.class, PostFolderCallback.class },
 			 				 new Object[] { folder, callback })) {
 			folderNetworkProvider.doPostFolder(folder, callback);
@@ -501,9 +492,8 @@ public class MendeleySDK {
      *
      * @param folderId the id of the folder to patch
      * @param folder the folder object that holds the new name and parentId data
-     * @throws InterfaceNotImplementedException
      */
-    public void patchFolder(String folderId, Folder folder, PatchFolderCallback callback) throws InterfaceNotImplementedException {
+    public void patchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, Folder.class, PatchFolderCallback.class },
                              new Object[] { folderId, folder, callback })) {
             folderNetworkProvider.doPatchFolder(folderId, folder, callback);
@@ -515,7 +505,7 @@ public class MendeleySDK {
      *
      * @param folderId id of the folder for which to get the document ids
      */
-    public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId, GetFolderDocumentIdsCallback callback) throws InterfaceNotImplementedException {
+    public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { FolderRequestParameters.class, String.class, GetFolderDocumentIdsCallback.class },
                              new Object[] { parameters, folderId, callback })) {
             folderNetworkProvider.doGetFolderDocumentIds(parameters, folderId, callback);
@@ -527,7 +517,7 @@ public class MendeleySDK {
      *
      * @param next reference to next results page
      */
-    public void getFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) throws InterfaceNotImplementedException {
+    public void getFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, String.class, GetFolderDocumentIdsCallback.class },
                              new Object[] { next, folderId, callback })) {
             folderNetworkProvider.doGetFolderDocumentIds(next, folderId, callback);
@@ -539,9 +529,8 @@ public class MendeleySDK {
 	 * 
 	 * @param folderId the id of the folder
 	 * @param documentId the id of the document to add to the folder
-	 * @throws InterfaceNotImplementedException
 	 */
-	public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) throws InterfaceNotImplementedException {
+	public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, PostDocumentToFolderCallback.class },
 			 				 new Object[] { folderId, documentId, callback })) {
 			folderNetworkProvider.doPostDocumentToFolder(folderId, documentId, callback);
@@ -552,9 +541,8 @@ public class MendeleySDK {
 	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
 	 * 
 	 * @param folderId the id of the folder to delete
-	 * @throws InterfaceNotImplementedException
 	 */
-	public void deleteFolder(String folderId, DeleteFolderCallback callback) throws InterfaceNotImplementedException {
+	public void deleteFolder(String folderId, DeleteFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, DeleteFolderCallback.class },
 			 				 new Object[] { folderId, callback })) {
 			folderNetworkProvider.doDeleteFolder(folderId, callback);
@@ -566,9 +554,8 @@ public class MendeleySDK {
 	 * 
 	 * @param folderId the id of the folder
 	 * @param documentId the id of the document to delete
-	 * @throws InterfaceNotImplementedException
 	 */
-	public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) throws InterfaceNotImplementedException {
+	public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, DeleteFolderDocumentCallback.class },
 			 				 new Object[] { folderId, documentId, callback })) {
 			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId, callback);
@@ -609,7 +596,6 @@ public class MendeleySDK {
      * @param classes of the arguments of the calling method
      * @param values of the arguments of the calling method
      * @return true if network call can be executed
-     * @throws InterfaceNotImplementedException
      */
     private boolean checkNetworkCall(@SuppressWarnings("rawtypes") Class[] classes, Object[] values) {
         if (!authenticationManager.isAuthenticated()) {
