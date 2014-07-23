@@ -29,7 +29,6 @@ import android.util.Log;
 import com.mendeley.api.activity.SignInActivity;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NetworkProvider;
-import com.mendeley.api.network.interfaces.AuthenticationInterface;
 import com.mendeley.api.util.Utils;
 
 import static junit.framework.Assert.assertNotNull;
