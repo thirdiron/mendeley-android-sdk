@@ -24,6 +24,14 @@ import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.GetFileCallback;
 import com.mendeley.api.callbacks.file.GetFilesCallback;
 import com.mendeley.api.callbacks.file.PostFileCallback;
+import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
+import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
+import com.mendeley.api.callbacks.folder.GetFolderCallback;
+import com.mendeley.api.callbacks.folder.GetFolderDocumentIdsCallback;
+import com.mendeley.api.callbacks.folder.GetFoldersCallback;
+import com.mendeley.api.callbacks.folder.PatchFolderCallback;
+import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
+import com.mendeley.api.callbacks.folder.PostFolderCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.InterfaceNotImplementedException;
 import com.mendeley.api.model.Document;
@@ -39,7 +47,6 @@ import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.network.interfaces.AuthenticationInterface;
-import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 import com.mendeley.api.network.interfaces.MendeleyInterface;
 import com.mendeley.api.network.interfaces.MendeleySignInInterface;
 
@@ -71,7 +78,6 @@ public class MendeleySDK {
 	protected ProfileNetworkProvider profileNetworkProvider;
 	protected FolderNetworkProvider folderNetworkProvider;
 	
-	protected MendeleyFolderInterface folderInterface;
 	private MendeleySignInInterface mendeleySignInInterface;
 
 	private static final String TAG = MendeleySDK.class.getSimpleName();
@@ -79,25 +85,23 @@ public class MendeleySDK {
      * Obtain a handle to the SDK.
      *
      * @param context used for creating the sign-in activity
-     * @param callbacks object which implements one or more Mendeley*Interfaces
      * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process
      */
-	public MendeleySDK(Context context, Object callbacks, ClientCredentials clientCredentials)  {
-        initWithWebSignIn(context, callbacks, clientCredentials);
+	public MendeleySDK(Context context, ClientCredentials clientCredentials)  {
+        initWithWebSignIn(context, clientCredentials);
 	}
 
     /**
      * Obtain a handle to the SDK.
      *
      * @param context used for creating the sign-in activity
-     * @param callbacks object which implements one or more Mendeley*Interfaces
      * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process
      * @param signInCallback used to receive sign in/out events.
      */
-	public MendeleySDK(Context context, Object callbacks, MendeleySignInInterface signInCallback,
+	public MendeleySDK(Context context, MendeleySignInInterface signInCallback,
                        ClientCredentials clientCredentials) {
         this.mendeleySignInInterface = signInCallback;
-        initWithWebSignIn(context, callbacks, clientCredentials);
+        initWithWebSignIn(context, clientCredentials);
     }
 
     /**
@@ -106,8 +110,8 @@ public class MendeleySDK {
      * Developer applications should not use this constructor, instead they should pass a context.
      * This constructor is intended for unit testing the SDK.
      */
-    public MendeleySDK(Object callbacks, ClientCredentials clientCredentials, UserCredentials userCredentials)  {
-        initWithPasswordSignIn(userCredentials, callbacks, clientCredentials);
+    public MendeleySDK(ClientCredentials clientCredentials, UserCredentials userCredentials)  {
+        initWithPasswordSignIn(userCredentials, clientCredentials);
     }
 
     /**
@@ -116,10 +120,10 @@ public class MendeleySDK {
      * Developer applications should not use this constructor, instead they should pass a context.
      * This constructor is intended for unit testing the SDK.
      */
-    public MendeleySDK(Object callbacks, MendeleySignInInterface signInCallback,
+    public MendeleySDK(MendeleySignInInterface signInCallback,
                        ClientCredentials clientCredentials, UserCredentials userCredentials)  {
         this.mendeleySignInInterface = signInCallback;
-        initWithPasswordSignIn(userCredentials, callbacks, clientCredentials);
+        initWithPasswordSignIn(userCredentials, clientCredentials);
     }
 
     public static String getVersion(Context context) {
@@ -127,17 +131,17 @@ public class MendeleySDK {
         return resources.getString(R.string.version_name);
     }
 
-    private void initWithWebSignIn(Context context, Object callbacks, ClientCredentials clientCredentials) {
+    private void initWithWebSignIn(Context context, ClientCredentials clientCredentials) {
         AuthenticationManager.configure(
                 context,
                 createAuthenticationInterface(),
                 clientCredentials.clientId,
                 clientCredentials.clientSecret,
                 clientCredentials.redirectUri);
-        init(callbacks);
+        init();
     }
 
-    private void initWithPasswordSignIn(UserCredentials userCredentials, Object callbacks, ClientCredentials clientCredentials) {
+    private void initWithPasswordSignIn(UserCredentials userCredentials, ClientCredentials clientCredentials) {
         AuthenticationManager.configure(
                 userCredentials.username,
                 userCredentials.password,
@@ -145,12 +149,12 @@ public class MendeleySDK {
                 clientCredentials.clientId,
                 clientCredentials.clientSecret,
                 clientCredentials.redirectUri);
-        init(callbacks);
+        init();
     }
 
-    private void init(Object callbacks) {
+    private void init() {
         authenticationManager = AuthenticationManager.getInstance();
-        initialiseInterfaces(callbacks);
+        initialiseInterfaces();
         if (!hasCredentials()) {
             authenticationManager.authenticate();
         }
@@ -435,11 +439,10 @@ public class MendeleySDK {
 	 * @param parameters holds optional query parameters, will be ignored if null
 	 * @throws InterfaceNotImplementedException
 	 */
-	public RequestHandle getFolders(FolderRequestParameters parameters) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{FolderRequestParameters.class}, 
-			 				 new Object[]{parameters})) {
-			return folderNetworkProvider.doGetFolders(parameters);
+	public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFoldersCallback.class },
+			 				 new Object[] { parameters, callback })) {
+			return folderNetworkProvider.doGetFolders(parameters, callback);
 		} else {
             return NullRequest.get();
         }
@@ -448,8 +451,8 @@ public class MendeleySDK {
     /**
      * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
      */
-    public RequestHandle getFolders() throws InterfaceNotImplementedException {
-        return getFolders((FolderRequestParameters) null);
+    public RequestHandle getFolders(GetFoldersCallback callback) throws InterfaceNotImplementedException {
+        return getFolders((FolderRequestParameters) null, callback);
     }
 
     /**
@@ -458,11 +461,10 @@ public class MendeleySDK {
      * @param next reference to next page
      * @throws InterfaceNotImplementedException
      */
-    public RequestHandle getFolders(Page next) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(folderInterface,
-                new Class[]{FolderRequestParameters.class},
-                new Object[]{next})) {
-            return folderNetworkProvider.doGetFolders(next);
+    public RequestHandle getFolders(Page next, GetFoldersCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFolderCallback.class },
+                             new Object[] { next, callback })) {
+            return folderNetworkProvider.doGetFolders(next, callback);
         } else {
             return NullRequest.get();
         }
@@ -474,11 +476,10 @@ public class MendeleySDK {
 	 * @param folderId id of the folder to get
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void getFolder(String folderId) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{String.class}, 
-			 				 new Object[]{folderId})) {
-			folderNetworkProvider.doGetFolder(folderId);
+	public void getFolder(String folderId, GetFolderCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { String.class, GetFolderCallback.class },
+			 				 new Object[] { folderId, callback })) {
+			folderNetworkProvider.doGetFolder(folderId, callback);
 		}
 	}
 	
@@ -488,11 +489,10 @@ public class MendeleySDK {
 	 * @param folder the folder object to post
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void postFolder(Folder folder) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{Folder.class}, 
-			 				 new Object[]{folder})) {
-			folderNetworkProvider.doPostFolder(folder);
+	public void postFolder(Folder folder, PostFolderCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { Folder.class, PostFolderCallback.class },
+			 				 new Object[] { folder, callback })) {
+			folderNetworkProvider.doPostFolder(folder, callback);
 		}
 	}
 
@@ -503,11 +503,10 @@ public class MendeleySDK {
      * @param folder the folder object that holds the new name and parentId data
      * @throws InterfaceNotImplementedException
      */
-    public void patchFolder(String folderId, Folder folder) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(folderInterface,
-                new Class[]{String.class, Folder.class},
-                new Object[]{folderId, folder})) {
-            folderNetworkProvider.doPatchFolder(folderId, folder);
+    public void patchFolder(String folderId, Folder folder, PatchFolderCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(new Class[] { String.class, Folder.class, PatchFolderCallback.class },
+                             new Object[] { folderId, folder, callback })) {
+            folderNetworkProvider.doPatchFolder(folderId, folder, callback);
         }
     }
 
@@ -516,11 +515,10 @@ public class MendeleySDK {
      *
      * @param folderId id of the folder for which to get the document ids
      */
-    public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(folderInterface,
-                new Class[]{FolderRequestParameters.class, String.class},
-                new Object[]{parameters, folderId})) {
-            folderNetworkProvider.doGetFolderDocumentIds(parameters, folderId);
+    public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId, GetFolderDocumentIdsCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(new Class[] { FolderRequestParameters.class, String.class, GetFolderDocumentIdsCallback.class },
+                             new Object[] { parameters, folderId, callback })) {
+            folderNetworkProvider.doGetFolderDocumentIds(parameters, folderId, callback);
         }
     }
 
@@ -529,11 +527,10 @@ public class MendeleySDK {
      *
      * @param next reference to next results page
      */
-    public void getFolderDocumentIds(Page next, String folderId) throws InterfaceNotImplementedException {
-        if (checkNetworkCall(folderInterface,
-                new Class[]{String.class, String.class},
-                new Object[]{next, folderId})) {
-            folderNetworkProvider.doGetFolderDocumentIds(next, folderId);
+    public void getFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) throws InterfaceNotImplementedException {
+        if (checkNetworkCall(new Class[] { String.class, String.class, GetFolderDocumentIdsCallback.class },
+                             new Object[] { next, folderId, callback })) {
+            folderNetworkProvider.doGetFolderDocumentIds(next, folderId, callback);
         }
     }
 
@@ -544,11 +541,10 @@ public class MendeleySDK {
 	 * @param documentId the id of the document to add to the folder
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void postDocumentToFolder(String folderId, String documentId) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[] { String.class, String.class },
-			 				 new Object[] { folderId, documentId })) {
-			folderNetworkProvider.doPostDocumentToFolder(folderId, documentId);
+	public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { String.class, String.class, PostDocumentToFolderCallback.class },
+			 				 new Object[] { folderId, documentId, callback })) {
+			folderNetworkProvider.doPostDocumentToFolder(folderId, documentId, callback);
 		}
 	}
 	
@@ -558,11 +554,10 @@ public class MendeleySDK {
 	 * @param folderId the id of the folder to delete
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void deleteFolder(String folderId) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{String.class}, 
-			 				 new Object[]{folderId})) {
-			folderNetworkProvider.doDeleteFolder(folderId);
+	public void deleteFolder(String folderId, DeleteFolderCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { String.class, DeleteFolderCallback.class },
+			 				 new Object[] { folderId, callback })) {
+			folderNetworkProvider.doDeleteFolder(folderId, callback);
 		}
 	}
 	
@@ -573,11 +568,10 @@ public class MendeleySDK {
 	 * @param documentId the id of the document to delete
 	 * @throws InterfaceNotImplementedException
 	 */
-	public void deleteDocumentFromFolder(String folderId, String documentId) throws InterfaceNotImplementedException {
-		if (checkNetworkCall(folderInterface,
-			 				 new Class[]{String.class, String.class}, 
-			 				 new Object[]{folderId, documentId})) {
-			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId);
+	public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) throws InterfaceNotImplementedException {
+		if (checkNetworkCall(new Class[] { String.class, String.class, DeleteFolderDocumentCallback.class },
+			 				 new Object[] { folderId, documentId, callback })) {
+			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId, callback);
 		}
 	}
 	
@@ -600,48 +594,14 @@ public class MendeleySDK {
 	/**
 	 * Checking the given context to see which interfaces are implemented by the calling activity
 	 * and initialising the relevant objects for sending callbacks.
-	 * 
-	 * @param callbacks the requester's callbacks.
 	 */
-	private void initialiseInterfaces(Object callbacks) {
-		if (callbacks instanceof MendeleyFolderInterface) {
-			folderInterface = (MendeleyFolderInterface) callbacks;
-		}
-		
+	private void initialiseInterfaces() {
 		documentNetworkProvider = new DocumentNetworkProvider();
         fileNetworkProvider = new FileNetworkProvider();
 		profileNetworkProvider = new ProfileNetworkProvider();
-		folderNetworkProvider = new FolderNetworkProvider(folderInterface);
+		folderNetworkProvider = new FolderNetworkProvider();
 	} 
 		
-	/**
-	 * First checks that the MendeleyInterface has been instantiated for sending callbacks to the application; if not throws InterfaceNotImplementedException.
-	 * Then checks if client is authenticated, if false initialises the MethodToInvoke object with the calling method name and its arguments
-	 * and calls authenticate on the AuthenticationManager, else returns true.
-	 * 
-	 * @param mendeleyInterface the instance of MendeleyInterface that will be used for the callbacks
-	 * @param classes of the arguments of the calling method
-	 * @param values of the arguments of the calling method
-	 * @return true if network call can be executed
-	 * @throws InterfaceNotImplementedException
-	 */
-	private boolean checkNetworkCall(MendeleyInterface mendeleyInterface, @SuppressWarnings("rawtypes") Class[] classes, Object[] values) throws InterfaceNotImplementedException {
-		if (mendeleyInterface == null) {
-			throw new InterfaceNotImplementedException("The required MendeleyInterface is not implemented by the calling class");
-		}
-		if (!authenticationManager.isAuthenticated()) {
-			if (classes == null) {
-				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName());
-				authenticationManager.authenticate();
-			} else {
-				methodToInvoke = new MethodtoInvoke(new Exception().getStackTrace()[1].getMethodName(), classes, values);
-				authenticationManager.authenticate();
-			}
-			return false;
-		}
-		return true;
-	}
-
     /**
      * Checks if client is authenticated, if false initialises the MethodToInvoke object with the calling method name and its arguments
      * and calls authenticate on the AuthenticationManager, else returns true.

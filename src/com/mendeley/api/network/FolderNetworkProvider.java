@@ -14,6 +14,14 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
+import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
+import com.mendeley.api.callbacks.folder.GetFolderCallback;
+import com.mendeley.api.callbacks.folder.GetFolderDocumentIdsCallback;
+import com.mendeley.api.callbacks.folder.GetFoldersCallback;
+import com.mendeley.api.callbacks.folder.PatchFolderCallback;
+import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
+import com.mendeley.api.callbacks.folder.PostFolderCallback;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -23,7 +31,6 @@ import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
-import com.mendeley.api.network.interfaces.MendeleyFolderInterface;
 
 import static com.mendeley.api.network.NetworkUtils.*;
 
@@ -32,25 +39,15 @@ import static com.mendeley.api.network.NetworkUtils.*;
  */
 public class FolderNetworkProvider extends NetworkProvider{
 	private static String foldersUrl = API_URL + "folders";
-	MendeleyFolderInterface appInterface;
 
-	/**
-	 * Constructor that takes MendeleyFolderInterface instance which will be used to send callbacks to the application
-	 * 
-	 * @param appInterface the instance of MendeleyFolderInterface
-	 */
-    public FolderNetworkProvider(MendeleyFolderInterface appInterface) {
-		this.appInterface = appInterface;
-	}
-	
 	/**
 	 * Getting the appropriate url string and executes the GetFoldersTask
 	 * 
 	 * @param params folder request parameters object
 	 */
-    public RequestHandle doGetFolders(FolderRequestParameters params) {
+    public RequestHandle doGetFolders(FolderRequestParameters params, GetFoldersCallback callback) {
 		String[] paramsArray = new String[]{getGetFoldersUrl(params)};
-        GetFoldersTask getFoldersTask = new GetFoldersTask();
+        GetFoldersTask getFoldersTask = new GetFoldersTask(callback);
         getFoldersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         return getFoldersTask;
 	}
@@ -60,14 +57,14 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    public RequestHandle doGetFolders(Page next) {
+    public RequestHandle doGetFolders(Page next, GetFoldersCallback callback) {
         if (Page.isValidPage(next)) {
     		String[] paramsArray = new String[]{next.link};
-            GetFoldersTask getFoldersTask = new GetFoldersTask();
-            new GetFoldersTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            GetFoldersTask getFoldersTask = new GetFoldersTask(callback);
+            new GetFoldersTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getFoldersTask;
         } else {
-            appInterface.onFoldersNotReceived(new NoMorePagesException());
+            callback.onFoldersNotReceived(new NoMorePagesException());
             return NullRequest.get();
         }
     }
@@ -77,9 +74,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the folder id to get
 	 */
-    public void doGetFolder(String folderId) {
+    public void doGetFolder(String folderId, GetFolderCallback callback) {
 		String[] paramsArray = new String[]{getGetFolderUrl(folderId)};			
-		new GetFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+		new GetFolderTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 
 	/**
@@ -87,9 +84,9 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folderId the folder id
 	 */
-    public void doGetFolderDocumentIds(FolderRequestParameters params, String folderId) {
+    public void doGetFolderDocumentIds(FolderRequestParameters params, String folderId, GetFolderDocumentIdsCallback callback) {
 		String[] paramsArray = new String[]{getGetFoldersUrl(params, getGetFolderDocumentIdsUrl(folderId)), folderId};			
-		new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);   
+		new GetFolderDocumentIdsTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 
     /**
@@ -97,12 +94,12 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param next reference to next page
      */
-    public void doGetFolderDocumentIds(Page next, String folderId) {
+    public void doGetFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
         if (Page.isValidPage(next)) {
     		String[] paramsArray = new String[]{next.link, folderId};			
-            new GetFolderDocumentIdsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+            new GetFolderDocumentIdsTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         } else {
-            appInterface.onFolderDocumentIdsNotReceived(new NoMorePagesException());
+            callback.onFolderDocumentIdsNotReceived(new NoMorePagesException());
         }
     }
 
@@ -111,14 +108,14 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * 
 	 * @param folder the folder to post
 	 */
-    public void doPostFolder(Folder folder) {
+    public void doPostFolder(Folder folder, PostFolderCallback callback) {
 
 		JsonParser parser = new JsonParser();
 		try {
     		String[] paramsArray = new String[]{foldersUrl, parser.jsonFromFolder(folder)};			
-			new PostFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+			new PostFolderTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 		} catch (JSONException e) {
-            appInterface.onFolderNotPosted(new JsonParsingException(e.getMessage()));
+            callback.onFolderNotPosted(new JsonParsingException(e.getMessage()));
         }
 	}
 
@@ -128,16 +125,16 @@ public class FolderNetworkProvider extends NetworkProvider{
      * @param folderId the folder id to patch
      * @param folder the Folder object
      */
-    public void doPatchFolder(String folderId, Folder folder) {
+    public void doPatchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
         JsonParser parser = new JsonParser();
         String folderString = null;
         try {
             folderString  = parser.jsonFromFolder(folder);
         } catch (JSONException e) {
-            appInterface.onFolderNotPatched(new JsonParsingException(e.getMessage()));
+            callback.onFolderNotPatched(new JsonParsingException(e.getMessage()));
         }
         String[] paramsArray = new String[]{getPatchFolderUrl(folderId), folderId, folderString};
-        new PatchFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new PatchFolderTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -145,9 +142,9 @@ public class FolderNetworkProvider extends NetworkProvider{
      *
      * @param folderId the id of the folder to delete
      */
-    public void doDeleteFolder(String folderId) {
+    public void doDeleteFolder(String folderId, DeleteFolderCallback callback) {
         String[] paramsArray = new String[] { getDeleteFolderUrl(folderId) };
-        new DeleteFolderTask(folderId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new DeleteFolderTask(folderId, callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -156,18 +153,18 @@ public class FolderNetworkProvider extends NetworkProvider{
      * @param folderId the folder id
      * @param documentId the id of the document to add to the folder
      */
-    public void doPostDocumentToFolder(String folderId, String documentId) {
+    public void doPostDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
         String documentString = null;
         if (documentId != null && !documentId.isEmpty()) {
             JsonParser parser = new JsonParser();
             try {
                 documentString = parser.jsonFromDocumentId(documentId);
             } catch (JSONException e) {
-                appInterface.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
+                callback.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
             }
         }
         String[] paramsArray = new String[]{getPostDocumentToFolderUrl(folderId), documentString, folderId};
-        new PostDocumentToFolderTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new PostDocumentToFolderTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -176,9 +173,9 @@ public class FolderNetworkProvider extends NetworkProvider{
      * @param folderId the id of the folder
      * @param documentId the id of the document to delete
      */
-    public void doDeleteDocumentFromFolder(String folderId, String documentId) {
+    public void doDeleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) {
         String[] paramsArray = new String[] { getDeleteDocumentFromFolderUrl(folderId, documentId) };
-        new DeleteDocumentFromFolderTask(documentId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new DeleteDocumentFromFolderTask(documentId, callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /* URLS */
@@ -280,7 +277,13 @@ public class FolderNetworkProvider extends NetworkProvider{
     /* TASKS */
 
     private class GetFoldersTask extends GetNetworkTask {
+        private final GetFoldersCallback callback;
+
         List<Folder> folders;
+
+        private GetFoldersTask(GetFoldersCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -294,22 +297,28 @@ public class FolderNetworkProvider extends NetworkProvider{
 
         @Override
         protected void onCancelled (MendeleyException result) {
-            appInterface.onFoldersNotReceived(new UserCancelledException());
+            callback.onFoldersNotReceived(new UserCancelledException());
         }
 
         @Override
         protected void onSuccess() {
-            appInterface.onFoldersReceived(folders, next);
+            callback.onFoldersReceived(folders, next);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onFoldersNotReceived(exception);
+            callback.onFoldersNotReceived(exception);
         }
     }
 
     private class GetFolderTask extends GetNetworkTask {
+        private final GetFolderCallback callback;
+
         Folder folder;
+
+        private GetFolderTask(GetFolderCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -323,12 +332,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 
         @Override
         protected void onSuccess() {
-            appInterface.onFolderReceived(folder);
+            callback.onFolderReceived(folder);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onFolderNotReceived(exception);
+            callback.onFolderNotReceived(exception);
         }
     }
 
@@ -339,7 +348,13 @@ public class FolderNetworkProvider extends NetworkProvider{
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
     private class PostFolderTask extends NetworkTask {
+        private final PostFolderCallback callback;
+
         Folder folder;
+
+        private PostFolderTask(PostFolderCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected int getExpectedResponse() {
@@ -388,12 +403,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 
         @Override
         protected void onSuccess() {
-            appInterface.onFolderPosted(folder);
+            callback.onFolderPosted(folder);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onFolderNotPosted(exception);
+            callback.onFolderNotPosted(exception);
         }
     }
 
@@ -405,9 +420,15 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
     private class PatchFolderTask extends NetworkTask {
+        private final PatchFolderCallback callback;
+
 		String folderId = null;
 
-		@Override
+        private PatchFolderTask(PatchFolderCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 200;
 		}
@@ -441,12 +462,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderPatched(folderId);
+			callback.onFolderPatched(folderId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onFolderNotPatched(exception);
+			callback.onFolderNotPatched(exception);
 		}
 	}
 
@@ -458,19 +479,21 @@ public class FolderNetworkProvider extends NetworkProvider{
      */
     private class DeleteFolderTask extends DeleteNetworkTask {
         private final String folderId;
+        private final DeleteFolderCallback callback;
 
-        private DeleteFolderTask(String folderId) {
+        private DeleteFolderTask(String folderId, DeleteFolderCallback callback) {
             this.folderId = folderId;
+            this.callback = callback;
         }
 
         @Override
         protected void onSuccess() {
-            appInterface.onFolderDeleted(folderId);
+            callback.onFolderDeleted(folderId);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onFolderNotDeleted(exception);
+            callback.onFolderNotDeleted(exception);
         }
     }
 
@@ -481,7 +504,13 @@ public class FolderNetworkProvider extends NetworkProvider{
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
     private class PostDocumentToFolderTask extends NetworkTask {
+        private final PostDocumentToFolderCallback callback;
+
         String folderId;
+
+        private PostDocumentToFolderTask(PostDocumentToFolderCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected int getExpectedResponse() {
@@ -525,12 +554,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 
         @Override
         protected void onSuccess() {
-            appInterface.onDocumentPostedToFolder(folderId);
+            callback.onDocumentPostedToFolder(folderId);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onDocumentNotPostedToFolder(exception);
+            callback.onDocumentNotPostedToFolder(exception);
         }
     }
 
@@ -542,19 +571,21 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 */
     private class DeleteDocumentFromFolderTask extends DeleteNetworkTask {
 		private final String documentId;
+        private final DeleteFolderDocumentCallback callback;
 
-        public DeleteDocumentFromFolderTask(String documentId) {
+        public DeleteDocumentFromFolderTask(String documentId, DeleteFolderDocumentCallback callback) {
             this.documentId = documentId;
+            this.callback = callback;
         }
 
         @Override
 		protected void onSuccess() {
-			appInterface.onFolderDocumentDeleted(documentId);
+			callback.onFolderDocumentDeleted(documentId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onFolderDocumentNotDeleted(exception);
+			callback.onFolderDocumentNotDeleted(exception);
 		}
 	}
 	
@@ -566,10 +597,16 @@ public class FolderNetworkProvider extends NetworkProvider{
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
     private class GetFolderDocumentIdsTask extends NetworkTask {
+        private final GetFolderDocumentIdsCallback callback;
+
 		List<DocumentId> documentIds;
 		String folderId;
 
-		@Override
+        private GetFolderDocumentIdsTask(GetFolderDocumentIdsCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 200;
 		}
@@ -609,12 +646,12 @@ public class FolderNetworkProvider extends NetworkProvider{
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onFolderDocumentIdsReceived(folderId, documentIds, next);
+			callback.onFolderDocumentIdsReceived(folderId, documentIds, next);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onFolderDocumentIdsNotReceived(exception);
+			callback.onFolderDocumentIdsNotReceived(exception);
 		}
 	}
 
