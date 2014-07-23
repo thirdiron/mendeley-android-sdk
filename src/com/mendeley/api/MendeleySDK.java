@@ -160,16 +160,13 @@ public class MendeleySDK {
             @Override
             public void onAuthenticated() {
                 if (mendeleySignInInterface != null) {
-                    mendeleySignInInterface.isSignedIn(true);
+                    mendeleySignInInterface.onSignedIn();
                 }
                 invokeMethod();
             }
 
             @Override
             public void onAuthenticationFail() {
-                if (mendeleySignInInterface != null) {
-                    mendeleySignInInterface.isSignedIn(false);
-                }
                 authenticationManager.authenticate();
             }
         };
