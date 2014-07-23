@@ -3,6 +3,10 @@ package com.mendeley.api.network;
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.file.DeleteFileCallback;
+import com.mendeley.api.callbacks.file.GetFileCallback;
+import com.mendeley.api.callbacks.file.GetFilesCallback;
+import com.mendeley.api.callbacks.file.PostFileCallback;
 import com.mendeley.api.exceptions.FileDownloadException;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
@@ -10,16 +14,18 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.File;
-import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.Page;
+import com.mendeley.api.util.Utils;
 
 import org.json.JSONException;
 
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -39,32 +45,23 @@ public class FileNetworkProvider extends NetworkProvider {
 	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
 
 	private static String filesUrl = API_URL + "files";
-	private MendeleyFileInterface appInterface;
 	private static final String TAG = FileNetworkProvider.class.getSimpleName();
 	
 	/**
-	 * Constructor that takes MendeleyFileInterface instance which will be used to send callbacks to the application
-	 * 
-	 * @param appInterface the instance of MendeleyFileInterface
-	 */
-    public FileNetworkProvider(MendeleyFileInterface appInterface) {
-		this.appInterface = appInterface;
-	}
-	
-	/**
 	 * Getting the appropriate url string and executes the GetFilesTask
-	 * 
-	 * @param params the file request parameters
-	 */
-    public RequestHandle doGetFiles(FileRequestParameters params) {
+	 *
+     * @param params the file request parameters
+     * @param callback
+     */
+    public RequestHandle doGetFiles(FileRequestParameters params, GetFilesCallback callback) {
 		try {
             String[] paramsArray = new String[] { getGetFilesUrl(params) };
-			GetFilesTask getFilesTask = new GetFilesTask();
+			GetFilesTask getFilesTask = new GetFilesTask(callback);
 			getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getFilesTask;
 		}
 		catch (UnsupportedEncodingException e) {
-            appInterface.onFilesNotReceived(new MendeleyException(e.getMessage()));
+            callback.onFilesNotReceived(new MendeleyException(e.getMessage()));
             return NullRequest.get();
 		}
 	}
@@ -73,54 +70,76 @@ public class FileNetworkProvider extends NetworkProvider {
      * Getting the appropriate url string and executes the GetFilesTask
      *
      * @param next reference to next page
+     * @param callback
      */
-    public RequestHandle doGetFiles(Page next) {
+    public RequestHandle doGetFiles(Page next, GetFilesCallback callback) {
         if (Page.isValidPage(next)) {
-        	String[] paramsArray = new String[]{next.link};
-            GetFilesTask getFilesTask = new GetFilesTask();
+        	String[] paramsArray = new String[] { next.link };
+            GetFilesTask getFilesTask = new GetFilesTask(callback);
             getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getFilesTask;
         } else {
-            appInterface.onFilesNotReceived(new NoMorePagesException());
+            callback.onFilesNotReceived(new NoMorePagesException());
             return NullRequest.get();
         }
     }
 
 	/**
 	 *  Getting the appropriate url string and executes the GetFileTask
-	 * 
-	 * @param fileId the id of the file to get
+	 *  @param fileId the id of the file to get
 	 * @param folderPath the path in which to save the file
-	 */
-    public void doGetFile(final String fileId, final String documentId, final String folderPath) {
-		final GetFileTask fileTask = new GetFileTask();
+     * @param callback
+     */
+    public void doGetFile(final String fileId, final String documentId, final String folderPath, GetFileCallback callback) {
+		final GetFileTask fileTask = new GetFileTask(callback);
 		fileTaskMap.put(fileId, fileTask);
-		String[] params = new String[]{getGetFileUrl(fileId), folderPath, fileId, documentId};
+		String[] params = new String[] { getGetFileUrl(fileId), folderPath, fileId, documentId };
 		fileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	}
 
     /**
      *  Building the url string with the parameters and executes the PostFileTask
-     *
-     * @param contentType content type of the file
+     *  @param contentType content type of the file
      * @param documentId the id of the document the file is related to
      * @param filePath the absolute file path
+     * @param callback
      */
-    public void doPostFile(String contentType, String documentId, String filePath) {
+    public void doPostFile(String contentType, String documentId, String filePath, PostFileCallback callback) {
+        String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator) + 1);
+        String[] paramsArray = new String[] { contentType, documentId, fileName };
 
-        String[] paramsArray = new String[]{contentType, documentId, filePath};
-        new PostFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        java.io.File sourceFile = new java.io.File(filePath);
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(sourceFile);
+        } catch (FileNotFoundException e) {
+            callback.onFileNotPosted(new MendeleyException("File " + filePath + " not found"));
+            return;
+        }
+        new PostFileTask(callback, inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+    }
+
+    /**
+     *  Building the url string with the parameters and executes the PostFileTask
+     *  @param contentType content type of the file
+     * @param documentId the id of the document the file is related to
+     * @param inputStream provides the data to upload
+     * @param callback
+     */
+    public void doPostFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) {
+        String[] paramsArray = new String[] { contentType, documentId, fileName };
+        new PostFileTask(callback, inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
 	 * Getting the appropriate url string and executes the DeleteFileTask
-	 * 
-	 * @param fileId the id of the file to delete
-	 */
-    public void doDeleteFile(String fileId) {
-	
-		String[] paramsArray = new String[]{getDeleteFileUrl(fileId), fileId};			
-		new DeleteFileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+	 *
+     * @param fileId the id of the file to delete
+     * @param callback
+     */
+    public void doDeleteFile(String fileId, DeleteFileCallback callback) {
+		String[] paramsArray = new String[]{ getDeleteFileUrl(fileId) };
+		new DeleteFileTask(callback, fileId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 	
     /**
@@ -204,7 +223,13 @@ public class FileNetworkProvider extends NetworkProvider {
     /* TASKS */
 
 	private class GetFilesTask extends GetNetworkTask {
-		List<File> files;
+        private final GetFilesCallback callback;
+
+		private List<File> files;
+
+        private GetFilesTask(GetFilesCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -218,17 +243,18 @@ public class FileNetworkProvider extends NetworkProvider {
 
         @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onFilesNotReceived(new UserCancelledException());
+	    	callback.onFilesNotReceived(new UserCancelledException());
 	    }
 		
 		@Override
+
 		protected void onSuccess() {
-			appInterface.onFilesReceived(files, next, serverDate);
+            callback.onFilesReceived(files, next, serverDate);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
-			appInterface.onFilesNotReceived(exception);		
+			callback.onFilesNotReceived(exception);
 		}
     }
 	
@@ -240,6 +266,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	private class GetFileTask extends NetworkTask {
+        private final GetFileCallback callback;
+
 		List<File> files;
 		byte[] fileData;
 		String fileName;
@@ -247,7 +275,11 @@ public class FileNetworkProvider extends NetworkProvider {
 		String documentId;
 		String filePath;
 
-		@Override
+        private GetFileTask(GetFileCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 303;
 		}
@@ -321,7 +353,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
-	    	appInterface.onFileDownloadProgress(fileId, documentId, progress[0]);
+	    	callback.onFileDownloadProgress(fileId, documentId, progress[0]);
 	    }
 	    
 	    @Override
@@ -337,13 +369,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		@Override
 		protected void onSuccess() {		
 			fileTaskMap.remove(fileId);
-			appInterface.onFileReceived(fileName, fileId);
+			callback.onFileReceived(fileName, fileId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
 			fileTaskMap.remove(fileId);
-			appInterface.onFileNotReceived(exception);				
+			callback.onFileNotReceived(exception);
 		}
 	}
 
@@ -355,7 +387,16 @@ public class FileNetworkProvider extends NetworkProvider {
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
     private class PostFileTask extends NetworkTask {
-        File file;
+        private final PostFileCallback callback;
+        private final InputStream inputStream;
+
+        private File file;
+
+        public PostFileTask(PostFileCallback callback, InputStream inputStream) {
+            super();
+            this.callback = callback;
+            this.inputStream = inputStream;
+        }
 
         @Override
         protected int getExpectedResponse() {
@@ -364,24 +405,18 @@ public class FileNetworkProvider extends NetworkProvider {
 
         @Override
         protected MendeleyException doInBackground(String... params) {
-
             String contentType = params[0];
             String documentId = params[1];
-            String filePath = params[2];
-            String fileName = filePath.substring(filePath.lastIndexOf(java.io.File.separator)+1);
+            String fileName = params[2];
 
             String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
             String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
 
-            FileInputStream fileInputStream = null;
-
             try {
-                java.io.File sourceFile = new java.io.File(filePath);
-                fileInputStream = new FileInputStream(sourceFile);
                 int bytesAvailable;
-                int maxBufferSize = 4096;
+                final int MAX_BUF_SIZE = 65536;
                 int bufferSize;
-                byte[] buffer;
+                final byte[] buffer = new byte[MAX_BUF_SIZE];
                 int bytesRead;
 
                 con = getConnection(filesUrl, "POST");
@@ -391,22 +426,20 @@ public class FileNetworkProvider extends NetworkProvider {
 
                 os = new DataOutputStream(con.getOutputStream());
 
-                bytesAvailable = fileInputStream.available();
-                bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                buffer = new byte[bufferSize];
-
-                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                bytesAvailable = inputStream.available();
+                bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
+                bytesRead = inputStream.read(buffer, 0, bufferSize);
 
                 while (bytesRead > 0)
                 {
                     os.write(buffer, 0, bufferSize);
-                    bytesAvailable = fileInputStream.available();
-                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                    bytesAvailable = inputStream.available();
+                    bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
+                    bytesRead = inputStream.read(buffer, 0, bufferSize);
                 }
 
                 os.close();
-                fileInputStream.close();
+                inputStream.close();
                 con.connect();
 
                 getResponseHeaders();
@@ -423,33 +456,25 @@ public class FileNetworkProvider extends NetworkProvider {
 
                     return null;
                 }
-
-            }	catch (IOException | JSONException e) {
+            } catch (IOException | JSONException e) {
                 return new JsonParsingException(e.getMessage());
             } catch (NullPointerException e) {
                 return new MendeleyException(e.getMessage());
             }
             finally {
                 closeConnection();
-                if (fileInputStream != null) {
-                    try {
-                        fileInputStream.close();
-                        fileInputStream = null;
-                    } catch (IOException e) {
-                        return new JsonParsingException(e.getMessage());
-                    }
-                }
+                Utils.closeQuietly(inputStream);
             }
         }
 
         @Override
         protected void onSuccess() {
-            appInterface.onFilePosted(file);
+            callback.onFilePosted(file);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onFileNotPosted(exception);
+            callback.onFileNotPosted(exception);
         }
     }
 
@@ -459,48 +484,23 @@ public class FileNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	private class DeleteFileTask extends NetworkTask {
-		List<File> files;
-		String fileId;
+	private class DeleteFileTask extends DeleteNetworkTask {
+        private final DeleteFileCallback callback;
+		private final String fileId;
 
-		@Override
-		protected int getExpectedResponse() {
-			return 204;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
-			String id = params[1];
+        public DeleteFileTask(DeleteFileCallback callback, String fileId) {
+            this.callback = callback;
+            this.fileId = fileId;
+        }
 
-			try {
-				con = getConnection(url, "DELETE");
-				con.connect();
-				
-				getResponseHeaders();
-
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
-				} else {			
-					fileId = id;
-					return null;
-				}
-				 
-			}	catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {	
-			appInterface.onFileDeleted(fileId);
+			callback.onFileDeleted(fileId);
 		}
 		
 		@Override
 		protected void onFailure(MendeleyException exception) {	
-			appInterface.onFileNotDeleted(exception);				
+			callback.onFileNotDeleted(exception);
 		}
 	}
 

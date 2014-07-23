@@ -19,6 +19,13 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
+import com.mendeley.api.callbacks.document.GetDocumentsCallback;
+import com.mendeley.api.callbacks.document.PatchDocumentCallback;
+import com.mendeley.api.callbacks.document.PostDocumentCallback;
+import com.mendeley.api.callbacks.document.TrashDocumentCallback;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -27,9 +34,6 @@ import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
-import com.mendeley.api.network.interfaces.MendeleyDocumentInterface;
-
-import com.mendeley.api.network.NetworkUtils;
 
 import static com.mendeley.api.network.NetworkUtils.*;
 
@@ -43,31 +47,20 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 	
-	protected MendeleyDocumentInterface appInterface;
-	
-	/**
-	 * Constructor that takes MendeleyDocumentInterface instance which will be used to send callbacks to the application
-	 * 
-	 * @param appInterface the instance of MendeleyDocumentInterface
-	 */
-    public DocumentNetworkProvider(MendeleyDocumentInterface appInterface) {
-		this.appInterface = appInterface;
-	}
-
     /**
      * Getting the appropriate url string and executes the GetDocumentsTask.
      *
      * @param params the document request parameters
      */
-    public RequestHandle doGetDocuments(DocumentRequestParameters params) {
+    public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
             String[] paramsArray = new String[] { getGetDocumentsUrl(params) };
-            GetDocumentsTask getDocumentsTask = new GetDocumentsTask();
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getDocumentsTask;
         }
         catch (UnsupportedEncodingException e) {
-            appInterface.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
+            callback.onDocumentsNotReceived(new MendeleyException(e.getMessage()));
             return NullRequest.get();
         }
     }
@@ -77,14 +70,14 @@ public class DocumentNetworkProvider extends NetworkProvider {
      *
      * @param next reference to next page
      */
-    public RequestHandle doGetDocuments(Page next) {
+    public RequestHandle doGetDocuments(Page next, GetDocumentsCallback callback) {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
-            GetDocumentsTask getDocumentsTask = new GetDocumentsTask();
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getDocumentsTask;
         } else {
-            appInterface.onDocumentsNotReceived(new NoMorePagesException());
+            callback.onDocumentsNotReceived(new NoMorePagesException());
             return NullRequest.get();
         }
     }
@@ -95,9 +88,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * @param documentId the document id
      * @param params the document request parameters
      */
-    public void doGetDocument(String documentId, DocumentRequestParameters params) {
+    public void doGetDocument(String documentId, DocumentRequestParameters params, GetDocumentCallback callback) {
         String[] paramsArray = new String[]{getGetDocumentUrl(documentId, params)};
-        new GetDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new GetDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
 	/**
@@ -105,14 +98,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param document the document to post
 	 */
-    public void doPostDocument(Document document) {
-
+    public void doPostDocument(Document document, PostDocumentCallback callback) {
 		JsonParser parser = new JsonParser();
 		try {
 			String[] paramsArray = new String[]{documentsUrl, parser.jsonFromDocument(document)};			
-			new PostDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 		
+			new PostDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 		} catch (JSONException e) {
-            appInterface.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
+            callback.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
         }
 	}
 
@@ -123,7 +115,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * @param date the date object
      * @param document the Document to patch
      */
-    public void doPatchDocument(String documentId, Date date, Document document) {
+    public void doPatchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
         String dateString = null;
 
         if (date != null) {
@@ -133,9 +125,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
         JsonParser parser = new JsonParser();
         try {
             String[] paramsArray = new String[]{getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document)};
-            new PatchDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            new PatchDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         } catch (JSONException e) {
-            appInterface.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
+            callback.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
         }
     }
 
@@ -144,9 +136,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * 
 	 * @param documentId the document id to trash
 	 */
-    public void doPostTrashDocument(String documentId) {
+    public void doPostTrashDocument(String documentId, TrashDocumentCallback callback) {
 		String[] paramsArray = new String[]{getTrashDocumentUrl(documentId), documentId};			
-		new PostTrashDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray); 
+		new PostTrashDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
 	}
 
     /**
@@ -154,17 +146,17 @@ public class DocumentNetworkProvider extends NetworkProvider {
      *
      * @param documentId the document if to delete
      */
-    public void doDeleteDocument(String documentId) {
-        String[] paramsArray = new String[]{getDeleteDocumentUrl(documentId), documentId};
-        new DeleteDocumentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+    public void doDeleteDocument(String documentId, DeleteDocumentCallback callback) {
+        String[] paramsArray = new String[] { getDeleteDocumentUrl(documentId) };
+        new DeleteDocumentTask(documentId, callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
      * Getting the appropriate url string and executes the GetDocumentTypesTask.
      */
-    public RequestHandle doGetDocumentTypes() {
+    public RequestHandle doGetDocumentTypes(GetDocumentTypesCallback callback) {
         String[] paramsArray = new String[] { documentTypesUrl };
-        GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask();
+        GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask(callback);
         getDocumentTypesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         return getDocumentTypesTask;
     }
@@ -291,7 +283,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
     /* TASKS */
 
     private class GetDocumentsTask extends GetNetworkTask {
+        private final GetDocumentsCallback callback;
+
         List<Document> documents;
+
+        private GetDocumentsTask(GetDocumentsCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -305,22 +303,28 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onCancelled (MendeleyException result) {
-            appInterface.onDocumentsNotReceived(new UserCancelledException());
+            callback.onDocumentsNotReceived(new UserCancelledException());
         }
 
         @Override
         protected void onSuccess() {
-            appInterface.onDocumentsReceived(documents, next);
+            callback.onDocumentsReceived(documents, next);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onDocumentsNotReceived(exception);
+            callback.onDocumentsNotReceived(exception);
         }
     }
 
     private class GetDocumentTask extends GetNetworkTask {
+        private final GetDocumentCallback callback;
+
         Document document;
+
+        private GetDocumentTask(GetDocumentCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected void processJsonString(String jsonString) throws JSONException {
@@ -334,12 +338,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onSuccess() {
-            appInterface.onDocumentReceived(document);
+            callback.onDocumentReceived(document);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onDocumentNotReceived(exception);
+            callback.onDocumentNotReceived(exception);
         }
     }
 
@@ -350,7 +354,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
     private class PostDocumentTask extends NetworkTask {
+        private final PostDocumentCallback callback;
+
         Document document;
+
+        private PostDocumentTask(PostDocumentCallback callback) {
+            this.callback = callback;
+        }
 
         @Override
         protected int getExpectedResponse() {
@@ -359,7 +369,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected MendeleyException doInBackground(String... params) {
-
             String url = params[0];
             String jsonString = params[1];
 
@@ -401,12 +410,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onSuccess() {
-            appInterface.onDocumentPosted(document);
+            callback.onDocumentPosted(document);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onDocumentNotPosted(exception);
+            callback.onDocumentNotPosted(exception);
         }
     }
 
@@ -418,9 +427,15 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	private class PatchDocumentTask extends NetworkTask {
+        private final PatchDocumentCallback callback;
+
 		String documentId = null;
-		
-		@Override
+
+        private PatchDocumentTask(PatchDocumentCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 204;
 		}
@@ -455,12 +470,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentPatched(documentId);
+			callback.onDocumentPatched(documentId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onDocumentNotPatched(exception);
+			callback.onDocumentNotPatched(exception);
 		}
 	}
 	
@@ -471,9 +486,15 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	private class PostTrashDocumentTask extends NetworkTask {
+        private final TrashDocumentCallback callback;
+
 		String documentId = null;
-		
-		@Override
+
+        private PostTrashDocumentTask(TrashDocumentCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 204;
 		}
@@ -504,12 +525,12 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentTrashed(documentId);
+			callback.onDocumentTrashed(documentId);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onDocumentNotTrashed(exception);
+			callback.onDocumentNotTrashed(exception);
 		}
 	}
 
@@ -519,46 +540,24 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * If the call response code is different than expected or an exception is being thrown in the process
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
-    private class DeleteDocumentTask extends NetworkTask {
-        String documentId = null;
+    private class DeleteDocumentTask extends DeleteNetworkTask {
+        private final String documentId;
+        private final DeleteDocumentCallback callback;
 
-        @Override
-        protected int getExpectedResponse() {
-            return 204;
-        }
-
-        @Override
-        protected MendeleyException doInBackground(String... params) {
-            String url = params[0];
-            String id = params[1];
-
-            try {
-                con = getConnection(url, "DELETE");
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-                    documentId = id;
-                    return null;
-                }
-            }	catch (IOException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        public DeleteDocumentTask(String documentId, DeleteDocumentCallback callback) {
+            super();
+            this.callback = callback;
+            this.documentId = documentId;
         }
 
         @Override
         protected void onSuccess() {
-            appInterface.onDocumentDeleted(documentId);
+            callback.onDocumentDeleted(documentId);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
-            appInterface.onDocumentNotDeleted(exception);
+            callback.onDocumentNotDeleted(exception);
         }
     }
 
@@ -569,10 +568,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
 	private class GetDocumentTypesTask extends NetworkTask {
+        private final GetDocumentTypesCallback callback;
+
 		Map<String, String> typesMap;
 		String date;
-		
-		@Override
+
+        private GetDocumentTypesTask(GetDocumentTypesCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
 		protected int getExpectedResponse() {
 			return 200;
 		}
@@ -611,17 +616,17 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
-	    	appInterface.onDocumentTypesNotReceived(new UserCancelledException());
+	    	callback.onDocumentTypesNotReceived(new UserCancelledException());
 	    }
 		
 		@Override
 		protected void onSuccess() {
-			appInterface.onDocumentTypesReceived(typesMap);
+			callback.onDocumentTypesReceived(typesMap);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
-			appInterface.onDocumentTypesNotReceived(exception);
+			callback.onDocumentTypesNotReceived(exception);
 		}
 	}
 
