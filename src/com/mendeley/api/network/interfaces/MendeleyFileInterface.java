@@ -1,10 +1,11 @@
 package com.mendeley.api.network.interfaces;
 
-import java.util.List;
-
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.params.Page;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Interface that should be implemented by the application for receiving callbacks from file network calls.
@@ -12,7 +13,7 @@ import com.mendeley.api.params.Page;
  */
 public interface MendeleyFileInterface extends MendeleyInterface {
 
-	public void onFilesReceived(List<File> files, Page next);
+	public void onFilesReceived(List<File> files, Page next, Date serverTime);
 	public void onFilesNotReceived(MendeleyException mendeleyException);
 	
 	public void onFileReceived(String fileName, String fileId);

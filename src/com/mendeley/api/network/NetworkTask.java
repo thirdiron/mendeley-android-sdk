@@ -10,6 +10,9 @@ import com.mendeley.api.util.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +22,7 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
             implements RequestHandle {
     Page next = new Page();
     String location;
+    Date serverDate;
 
     InputStream is = null;
     OutputStream os = null;
@@ -35,6 +39,13 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
             if (key != null) {
                 switch (key) {
                     case "Date":
+                        SimpleDateFormat simpledateformat = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss 'GMT'");
+                        try {
+                            serverDate = simpledateformat.parse(headersMap.get(key).get(0));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        break;
                     case "Vary":
                     case "Content-Type":
                     case "X-Mendeley-Trace-Id":

@@ -1,17 +1,5 @@
 package com.mendeley.api.network;
 
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONException;
-
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
@@ -22,11 +10,27 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.File;
+import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.Page;
-import com.mendeley.api.network.interfaces.MendeleyFileInterface;
 
-import static com.mendeley.api.network.NetworkUtils.*;
+import org.json.JSONException;
+
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.mendeley.api.network.NetworkUtils.API_URL;
+import static com.mendeley.api.network.NetworkUtils.getConnection;
+import static com.mendeley.api.network.NetworkUtils.getDownloadConnection;
+import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * NetworkProvider class for Files API calls
@@ -218,8 +222,8 @@ public class FileNetworkProvider extends NetworkProvider {
 	    }
 		
 		@Override
-		protected void onSuccess() {		
-			appInterface.onFilesReceived(files, next);
+		protected void onSuccess() {
+			appInterface.onFilesReceived(files, next, serverDate);
 		}
 
 		@Override
