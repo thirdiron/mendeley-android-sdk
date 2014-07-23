@@ -620,7 +620,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 			}
 			try {
 				con = getConnection(url, "GET");
-				con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-documentids.1+json");
+				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
 				con.connect();
 				
 				getResponseHeaders();
