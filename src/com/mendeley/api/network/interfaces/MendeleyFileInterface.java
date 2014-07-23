@@ -11,7 +11,7 @@ import java.util.List;
  * Interface that should be implemented by the application for receiving callbacks from file network calls.
  *
  */
-public interface MendeleyFileInterface extends MendeleyInterface {
+public interface MendeleyFileInterface  {
 
 	public void onFilesReceived(List<File> files, Page next, Date serverTime);
 	public void onFilesNotReceived(MendeleyException mendeleyException);
