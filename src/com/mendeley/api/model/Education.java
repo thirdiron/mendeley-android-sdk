@@ -57,7 +57,7 @@ public class Education {
 		
 		public Builder() {}
 		
-		public Builder(Builder from) {
+		public Builder(Education from) {
 			this.id = from.id;
 			this.lastModified = from.lastModified;
 			this.created = from.created;

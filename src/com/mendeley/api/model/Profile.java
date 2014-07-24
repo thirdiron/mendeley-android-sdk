@@ -124,7 +124,7 @@ public class Profile {
 		
 		public Builder() {}
 		
-		public Builder(Builder from) {
+		public Builder(Profile from) {
 			this.location = from.location;
 			this.id = from.id;
 			this.displayName = from.displayName;
