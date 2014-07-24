@@ -471,15 +471,17 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
     public static Document parseDocument(String jsonString) throws JSONException {
-		Document.Builder mendeleyDocument = new Document.Builder();
-		JSONObject documentObject = new JSONObject(jsonString);
-		 
-		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
-				 documentObject.keys(); keysIter.hasNext();) {
+        JSONObject documentObject = new JSONObject(jsonString);
+
+        String title = documentObject.getString("title");
+        String type = documentObject.getString("type");
+		Document.Builder mendeleyDocument = new Document.Builder(title, type);
+
+		for (@SuppressWarnings("unchecked")
+             Iterator<String> keysIter = documentObject.keys(); keysIter.hasNext(); ) {
 		  
 			String key = keysIter.next();
 			switch (key) {
-			  
 				case "last_modified":
 					mendeleyDocument.setLastModified(documentObject.getString(key));
 					break;
@@ -507,9 +509,6 @@ public class JsonParser {
 				case "id":
 					mendeleyDocument.setId(documentObject.getString(key));
 					break;
-				case "type":
-					mendeleyDocument.setType(documentObject.getString(key));
-					break;
 				case "month":
 					mendeleyDocument.setMonth(documentObject.getInt(key));
 					break;
@@ -521,9 +520,6 @@ public class JsonParser {
 					break;
 				case "source":
 					mendeleyDocument.setSource(documentObject.getString(key));
-					break;
-				case "title":
-					mendeleyDocument.setTitle(documentObject.getString(key));
 					break;
 				case "revision":
 					mendeleyDocument.setRevision(documentObject.getString(key));
@@ -604,10 +600,10 @@ public class JsonParser {
 					 
 					 mendeleyDocument.setIdentifiers(identifiersMap);
 					 break;
-			  }
-		  }
+			}
+		}
 		  
-		 return mendeleyDocument.build();
+		return mendeleyDocument.build();
 	}
 	
 	/**

@@ -113,6 +113,9 @@ public class Document implements Parcelable {
 	}
 	
 	public static class Builder {
+        private final String title;
+        private final String type;
+
 		private String lastModified;
 		private String groupId;
 		private String profileId;
@@ -122,12 +125,10 @@ public class Document implements Parcelable {
 		private Boolean confirmed;
 		private Boolean hidden;
 		private String id;
-		private String type;
 		private Integer month;
 		private Integer year;
 		private Integer day;	
 		private String source;
-		private String title;
 		private String revision;
 		private String created;
 		private Map<String, String> identifiers;
@@ -145,7 +146,10 @@ public class Document implements Parcelable {
 		private String chapter;
 		private ArrayList<Person> editors;
 		
-		public Builder() {}
+		public Builder(String title, String type) {
+            this.title = title;
+            this.type = type;
+        }
 		
 		public Builder(Builder from) {
 			this.lastModified = from.lastModified;
@@ -226,11 +230,6 @@ public class Document implements Parcelable {
 			return this;
 		}
 		
-		public Builder setType(String type) {
-			this.type = type;
-			return this;
-		}
-		
 		public Builder setMonth(Integer month) {
 			this.month = month;
 			return this;
@@ -248,11 +247,6 @@ public class Document implements Parcelable {
 		
 		public Builder setSource(String source) {
 			this.source = source;
-			return this;
-		}
-		
-		public Builder setTitle(String title) {
-			this.title = title;
 			return this;
 		}
 		
