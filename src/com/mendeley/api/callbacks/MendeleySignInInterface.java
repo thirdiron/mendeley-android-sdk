@@ -5,5 +5,5 @@ package com.mendeley.api.callbacks;
  * in/out events.
  */
 public interface MendeleySignInInterface {
-	public void isSignedIn(Boolean signedIn);
+	public void onSignedIn();
 }

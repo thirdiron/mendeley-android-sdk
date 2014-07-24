@@ -1,21 +1,5 @@
 package com.mendeley.api.network;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONException;
-
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
@@ -35,7 +19,28 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
 
-import static com.mendeley.api.network.NetworkUtils.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static com.mendeley.api.network.NetworkUtils.API_URL;
+import static com.mendeley.api.network.NetworkUtils.HttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getConnection;
+import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
+import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * NetworkProvider class for Documents API calls
@@ -221,9 +226,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.view != null) {
 				paramsString.append(firstParam?"?":"&").append("view="+params.view);
 				firstParam = false;
-			} else {
-				paramsString.append(firstParam?"?":"&").append("view=all");
-				firstParam = false;
 			}
 			if (params.groupId != null) {
 				paramsString.append(firstParam?"?":"&").append("group_id="+params.groupId);
@@ -236,7 +238,10 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.deletedSince != null) {
 				paramsString.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
 				firstParam = false;
-			}
+			} else if (params.view == null) {
+				paramsString.append(firstParam?"?":"&").append("view=all");
+				firstParam = false;
+            }
 			if (params.limit != null) {
 				paramsString.append(firstParam?"?":"&").append("limit="+params.limit);
 				firstParam = false;
@@ -308,7 +313,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onSuccess() {
-            callback.onDocumentsReceived(documents, next);
+            callback.onDocumentsReceived(documents, next, serverDate);
         }
 
         @Override
