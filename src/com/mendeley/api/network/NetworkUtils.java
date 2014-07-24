@@ -117,7 +117,6 @@ public class NetworkUtils {
         HttpPatch httpPatch = new HttpPatch(url);
         httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
         httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
-        httpPatch.setHeader("Accept", "application/json");
         if (date != null) {
             httpPatch.setHeader("If-Unmodified-Since", date);
         }

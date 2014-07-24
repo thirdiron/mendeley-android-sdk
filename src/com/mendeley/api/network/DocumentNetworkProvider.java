@@ -437,7 +437,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
 		protected int getExpectedResponse() {
-			return 204;
+			return 200;
 		}
 		
 		@Override

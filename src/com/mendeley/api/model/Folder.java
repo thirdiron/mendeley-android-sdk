@@ -7,13 +7,11 @@ import com.mendeley.api.model.File.Builder;
  *
  */
 public class Folder {
-
 	public final String name;
 	public final String id;
 	public final String parentId;
 	public final String groupId;
 	public final String added;
-	
 	
 	private Folder(String name, String id, String parentId, String groupId, String added) {
         this.name = name;
@@ -31,6 +29,14 @@ public class Folder {
         private String added;
 
         public Builder() {}
+
+        public Builder(Folder folder) {
+            this.name = folder.name;
+            this.id = folder.id;
+            this.parentId = folder.parentId;
+            this.groupId = folder.groupId;
+            this.added = folder.added;
+        }
 
         public Builder setName(String name) {
             this.name = name;
