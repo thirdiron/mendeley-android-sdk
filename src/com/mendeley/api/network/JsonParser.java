@@ -1,19 +1,5 @@
 package com.mendeley.api.network;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
@@ -24,6 +10,20 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
 import com.mendeley.api.model.Profile;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class hold methods to parse json strings to model objects 
@@ -474,12 +474,13 @@ public class JsonParser {
         JSONObject documentObject = new JSONObject(jsonString);
 
         String title = documentObject.getString("title");
+
         String type = documentObject.getString("type");
 		Document.Builder mendeleyDocument = new Document.Builder(title, type);
 
 		for (@SuppressWarnings("unchecked")
              Iterator<String> keysIter = documentObject.keys(); keysIter.hasNext(); ) {
-		  
+
 			String key = keysIter.next();
 			switch (key) {
 				case "last_modified":
@@ -558,51 +559,51 @@ public class JsonParser {
 					break;
 				case "chapter":
 					mendeleyDocument.setChapter(documentObject.getString(key));
-					break;		
+					break;
 				case "authors":
-					  
+
 					JSONArray authors = documentObject.getJSONArray(key);
 					ArrayList<Person> authorsList = new ArrayList<Person>();
-			            
+
 		            for (int i = 0; i < authors.length(); i++) {
 		            	Person author = new Person (
 		            			authors.getJSONObject(i).getString("first_name"),
 		            			authors.getJSONObject(i).getString("last_name"));
 		            	authorsList.add(author);
 		            }
-		            
+
 		            mendeleyDocument.setAuthors(authorsList);
 		            break;
 				case "editors":
-					  
+
 					JSONArray editors = documentObject.getJSONArray(key);
 					ArrayList<Person> editorsList = new ArrayList<Person>();
-			            
+
 		            for (int i = 0; i < editors.length(); i++) {
 		            	Person editor = new Person (
 		            			editors.getJSONObject(i).getString("first_name"),
 		            			editors.getJSONObject(i).getString("last_name"));
 		            	editorsList.add(editor);
 		            }
-		            
+
 		            mendeleyDocument.setEditors(editorsList);
 		            break;
 				case "identifiers":
 					JSONObject identifiersObject = documentObject.getJSONObject(key);
 					HashMap<String, String> identifiersMap = new HashMap<String, String>();
-						 
-					 for (@SuppressWarnings("unchecked") Iterator<String> identifierIter = 
+
+					 for (@SuppressWarnings("unchecked") Iterator<String> identifierIter =
 							 identifiersObject.keys(); identifierIter.hasNext();) {
-					  
+
 						 String identifierKey = identifierIter.next();
 						 identifiersMap.put(identifierKey, identifiersObject.getString(identifierKey));
 					 }
-					 
+
 					 mendeleyDocument.setIdentifiers(identifiersMap);
 					 break;
 			}
 		}
-		  
+
 		return mendeleyDocument.build();
 	}
 	
@@ -638,7 +639,7 @@ public class JsonParser {
 		List<Document> documents = new ArrayList<Document>();
 		
 		JSONArray jsonarray = new JSONArray(jsonString);
-		
+
 		for (int i = 0; i < jsonarray.length(); i++) {
 			documents.add(parseDocument(jsonarray.getString(i)));
 		}

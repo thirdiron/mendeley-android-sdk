@@ -1,17 +1,16 @@
 package com.mendeley.api;
 
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.util.Date;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
 
+import com.mendeley.api.auth.AuthenticationInterface;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
+import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
 import com.mendeley.api.callbacks.document.GetDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
 import com.mendeley.api.callbacks.document.GetDocumentsCallback;
@@ -42,8 +41,10 @@ import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
-import com.mendeley.api.auth.AuthenticationInterface;
-import com.mendeley.api.callbacks.MendeleySignInInterface;
+
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  * This class should be instantiated with the calling activity context.
@@ -222,6 +223,36 @@ public class MendeleySDK {
                 new Class[] { String.class, DocumentRequestParameters.class, GetDocumentCallback.class },
                 new Object[] { documentId, parameters, callback })) {
             documentNetworkProvider.doGetDocument(documentId, parameters, callback);
+        }
+    }
+
+    /**
+     * Retrieve a list of deleted documents in the user's library.
+     *
+     * @param parameters holds optional query parameters, will be ignored if null
+     */
+    public RequestHandle getDeletedDocuments(DocumentRequestParameters parameters, GetDeletedDocumentsCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
+                new Object[] { parameters, callback })) {
+            return documentNetworkProvider.doGetDeletedDocuments(parameters, callback);
+        } else {
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Retrieve subsequent pages of deleted documents in the user's library.
+     *
+     * @next reference to next page returned by a previous onDeletedDocumentsReceived() callback.
+     */
+    public RequestHandle getDeletedDocuments(Page next, GetDeletedDocumentsCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
+                new Object[] { next, callback })) {
+            return documentNetworkProvider.doGetDeletedDocuments(next, callback);
+        } else {
+            return NullRequest.get();
         }
     }
 
