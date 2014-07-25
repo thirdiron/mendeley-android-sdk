@@ -47,11 +47,7 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 /**
- * This class should be instantiated with the calling activity context.
- * The class provides public methods for network calls which are forwarded to the relevant network providers.
- * It also calls the AuthenticationManager for retrieving a valid access token and store the credentials. 
- * The context is used for displaying the authentication WebView, storing credentials in SharedPreferences 
- * and is also checked to see which interfaces the activity implements for sending callbacks once a network task has finished.
+ * Main entry points for making calls to the Mendeley SDK.
  */
 public class MendeleySDK {
     public static class ClientCredentials {
@@ -66,19 +62,23 @@ public class MendeleySDK {
         }
     }
 
-	protected AuthenticationManager authenticationManager;
-	protected MethodtoInvoke methodToInvoke;
-	
-	protected DocumentNetworkProvider documentNetworkProvider;
-	protected FileNetworkProvider fileNetworkProvider;
-	protected ProfileNetworkProvider profileNetworkProvider;
-	protected FolderNetworkProvider folderNetworkProvider;
+    private static final String TAG = MendeleySDK.class.getSimpleName();
+
+    private AuthenticationManager authenticationManager;
+	private MethodtoInvoke methodToInvoke;
+
+    private DocumentNetworkProvider documentNetworkProvider;
+    private FileNetworkProvider fileNetworkProvider;
+    private ProfileNetworkProvider profileNetworkProvider;
+    private FolderNetworkProvider folderNetworkProvider;
 	
 	private MendeleySignInInterface mendeleySignInInterface;
 
-	private static final String TAG = MendeleySDK.class.getSimpleName();
     /**
      * Obtain a handle to the SDK.
+     * <p>
+     * It is recommended that applications only call this once, and then use the same handle
+     * for all requests.
      *
      * @param context used for creating the sign-in activity
      * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process
@@ -89,6 +89,9 @@ public class MendeleySDK {
 
     /**
      * Obtain a handle to the SDK.
+     * <p>
+     * It is recommended that applications only call this once, and then use the same handle
+     * for all requests.
      *
      * @param context used for creating the sign-in activity
      * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process
@@ -103,8 +106,8 @@ public class MendeleySDK {
     /**
      * Obtain a handle to the SDK (internal use only).
      * <p>
-     * Developer applications should not use this constructor, instead they should pass a context.
-     * This constructor is intended for unit testing the SDK.
+     * Developer applications should not use this constructor; this is only required for unit
+     * testing the SDK.
      */
     public MendeleySDK(ClientCredentials clientCredentials, UserCredentials userCredentials)  {
         initWithPasswordSignIn(userCredentials, clientCredentials);
@@ -113,8 +116,8 @@ public class MendeleySDK {
     /**
      * Obtain a handle to the SDK (internal use only).
      * <p>
-     * Developer applications should not use this constructor, instead they should pass a context.
-     * This constructor is intended for unit testing the SDK.
+     * Developer applications should not use this constructor; this is only required for unit
+     * testing the SDK.
      */
     public MendeleySDK(MendeleySignInInterface signInCallback,
                        ClientCredentials clientCredentials, UserCredentials userCredentials)  {
@@ -122,6 +125,9 @@ public class MendeleySDK {
         initWithPasswordSignIn(userCredentials, clientCredentials);
     }
 
+    /**
+     * Return the SDK version name.
+     */
     public static String getVersion(Context context) {
         Resources resources = context.getResources();
         return resources.getString(R.string.version_name);
@@ -177,8 +183,6 @@ public class MendeleySDK {
 
     /**
      * Retrieve a list of documents in the user's library.
-     *
-     * @param parameters holds optional query parameters, will be ignored if null
      */
     public RequestHandle getDocuments(DocumentRequestParameters parameters, GetDocumentsCallback callback) {
         if (checkNetworkCall(
@@ -213,7 +217,7 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Retrieve a single document, specified by ID.
      *
      * @param documentId the document id to get
      * @param parameters holds optional query parameters, will be ignored if null
@@ -257,9 +261,9 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Add a new document to the user's library.
      *
-     * @param document the document object to be posted
+     * @param document the document object to be added.
      */
     public void postDocument(Document document, PostDocumentCallback callback) {
         if (checkNetworkCall(
@@ -271,11 +275,12 @@ public class MendeleySDK {
 
 
     /**
-     * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Modify an existing document in the user's library.
      *
-     * @param documentId the id of the document to be patched
-     * @param date for the api condition if unmodified since.
-     * @param document the document object
+     * @param documentId the id of the document to be modified.
+     * @param date sets an optional "if unmodified since" condition on the request. Ignored if null.
+     * @param document a document object containing the fields to be updated.
+     *                 Missing fields are left unchanged (not cleared).
      */
     public void patchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
         if (checkNetworkCall(
@@ -286,9 +291,9 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Move an existing document into the user's trash collection.
      *
-     * @param documentId the document id to be trashed
+     * @param documentId id of the document to be trashed.
      */
     public void trashDocument(String documentId, TrashDocumentCallback callback) {
         if (checkNetworkCall(
@@ -299,9 +304,9 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Delete a document.
      *
-     * @param documentId the document id to be deleted
+     * @param documentId id of the document to be deleted.
      */
     public void deleteDocument(String documentId, DeleteDocumentCallback callback) {
         if (checkNetworkCall(
@@ -312,7 +317,7 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the DocumentNetworkProvider.
+     * Return a list of valid document types.
      */
     public RequestHandle getDocumentTypes(GetDocumentTypesCallback callback) {
         if (checkNetworkCall(
@@ -327,9 +332,7 @@ public class MendeleySDK {
     /* FILES */
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
-     *
-     * @param parameters holds optional query parameters, will be ignored if null
+     * Return metadata for a user's files, subject to specified query parameters.
      */
     public RequestHandle getFiles(FileRequestParameters parameters, GetFilesCallback callback) {
         if (checkNetworkCall(
@@ -342,16 +345,16 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Return metadata for all files associated with all of the user's documents.
      */
     public RequestHandle getFiles(GetFilesCallback callback) {
         return getFiles((FileRequestParameters) null, callback);
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Return the next page of file metadata entries.
      *
-     * @param next returned from previous getFiles() call
+     * @param next returned from previous getFiles() call.
      */
     public RequestHandle getFiles(Page next, GetFilesCallback callback) {
         if (checkNetworkCall(
@@ -364,10 +367,10 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Download the content of a file.
      *
-     * @param fileId the id of the file to get
-     * @param folderPath the path in which to save the file
+     * @param fileId the id of the file to download.
+     * @param folderPath the local filesystem path in which to save the file.
      */
     public void getFile(String fileId, String documentId, String folderPath, GetFileCallback callback) {
         if (checkNetworkCall(
@@ -378,9 +381,9 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Cancel an in-progress file download.
      *
-     * @param fileId the id of the file
+     * @param fileId the id of the file being downloaded.
      */
     public void cancelDownload(String fileId) {
         if (checkNetworkCall(
@@ -391,11 +394,11 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Upload a new file.
      *
-     * @param contentType the content type of the file
-     * @param documentId the id of the document the file is related to
-     * @param filePath the absolute file path
+     * @param contentType MIME type of the file, e.g "application/pdf".
+     * @param documentId the ID of the document the file should be attached to.
+     * @param filePath the absolute local filesystem path where the file can be found.
      */
     public void postFile(String contentType, String documentId, String filePath, PostFileCallback callback) {
         if (checkNetworkCall(
@@ -406,11 +409,12 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Upload a new file.
      *
-     * @param contentType the content type of the file
-     * @param documentId the id of the document the file is related to
-     * @param inputStream provides the data to be uploaded
+     * @param contentType MIME type of the file, e.g "application/pdf".
+     * @param documentId the ID of the document the file should be attached to.
+     * @param inputStream stream providing the data to be uploaded.
+     * @param fileName the name to be used for the file.
      */
     public void postFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) {
         if (checkNetworkCall(
@@ -421,7 +425,9 @@ public class MendeleySDK {
     }
 
     /**
-     *  Checking if call can be executed and forwarding it to the FileNetworkProvider.
+     * Delete a file.
+     *
+     * @param fileId the ID of the file to be deleted.
      */
     public void deleteFile(String fileId, DeleteFileCallback callback) {
         if (checkNetworkCall(
@@ -434,7 +440,7 @@ public class MendeleySDK {
     /* PROFILES */
 
     /**
-     * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
+     * Return the user's profile information.
      */
     public void getMyProfile(GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { GetProfileCallback.class },
@@ -445,7 +451,9 @@ public class MendeleySDK {
 
 
     /**
-     * Checking if call can be executed and forwarding it to the ProfileNetworkProvider.
+     * Return profile information for another user.
+     *
+     * @param  profileId ID of the profile to be fetched.
      */
     public void getProfile(String profileId, GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, GetProfileCallback.class },
@@ -457,9 +465,7 @@ public class MendeleySDK {
     /* FOLDERS */
 
     /**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
-	 * 
-	 * @param parameters holds optional query parameters, will be ignored if null
+     * Return metadata for all the user's folders.
 	 */
 	public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) {
 		if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFoldersCallback.class },
@@ -471,16 +477,16 @@ public class MendeleySDK {
 	}
 
     /**
-     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     * Return metadata for all the user's folders.
      */
     public RequestHandle getFolders(GetFoldersCallback callback) {
         return getFolders((FolderRequestParameters) null, callback);
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     * Returns the next page of folder metadata entries.
      *
-     * @param next reference to next page
+     * @param next returned from a previous getFolders() call.
      */
     public RequestHandle getFolders(Page next, GetFoldersCallback callback) {
         if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFolderCallback.class },
@@ -492,9 +498,9 @@ public class MendeleySDK {
     }
 
     /**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * Returns metadata for a single folder, specified by ID.
 	 * 
-	 * @param folderId id of the folder to get
+	 * @param folderId ID of the folder to retrieve metadata for.
 	 */
 	public void getFolder(String folderId, GetFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, GetFolderCallback.class },
@@ -504,9 +510,9 @@ public class MendeleySDK {
 	}
 	
     /**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+	 * Create a new folder.
 	 * 
-	 * @param folder the folder object to post
+	 * @param folder metadata for the folder to create.
 	 */
 	public void postFolder(Folder folder, PostFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { Folder.class, PostFolderCallback.class },
@@ -516,10 +522,12 @@ public class MendeleySDK {
 	}
 
     /**
-     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     * Update a folder's metadata.
+     * <p>
+     * This can be used to rename the folder, and/or to move it to a new parent.
      *
-     * @param folderId the id of the folder to patch
-     * @param folder the folder object that holds the new name and parentId data
+     * @param folderId the id of the folder to modify.
+     * @param folder metadata object that provides the new name and parentId.
      */
     public void patchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, Folder.class, PatchFolderCallback.class },
@@ -529,9 +537,9 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     * Return a list of IDs of the documents stored in a particular folder.
      *
-     * @param folderId id of the folder for which to get the document ids
+     * @param folderId ID of the folder to inspect.
      */
     public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { FolderRequestParameters.class, String.class, GetFolderDocumentIdsCallback.class },
@@ -541,9 +549,11 @@ public class MendeleySDK {
     }
 
     /**
-     * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
+     * Returns the next page of document IDs stored in a particular folder.
      *
-     * @param next reference to next results page
+     * @param next returned by a previous call to getFolderDocumentIds().
+     * @param folderId provides an ID to return in the callback (the value is not actually
+     *                 checked by this call).
      */
     public void getFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, String.class, GetFolderDocumentIdsCallback.class },
@@ -553,10 +563,10 @@ public class MendeleySDK {
     }
 
     /**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
-	 * 
-	 * @param folderId the id of the folder
-	 * @param documentId the id of the document to add to the folder
+     * Add a document to a folder.
+	 *
+	 * @param folderId the ID the folder.
+	 * @param documentId the ID of the document to add to the folder.
 	 */
 	public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, PostDocumentToFolderCallback.class },
@@ -566,9 +576,11 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
-	 * 
-	 * @param folderId the id of the folder to delete
+     * Delete a folder.
+     * <p>
+     * This does not delete the documents inside the folder.
+	 *
+	 * @param folderId the ID of the folder to delete.
 	 */
 	public void deleteFolder(String folderId, DeleteFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, DeleteFolderCallback.class },
@@ -578,10 +590,12 @@ public class MendeleySDK {
 	}
 	
 	/**
-	 * Checking if call can be executed and forwarding it to the FolderNetworkProvider.
-	 * 
-	 * @param folderId the id of the folder
-	 * @param documentId the id of the document to delete
+     * Remove a document from a folder.
+     * <p>
+     * This does not delete the documents itself.
+	 *
+	 * @param folderId the ID of the folder.
+	 * @param documentId the ID of the document to remove.
 	 */
 	public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, DeleteFolderDocumentCallback.class },
