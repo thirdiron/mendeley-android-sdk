@@ -353,59 +353,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
      * If the call response code is different than expected or an exception is being thrown in the process
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
-    private class PostDocumentTask extends NetworkTask {
+    private class PostDocumentTask extends PostNetworkTask {
         private final PostDocumentCallback callback;
 
         Document document;
 
         private PostDocumentTask(PostDocumentCallback callback) {
             this.callback = callback;
-        }
-
-        @Override
-        protected int getExpectedResponse() {
-            return 201;
-        }
-
-        @Override
-        protected MendeleyException doInBackground(String... params) {
-            String url = params[0];
-            String jsonString = params[1];
-
-            try {
-                con = getConnection(url, "POST");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-                con.setFixedLengthStreamingMode(jsonString.getBytes().length);
-
-                os = con.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(os, "UTF-8"));
-                writer.write(jsonString);
-                writer.flush();
-                writer.close();
-                os.close();
-
-                con.connect();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-
-                    is = con.getInputStream();
-                    String responseString = getJsonString(is);
-
-                    document = JsonParser.parseDocument(responseString);
-
-                    return null;
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
         }
 
         @Override
@@ -416,6 +370,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
         @Override
         protected void onFailure(MendeleyException exception) {
             callback.onDocumentNotPosted(exception);
+        }
+
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            document = JsonParser.parseDocument(jsonString);
+        }
+
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
         }
     }
 
@@ -567,53 +531,23 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	private class GetDocumentTypesTask extends NetworkTask {
+	private class GetDocumentTypesTask extends GetNetworkTask {
         private final GetDocumentTypesCallback callback;
 
 		Map<String, String> typesMap;
-		String date;
 
         private GetDocumentTypesTask(GetDocumentTypesCallback callback) {
             this.callback = callback;
         }
 
-        @Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
-		
-		@Override
-		protected MendeleyException doInBackground(String... params) {
-				String url = params[0];
+        protected void processJsonString(String jsonString) throws JSONException {
+            typesMap = JsonParser.parseDocumentTypes(jsonString);
+        }
 
-				try {
-					con = getConnection(url, "GET");
-					con.addRequestProperty("Content-type", "application/vnd.mendeley-document-type.1+json"); 
-					con.connect();
+        protected String getContentType() {
+            return "application/vnd.mendeley-document-type.1+json";
+        }
 
-					getResponseHeaders();
-					
-					if (con.getResponseCode() != getExpectedResponse()) {
-						return new HttpResponseException(getErrorMessage(con));
-					} else if (!isCancelled()) {
-
-						is = con.getInputStream();
-						String jsonString = getJsonString(is);					
-
-						typesMap = JsonParser.parseDocumentTypes(jsonString);
-						
-						return null;
-					} else {
-						return new UserCancelledException();
-					}
-					
-				} catch (IOException | JSONException e) {
-					return new JsonParsingException(e.getMessage());
-				} finally {
-					closeConnection();
-				}
-		}
-		
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	callback.onDocumentTypesNotReceived(new UserCancelledException());

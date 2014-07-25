@@ -347,7 +347,7 @@ public class FolderNetworkProvider extends NetworkProvider{
      * If the call response code is different than expected or an exception is being thrown in the process
      * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
      */
-    private class PostFolderTask extends NetworkTask {
+    private class PostFolderTask extends PostNetworkTask {
         private final PostFolderCallback callback;
 
         Folder folder;
@@ -357,48 +357,13 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
-        protected int getExpectedResponse() {
-            return 201;
+        protected void processJsonString(String jsonString) throws JSONException {
+            folder = JsonParser.parseFolder(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-            String jsonString = params[1];
-
-            try {
-                con = getConnection(url, "POST");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-folder.1+json");
-                con.connect();
-
-                os = con.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(os, "UTF-8"));
-                writer.write(jsonString);
-                writer.flush();
-                writer.close();
-                os.close();
-
-                getResponseHeaders();
-
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
-                } else {
-
-                    is = con.getInputStream();
-                    String responseString = getJsonString(is);
-
-                    folder = JsonParser.parseFolder(responseString);
-
-                    return null;
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-folder.1+json";
         }
 
         @Override
