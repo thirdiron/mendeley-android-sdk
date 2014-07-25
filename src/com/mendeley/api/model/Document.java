@@ -151,7 +151,7 @@ public class Document implements Parcelable {
             this.type = type;
         }
 		
-		public Builder(Builder from) {
+		public Builder(Document from) {
 			this.lastModified = from.lastModified;
 			this.groupId = from.groupId;
 			this.profileId = from.profileId;
