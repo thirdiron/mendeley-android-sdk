@@ -1,25 +1,10 @@
 package com.mendeley.api.network;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONException;
-
 import android.os.AsyncTask;
 
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
 import com.mendeley.api.callbacks.document.GetDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
 import com.mendeley.api.callbacks.document.GetDocumentsCallback;
@@ -32,10 +17,32 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
 
-import static com.mendeley.api.network.NetworkUtils.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static com.mendeley.api.network.NetworkUtils.API_URL;
+import static com.mendeley.api.network.NetworkUtils.HttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getConnection;
+import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
+import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * NetworkProvider class for Documents API calls
@@ -66,6 +73,27 @@ public class DocumentNetworkProvider extends NetworkProvider {
     }
 
     /**
+     * Getting the appropriate url string and executes the GetDeletedDocumentsTask.
+     *
+     * @param params the document request parameters
+     */
+    public RequestHandle doGetDeletedDocuments(DocumentRequestParameters params, GetDeletedDocumentsCallback callback) {
+        if (params.deletedSince == null) {
+            callback.onDeletedDocumentsNotReceived(new MendeleyException("deletedSince cannot be null"));
+        }
+        try {
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params) };
+            GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
+            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getDocumentsTask;
+        }
+        catch (UnsupportedEncodingException e) {
+            callback.onDeletedDocumentsNotReceived(new MendeleyException(e.getMessage()));
+            return NullRequest.get();
+        }
+    }
+
+    /**
      * Getting the appropriate url string and executes the GetDocumentsTask.
      *
      * @param next reference to next page
@@ -78,6 +106,24 @@ public class DocumentNetworkProvider extends NetworkProvider {
             return getDocumentsTask;
         } else {
             callback.onDocumentsNotReceived(new NoMorePagesException());
+            return NullRequest.get();
+        }
+    }
+
+
+    /**
+     * Getting the appropriate url string and executes the GetDeletedDocumentsTask.
+     *
+     * @param next reference to next page
+     */
+    public RequestHandle doGetDeletedDocuments(Page next, GetDeletedDocumentsCallback callback) {
+        if (Page.isValidPage(next)) {
+            String[] paramsArray = new String[]{next.link};
+            GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
+            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            return getDocumentsTask;
+        } else {
+            callback.onDeletedDocumentsNotReceived(new NoMorePagesException());
             return NullRequest.get();
         }
     }
@@ -221,9 +267,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.view != null) {
 				paramsString.append(firstParam?"?":"&").append("view="+params.view);
 				firstParam = false;
-			} else {
-				paramsString.append(firstParam?"?":"&").append("view=all");
-				firstParam = false;
 			}
 			if (params.groupId != null) {
 				paramsString.append(firstParam?"?":"&").append("group_id="+params.groupId);
@@ -236,7 +279,10 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.deletedSince != null) {
 				paramsString.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
 				firstParam = false;
-			}
+			} else if (params.view == null) {
+				paramsString.append(firstParam?"?":"&").append("view=all");
+				firstParam = false;
+            }
 			if (params.limit != null) {
 				paramsString.append(firstParam?"?":"&").append("limit="+params.limit);
 				firstParam = false;
@@ -308,12 +354,47 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         @Override
         protected void onSuccess() {
-            callback.onDocumentsReceived(documents, next);
+            callback.onDocumentsReceived(documents, next, serverDate);
         }
 
         @Override
         protected void onFailure(MendeleyException exception) {
             callback.onDocumentsNotReceived(exception);
+        }
+    }
+
+    private class GetDeletedDocumentsTask extends GetNetworkTask {
+        private final GetDeletedDocumentsCallback callback;
+
+        List<DocumentId> documentIds;
+
+        private GetDeletedDocumentsTask(GetDeletedDocumentsCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            documentIds = JsonParser.parseDocumentIds(jsonString);
+        }
+
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
+        }
+
+        @Override
+        protected void onCancelled (MendeleyException result) {
+            callback.onDeletedDocumentsNotReceived(new UserCancelledException());
+        }
+
+        @Override
+        protected void onSuccess() {
+            callback.onDeletedDocumentsReceived(documentIds, next, serverDate);
+        }
+
+        @Override
+        protected void onFailure(MendeleyException exception) {
+            callback.onDeletedDocumentsNotReceived(exception);
         }
     }
 
