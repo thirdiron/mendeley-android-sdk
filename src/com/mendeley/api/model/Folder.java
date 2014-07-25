@@ -1,10 +1,7 @@
 package com.mendeley.api.model;
 
-import com.mendeley.api.model.File.Builder;
-
 /**
  * Model class representing folder json object.
- *
  */
 public class Folder {
 	public final String name;
@@ -28,7 +25,9 @@ public class Folder {
         private String groupId;
         private String added;
 
-        public Builder() {}
+        public Builder(String name) {
+            this.name = name;
+        }
 
         public Builder(Folder folder) {
             this.name = folder.name;
@@ -42,7 +41,7 @@ public class Folder {
             this.name = name;
             return this;
         }
-        
+
         public Builder setId(String id) {
             this.id = id;
             return this;
@@ -73,7 +72,6 @@ public class Folder {
             );
         }
     }
-
 	
 	@Override
 	public String toString() {

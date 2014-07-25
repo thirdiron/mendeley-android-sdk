@@ -247,19 +247,14 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
     public static Folder parseFolder(String jsonString) throws JSONException {
+        JSONObject folderObject = new JSONObject(jsonString);
+
+        Folder.Builder mendeleyFolder = new Folder.Builder(folderObject.getString("name"));
 		
-		Folder.Builder mendeleyFolder = new Folder.Builder();
-		
-		JSONObject folderObject = new JSONObject(jsonString);
-		
-		mendeleyFolder.setName(folderObject.getString("name"));
-		
-		for (@SuppressWarnings("unchecked") Iterator<String> keysIter = 
+		for (@SuppressWarnings("unchecked") Iterator<String> keysIter =
 				folderObject.keys(); keysIter.hasNext();) {
-		  
 			String key = keysIter.next();
 			switch (key) {
-			  
 				case "parent_id":
 					mendeleyFolder.setParentId(folderObject.getString(key));
 					break;
