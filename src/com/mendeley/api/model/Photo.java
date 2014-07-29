@@ -8,6 +8,7 @@ public class Photo {
 
 	public String standard;
 	public String square;
+    public String original;
 	
 	public Photo() {}
 	

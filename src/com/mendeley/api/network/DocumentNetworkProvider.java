@@ -27,9 +27,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -42,7 +40,6 @@ import static com.mendeley.api.network.NetworkUtils.HttpPatch;
 import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
 import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
-import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * NetworkProvider class for Documents API calls

@@ -7,9 +7,11 @@ import com.mendeley.api.model.Education;
 import com.mendeley.api.model.Employment;
 import com.mendeley.api.model.File;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.model.UserRole;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -272,6 +274,37 @@ public class JsonParser {
 		
 		return mendeleyFolder.build();
 	}
+
+    /**
+     * Creating a UserRole object from a json string
+     *
+     * @param jsonString the json string
+     * @return the UserRole object
+     * @throws JSONException
+     */
+    public static UserRole parseUserRole(String jsonString) throws JSONException {
+        JSONObject userRoleObject = new JSONObject(jsonString);
+
+        UserRole.Builder mendeleyUserRole = new UserRole.Builder();
+
+        for (@SuppressWarnings("unchecked") Iterator<String> keysIter =
+                     userRoleObject.keys(); keysIter.hasNext();) {
+            String key = keysIter.next();
+            switch (key) {
+                case "profile_id ":
+                    mendeleyUserRole.setProfileId(userRoleObject.getString(key));
+                    break;
+                case "joined":
+                    mendeleyUserRole.setJoined(userRoleObject.getString(key));
+                    break;
+                case "role":
+                    mendeleyUserRole.setRole(userRoleObject.getString(key));
+                    break;
+            }
+        }
+
+        return mendeleyUserRole.build();
+    }
 	
 	/**
 	 * Creating a Profile object from a json string
@@ -458,6 +491,87 @@ public class JsonParser {
 		return mendeleyProfile.build();
 	}
 
+    /**
+     * Creating a Group object from a json string
+     *
+     * @param jsonString the json string
+     * @return the Group object
+     * @throws JSONException
+     */
+    public static Group parseGroup(String jsonString) throws JSONException {
+        JSONObject groupObject = new JSONObject(jsonString);
+
+        Group.Builder mendeleyGroup = new Group.Builder();
+
+        for (@SuppressWarnings("unchecked")
+             Iterator<String> keysIter = groupObject.keys(); keysIter.hasNext(); ) {
+
+            String key = keysIter.next();
+            switch (key) {
+                case "id":
+                    mendeleyGroup.setId(groupObject.getString(key));
+                    break;
+                case "created":
+                    mendeleyGroup.setCreated(groupObject.getString(key));
+                    break;
+                case "owning_profile_id":
+                    mendeleyGroup.setOwingProfileId(groupObject.getString(key));
+                    break;
+                case "link":
+                    mendeleyGroup.setLink(groupObject.getString(key));
+                    break;
+                case "role":
+                    mendeleyGroup.setRole(groupObject.getString(key));
+                    break;
+                case "access_level":
+                    mendeleyGroup.setAccessLevel(groupObject.getString(key));
+                    break;
+                case "name":
+                    mendeleyGroup.setName(groupObject.getString(key));
+                    break;
+                case "description":
+                    mendeleyGroup.setDescription(groupObject.getString(key));
+                    break;
+                case "tags":
+                    JSONArray tagsJsonArray = groupObject.getJSONArray(key);
+                    ArrayList<String> tagsArray = new ArrayList<String>();
+                    for (int i = 0; i < tagsJsonArray.length(); i++) {
+                        tagsArray.add(tagsJsonArray.getString(i));
+                    }
+                    mendeleyGroup.setTags(tagsArray);
+                    break;
+                case "webpage":
+                    mendeleyGroup.setWebpage(groupObject.getString(key));
+                    break;
+                case "disciplines":
+                    JSONArray disciplinesJsonArray = groupObject.getJSONArray(key);
+                    ArrayList<String> disciplinesArray = new ArrayList<String>();
+                    for (int i = 0; i < disciplinesJsonArray.length(); i++) {
+                        disciplinesArray.add(disciplinesJsonArray.getString(i));
+                    }
+                    mendeleyGroup.setDisciplines(disciplinesArray);
+                    break;
+                case "photo":
+                    JSONObject photoObject = groupObject.getJSONObject(key);
+                    Photo photo = new Photo();
+                    if (photoObject.has("standard")) {
+                        photo.standard = photoObject.getString("standard");
+                    }
+                    if (photoObject.has("square")) {
+                        photo.square = photoObject.getString("square");
+                    }
+                    if (photoObject.has("original")) {
+                        photo.original = photoObject.getString("original");
+                    }
+
+                    mendeleyGroup.setPhoto(photo);
+                    break;
+            }
+        }
+
+        return mendeleyGroup.build();
+    }
+
 	/**
 	 * Creating a Document object from a json string
 	 * 
@@ -630,17 +744,57 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
     public static List<Document> parseDocumentList(String jsonString) throws JSONException {
-		
-		List<Document> documents = new ArrayList<Document>();
-		
-		JSONArray jsonarray = new JSONArray(jsonString);
 
-		for (int i = 0; i < jsonarray.length(); i++) {
-			documents.add(parseDocument(jsonarray.getString(i)));
-		}
-		
-		return documents;
-	}
+        List<Document> documents = new ArrayList<Document>();
+
+        JSONArray jsonarray = new JSONArray(jsonString);
+
+        for (int i = 0; i < jsonarray.length(); i++) {
+            documents.add(parseDocument(jsonarray.getString(i)));
+        }
+
+        return documents;
+    }
+
+    /**
+     *  Creating a list of UserRole objects from a json string
+     *
+     * @param jsonString the json string
+     * @return the list of UserRole objects
+     * @throws JSONException
+     */
+    public static List<UserRole> parseUserRoleList(String jsonString) throws JSONException {
+
+        List<UserRole> userRoles = new ArrayList<UserRole>();
+
+        JSONArray jsonarray = new JSONArray(jsonString);
+
+        for (int i = 0; i < jsonarray.length(); i++) {
+            userRoles.add(parseUserRole(jsonarray.getString(i)));
+        }
+
+        return userRoles;
+    }
+
+    /**
+     *  Creating a list of Group objects from a json string
+     *
+     * @param jsonString the json string
+     * @return the list of Group objects
+     * @throws JSONException
+     */
+    public static List<Group> parseGroupList(String jsonString) throws JSONException {
+
+        List<Group> groups = new ArrayList<Group>();
+
+        JSONArray jsonarray = new JSONArray(jsonString);
+
+        for (int i = 0; i < jsonarray.length(); i++) {
+            groups.add(parseGroup(jsonarray.getString(i)));
+        }
+
+        return groups;
+    }
 	
 	/**
      * Helper method for getting jeson string from an InputStream object

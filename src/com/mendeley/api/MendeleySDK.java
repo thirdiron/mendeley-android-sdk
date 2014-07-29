@@ -29,17 +29,22 @@ import com.mendeley.api.callbacks.folder.GetFoldersCallback;
 import com.mendeley.api.callbacks.folder.PatchFolderCallback;
 import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
 import com.mendeley.api.callbacks.folder.PostFolderCallback;
+import com.mendeley.api.callbacks.group.GetGroupCallback;
+import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
+import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.DocumentNetworkProvider;
 import com.mendeley.api.network.FileNetworkProvider;
 import com.mendeley.api.network.FolderNetworkProvider;
+import com.mendeley.api.network.GroupNetworkProvider;
 import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.ProfileNetworkProvider;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
+import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 
 import java.io.InputStream;
@@ -71,6 +76,7 @@ public class MendeleySDK {
     private FileNetworkProvider fileNetworkProvider;
     private ProfileNetworkProvider profileNetworkProvider;
     private FolderNetworkProvider folderNetworkProvider;
+    private GroupNetworkProvider groupNetworkProvider;
 	
 	private MendeleySignInInterface mendeleySignInInterface;
 
@@ -489,13 +495,78 @@ public class MendeleySDK {
      * @param next returned from a previous getFolders() call.
      */
     public RequestHandle getFolders(Page next, GetFoldersCallback callback) {
-        if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFolderCallback.class },
+        if (checkNetworkCall(new Class[] { Page.class, GetFolderCallback.class },
                              new Object[] { next, callback })) {
             return folderNetworkProvider.doGetFolders(next, callback);
         } else {
             return NullRequest.get();
         }
     }
+
+    /**
+     * Return metadata for all the user's groups.
+     */
+    public RequestHandle getGroups(GroupRequestParameters parameters, GetGroupsCallback callback) {
+        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, GetGroupsCallback.class },
+                new Object[] { parameters, callback })) {
+            return groupNetworkProvider.doGetGroups(parameters, callback);
+        } else {
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Returns the next page of group metadata entries.
+     *
+     * @param next returned from a previous getGroups() call.
+     */
+    public RequestHandle getGroups(Page next, GetGroupsCallback callback) {
+        if (checkNetworkCall(new Class[] { Page.class, GetGroupsCallback.class },
+                new Object[] { next, callback })) {
+            return groupNetworkProvider.doGetGroups(next, callback);
+        } else {
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Returns metadata for a single group, specified by ID.
+     *
+     * @param groupId ID of the group to retrieve metadata for.
+     */
+    public void getGroup(String groupId, GetGroupCallback callback) {
+        if (checkNetworkCall(new Class[] { String.class, GetGroupCallback.class },
+                new Object[] { groupId, callback })) {
+            groupNetworkProvider.doGetGroup(groupId, callback);
+        }
+    }
+
+    /**
+     * Return a list of members user roles of a particular group.
+     *
+     * @param groupId ID of the group to inspect.
+     */
+    public void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback) {
+        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, String.class, GetGroupMembersCallback.class },
+                new Object[] { parameters, groupId, callback })) {
+            groupNetworkProvider.doGetGroupMembers(parameters, groupId, callback);
+        }
+    }
+
+    /**
+     * Returns the next page of members user roles of a group.
+     *
+     * @param next returned by a previous call to getGroupMembers().
+     * @param groupId provides an ID to return in the callback (the value is not actually
+     *                 checked by this call).
+     */
+    public void getFolderDocumentIds(Page next, String groupId, GetGroupMembersCallback callback) {
+        if (checkNetworkCall(new Class[] { String.class, String.class, GetGroupMembersCallback.class },
+                new Object[] { next, groupId, callback })) {
+            groupNetworkProvider.doGetGroupMembers(next, groupId, callback);
+        }
+    }
+
 
     /**
 	 * Returns metadata for a single folder, specified by ID.
@@ -629,6 +700,7 @@ public class MendeleySDK {
         fileNetworkProvider = new FileNetworkProvider();
 		profileNetworkProvider = new ProfileNetworkProvider();
 		folderNetworkProvider = new FolderNetworkProvider();
+        groupNetworkProvider = new GroupNetworkProvider();
 	} 
 		
     /**
