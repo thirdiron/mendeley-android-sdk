@@ -291,7 +291,7 @@ public class JsonParser {
                      userRoleObject.keys(); keysIter.hasNext();) {
             String key = keysIter.next();
             switch (key) {
-                case "profile_id ":
+                case "profile_id":
                     mendeleyUserRole.setProfileId(userRoleObject.getString(key));
                     break;
                 case "joined":
