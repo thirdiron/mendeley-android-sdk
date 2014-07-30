@@ -750,10 +750,9 @@ public class MendeleySDK {
 	}
 
 	/**
-	 * Inner class that holds details of the method and arguments to be called once the client has been authenticated.
+	 * Class that holds details of the method and arguments to be called once the client has been authenticated.
 	 */
 	protected class MethodtoInvoke {
-		
 		String methodName;
 		@SuppressWarnings("rawtypes")
 		Class[] argumentTypes;
