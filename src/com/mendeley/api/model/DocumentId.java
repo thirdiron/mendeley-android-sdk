@@ -26,4 +26,13 @@ public class DocumentId {
             return new DocumentId(id);
         }
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof DocumentId) {
+            DocumentId other = (DocumentId) object;
+            return this.id.equals(other.id);
+        }
+        return false;
+    }
 }
