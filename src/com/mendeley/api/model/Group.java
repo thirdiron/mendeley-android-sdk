@@ -10,7 +10,7 @@ public class Group {
 
     public final String id;
     public final String created;
-    public final String owingProfileId;
+    public final String owningProfileId;
     public final String link;
     public final String role;
     public final String accessLevel;
@@ -24,7 +24,7 @@ public class Group {
     public Group(
             String id,
             String created,
-            String owingProfileId,
+            String owningProfileId,
             String link,
             String role,
             String accessLevel,
@@ -36,7 +36,7 @@ public class Group {
             Photo photo) {
         this.id = id;
         this.created = created;
-        this.owingProfileId = owingProfileId;
+        this.owningProfileId = owningProfileId;
         this.link = link;
         this.role = role;
         this.accessLevel = accessLevel;
@@ -51,7 +51,7 @@ public class Group {
     public static class Builder {
             private String id;
             private String created;
-            private String owingProfileId;
+            private String owningProfileId;
             private String link;
             private String role;
             private String accessLevel;
@@ -67,7 +67,7 @@ public class Group {
         public Builder(Group from) {
             this.id = from.id;
             this.created = from.created;
-            this.owingProfileId = from.owingProfileId;
+            this.owningProfileId = from.owningProfileId;
             this.link = from.link;
             this.role = from.role;
             this.accessLevel = from.accessLevel;
@@ -89,8 +89,8 @@ public class Group {
             return this;
         }
 
-        public Builder setOwingProfileId(String owingProfileId) {
-            this.owingProfileId = owingProfileId;
+        public Builder setOwningProfileId(String owingProfileId) {
+            this.owningProfileId = owingProfileId;
             return this;
         }
 
@@ -143,7 +143,7 @@ public class Group {
             return new Group(
                     id,
                     created,
-                    owingProfileId,
+                    owningProfileId,
                     link,
                     role,
                     accessLevel,

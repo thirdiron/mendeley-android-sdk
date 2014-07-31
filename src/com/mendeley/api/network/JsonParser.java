@@ -515,8 +515,8 @@ public class JsonParser {
                     mendeleyGroup.setCreated(groupObject.getString(key));
                     break;
                 case "owning_profile_id":
-                    mendeleyGroup.setOwingProfileId(groupObject.getString(key));
-                    break;
+                    mendeleyGroup.setOwningProfileId(groupObject.getString(key));
+                break;
                 case "link":
                     mendeleyGroup.setLink(groupObject.getString(key));
                     break;
