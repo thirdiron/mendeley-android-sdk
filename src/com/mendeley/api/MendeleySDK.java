@@ -33,6 +33,7 @@ import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
+import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.DocumentNetworkProvider;
@@ -41,6 +42,7 @@ import com.mendeley.api.network.FolderNetworkProvider;
 import com.mendeley.api.network.GroupNetworkProvider;
 import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.ProfileNetworkProvider;
+import com.mendeley.api.network.UtilsNetworkProvider;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -77,6 +79,7 @@ public class MendeleySDK {
     private ProfileNetworkProvider profileNetworkProvider;
     private FolderNetworkProvider folderNetworkProvider;
     private GroupNetworkProvider groupNetworkProvider;
+    private UtilsNetworkProvider utilsNetworkProvider;
 	
 	private MendeleySignInInterface mendeleySignInInterface;
 
@@ -171,8 +174,8 @@ public class MendeleySDK {
     private AuthenticationInterface createAuthenticationInterface() {
         return new AuthenticationInterface() {
             @Override
-            public void onAuthenticated() {
-                if (mendeleySignInInterface != null) {
+            public void onAuthenticated(boolean manualSignIn) {
+                if (mendeleySignInInterface != null && manualSignIn) {
                     mendeleySignInInterface.onSignedIn();
                 }
                 invokeMethod();
@@ -674,6 +677,14 @@ public class MendeleySDK {
 			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId, callback);
 		}
 	}
+
+    public void getImage(String url, GetImageCallback callback) {
+        if (checkNetworkCall(
+                new Class[] { String.class, GetImageCallback.class },
+                new Object[] { url, callback })) {
+            utilsNetworkProvider.doGetImage(url, callback);
+        }
+    }
 	
 	/**
 	 * public method to call clearCredentials method on the protected AuthenticationManager
@@ -701,6 +712,7 @@ public class MendeleySDK {
 		profileNetworkProvider = new ProfileNetworkProvider();
 		folderNetworkProvider = new FolderNetworkProvider();
         groupNetworkProvider = new GroupNetworkProvider();
+        utilsNetworkProvider = new UtilsNetworkProvider();
 	} 
 		
     /**

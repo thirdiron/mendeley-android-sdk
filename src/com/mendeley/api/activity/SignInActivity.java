@@ -76,7 +76,7 @@ public class SignInActivity  extends Activity implements OnClickListener {
 	    				code = bundle.getString("authorization_code");
 	    			}
 	    			if (code != null) {
-		    			AuthenticationManager.getInstance().authenticated();
+		    			AuthenticationManager.getInstance().authenticated(true);
 	    			} else {
 	    				AuthenticationManager.getInstance().failedToAuthenticate();
 	    			}

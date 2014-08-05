@@ -1,23 +1,5 @@
 package com.mendeley.api.auth;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -31,8 +13,25 @@ import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NetworkProvider;
 import com.mendeley.api.util.Utils;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 
 /**
  * This class is responsible for authenticating the user, 
@@ -288,7 +287,7 @@ public class AuthenticationManager implements Serializable {
 			} else {
 				createRefreshHandler(false);
 				if (notify) {
-					authInterface.onAuthenticated();
+					authInterface.onAuthenticated(false);
 				}
 			}
 		}
@@ -326,7 +325,7 @@ public class AuthenticationManager implements Serializable {
             if (result == null) {
                 failedToAuthenticate();
             } else {
-                authenticated();
+                authenticated(false);
             }
         }
     }
@@ -374,8 +373,8 @@ public class AuthenticationManager implements Serializable {
         return response;
     }
 
-    public void authenticated() {
-		authInterface.onAuthenticated();
+    public void authenticated(boolean manualSignIn) {
+		authInterface.onAuthenticated(manualSignIn);
 		createRefreshHandler(false);
 	}
     

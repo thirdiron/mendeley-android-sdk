@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 
@@ -174,6 +175,17 @@ public class NetworkUtils {
         HttpsURLConnection con = null;
         URL callUrl = new URL(url);
         con = (HttpsURLConnection) callUrl.openConnection();
+        con.setReadTimeout(3000);
+        con.setConnectTimeout(3000);
+        con.setRequestMethod(method);
+
+        return con;
+    }
+
+    static HttpURLConnection getHttpDownloadConnection(String url, String method) throws IOException {
+        HttpURLConnection con = null;
+        URL callUrl = new URL(url);
+        con = (HttpURLConnection) callUrl.openConnection();
         con.setReadTimeout(3000);
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);

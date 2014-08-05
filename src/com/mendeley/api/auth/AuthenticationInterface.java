@@ -7,7 +7,7 @@ package com.mendeley.api.auth;
  */
 public interface AuthenticationInterface {
 
-	public void onAuthenticated();
+	public void onAuthenticated(boolean manualSignIn);
 	
 	public void onAuthenticationFail();
 

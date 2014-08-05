@@ -21,7 +21,7 @@ public class Group {
     public final ArrayList<String> disciplines;
     public final Photo photo;
 
-    public Group(
+    private Group(
             String id,
             String created,
             String owningProfileId,

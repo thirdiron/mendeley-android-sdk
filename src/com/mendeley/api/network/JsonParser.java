@@ -374,12 +374,9 @@ public class JsonParser {
 					break;
 				case "photo":
 					JSONObject photoObject = profileObject.getJSONObject(key);
-					Photo photo = new Photo();
-					if (photoObject.has("standard")) {
-						photo.standard = photoObject.getString("standard");
-					}
+					Photo photo = null;
 					if (photoObject.has("square")) {
-						photo.square = photoObject.getString("square");
+                        photo = new Photo(photoObject.getString("square"));
 					}
 					
 					mendeleyProfile.setPhoto(photo);
@@ -553,15 +550,9 @@ public class JsonParser {
                     break;
                 case "photo":
                     JSONObject photoObject = groupObject.getJSONObject(key);
-                    Photo photo = new Photo();
-                    if (photoObject.has("standard")) {
-                        photo.standard = photoObject.getString("standard");
-                    }
+                    Photo photo = null;
                     if (photoObject.has("square")) {
-                        photo.square = photoObject.getString("square");
-                    }
-                    if (photoObject.has("original")) {
-                        photo.original = photoObject.getString("original");
+                        photo = new Photo(photoObject.getString("square"));
                     }
 
                     mendeleyGroup.setPhoto(photo);
