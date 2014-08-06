@@ -325,7 +325,7 @@ public class AuthenticationManager implements Serializable {
             if (result == null) {
                 failedToAuthenticate();
             } else {
-                authenticated(false);
+                authenticated(true);
             }
         }
     }
