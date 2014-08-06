@@ -26,7 +26,6 @@ import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
 import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
-
 /**
  * NetworkProvider class for Group API calls
  */
@@ -70,7 +69,7 @@ public class GroupNetworkProvider extends NetworkProvider{
      * @param groupId the group id to get
      */
     public void doGetGroup(String groupId, GetGroupCallback callback) {
-        String[] paramsArray = new String[]{getGetGroupUrl(groupId)};
+        String[] paramsArray = new String[] { getGetGroupUrl(groupId) };
         new GetGroupTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
@@ -80,8 +79,8 @@ public class GroupNetworkProvider extends NetworkProvider{
      * @param groupId the group id
      */
     public void doGetGroupMembers(GroupRequestParameters params, String groupId, GetGroupMembersCallback callback) {
-        String[] paramsArray = new String[]{getGetGroupsUrl(params, getGetGroupMembersUrl(groupId)), groupId};
-        new GetGroupMembersTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        String[] paramsArray = new String[] { getGetGroupsUrl(params, getGetGroupMembersUrl(groupId)) };
+        new GetGroupMembersTask(callback, groupId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
     /**
@@ -91,8 +90,8 @@ public class GroupNetworkProvider extends NetworkProvider{
      */
     public void doGetGroupMembers(Page next, String groupId, GetGroupMembersCallback callback) {
         if (Page.isValidPage(next)) {
-            String[] paramsArray = new String[]{next.link, groupId};
-            new GetGroupMembersTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            String[] paramsArray = new String[] { next.link };
+            new GetGroupMembersTask(callback, groupId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         } else {
             callback.onGroupMembersNotReceived(new NoMorePagesException());
         }
@@ -215,53 +214,25 @@ public class GroupNetworkProvider extends NetworkProvider{
         }
     }
 
-    private class GetGroupMembersTask extends NetworkTask {
+    private class GetGroupMembersTask extends GetNetworkTask {
         private final GetGroupMembersCallback callback;
 
-        List<UserRole> userRoles;
-        String groupId;
+        private List<UserRole> userRoles;
+        private final String groupId;
 
-        private GetGroupMembersTask(GetGroupMembersCallback callback) {
+        private GetGroupMembersTask(GetGroupMembersCallback callback, String groupId) {
             this.callback = callback;
+            this.groupId = groupId;
         }
 
         @Override
-        protected int getExpectedResponse() {
-            return 200;
+        protected void processJsonString(String jsonString) throws JSONException {
+            userRoles = JsonParser.parseUserRoleList(jsonString);
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-            if (params.length > 1) {
-                groupId = params[1];
-            }
-            try {
-                con = getConnection(url, "GET");
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-membership.1+json");
-                con.connect();
-
-                getResponseHeaders();
-
-                final int responseCode = con.getResponseCode();
-                if (responseCode != getExpectedResponse()) {
-                    return new HttpResponseException(responseCode, getErrorMessage(con));
-                } else {
-
-                    is = con.getInputStream();
-                    String jsonString = getJsonString(is);
-
-                    userRoles = JsonParser.parseUserRoleList(jsonString);
-
-                    return null;
-                }
-
-            }	catch (IOException | JSONException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-membership.1+json";
         }
 
         @Override
@@ -274,5 +245,4 @@ public class GroupNetworkProvider extends NetworkProvider{
             callback.onGroupMembersNotReceived(exception);
         }
     }
-
 }
