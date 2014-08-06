@@ -1,16 +1,15 @@
 package com.mendeley.api.exceptions;
 
 /**
- * Exception class that will be added to MendeleyResponse object that is sent back to the application
- * when the response code from the server is different than the expected one.
- *
+ * General exception type that is thrown whenever server returns an error code.
+ * <p>
+ * This is typically due to invalid parameters, but could also be an internal error.
  */
 public class HttpResponseException extends MendeleyException {
+    public final int httpReturnCode;
 
-	private static final long serialVersionUID = 1L;
-
-	public HttpResponseException(String message) {
+	public HttpResponseException(int httpReturnCode, String message) {
 		super(message);
+        this.httpReturnCode = httpReturnCode;
 	}
-
 }

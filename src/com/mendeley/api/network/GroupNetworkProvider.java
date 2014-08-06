@@ -244,8 +244,9 @@ public class GroupNetworkProvider extends NetworkProvider{
 
                 getResponseHeaders();
 
-                if (con.getResponseCode() != getExpectedResponse()) {
-                    return new HttpResponseException(getErrorMessage(con));
+                final int responseCode = con.getResponseCode();
+                if (responseCode != getExpectedResponse()) {
+                    return new HttpResponseException(responseCode, getErrorMessage(con));
                 } else {
 
                     is = con.getInputStream();

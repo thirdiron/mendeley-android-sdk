@@ -1,16 +1,12 @@
 package com.mendeley.api.exceptions;
 
 /**
- * Exception class that will be added to MendeleyResponse object that is sent back to the application
- * when a response json string could not be parse to a model object.
- *
+ * Exception that is thrown when a response from the server could not be parsed to a model object.
+ * This generally indicates a mismatch between the version of the API understood by the server
+ * and by the SDK.
  */
 public class JsonParsingException extends MendeleyException {
-
-	private static final long serialVersionUID = 1L;
-
 	public JsonParsingException(String message) {
 		super(message);
 	}
-
 }

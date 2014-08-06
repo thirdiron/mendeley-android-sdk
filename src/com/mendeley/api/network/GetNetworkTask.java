@@ -31,8 +31,9 @@ public abstract class GetNetworkTask extends NetworkTask {
 
             getResponseHeaders();
 
-            if (con.getResponseCode() != getExpectedResponse()) {
-                return new HttpResponseException(getErrorMessage(con));
+            final int responseCode = con.getResponseCode();
+            if (responseCode != getExpectedResponse()) {
+                return new HttpResponseException(responseCode, getErrorMessage(con));
             } else if (!isCancelled()) {
                 is = con.getInputStream();
                 String jsonString = getJsonString(is);

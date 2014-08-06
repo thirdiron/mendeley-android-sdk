@@ -494,11 +494,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
 	        try {
 	        	httpPatch.setEntity(new StringEntity(jsonString));
-	        	HttpResponse response = httpclient.execute(httpPatch);				
-				int responseCode = response.getStatusLine().getStatusCode();	        	
-				
+	        	HttpResponse response = httpclient.execute(httpPatch);
+
+				final int responseCode = response.getStatusLine().getStatusCode();
 				if (responseCode != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(response));
+					return new HttpResponseException(responseCode, getErrorMessage(response));
 				} else {
 					documentId = id;
 					return null;
@@ -552,8 +552,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				
 				getResponseHeaders();
 
-				if (con.getResponseCode() != getExpectedResponse()) {
-					return new HttpResponseException(getErrorMessage(con));
+                final int responseCode = con.getResponseCode();
+                if (responseCode != getExpectedResponse()) {
+					return new HttpResponseException(responseCode, getErrorMessage(con));
 				} else {
 					documentId = id;
 					return null;
