@@ -5,9 +5,8 @@ package com.mendeley.api.params;
  *
  */
 public class MendeleyRequest {
-
 	/**
-	 * Available document views 
+	 * Available document views. The view specifies which fields are returned for document objects.
 	 */
 	public static enum View {
 		/**
@@ -37,7 +36,7 @@ public class MendeleyRequest {
 	}
 	
 	/**
-	 * Available order types;
+	 * Available sort orders.
 	 */
 	public static enum Order {
 		/**
@@ -63,7 +62,7 @@ public class MendeleyRequest {
 	}
 	
 	/**
-	 * Available sort types;
+	 * Available fields to sort lists by.
 	 */
 	public static enum Sort {
 		/**

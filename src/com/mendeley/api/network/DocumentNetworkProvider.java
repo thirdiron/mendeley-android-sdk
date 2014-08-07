@@ -284,10 +284,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				paramsString.append(firstParam?"?":"&").append("limit="+params.limit);
 				firstParam = false;
 			}
-			if (params.marker != null) {
-				paramsString.append(firstParam?"?":"&").append("marker="+params.marker);
-				firstParam = false;
-			}
 			if (params.reverse != null) {
 				paramsString.append(firstParam?"?":"&").append("reverse="+params.reverse);
 				firstParam = false;

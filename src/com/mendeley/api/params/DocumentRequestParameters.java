@@ -3,10 +3,8 @@ package com.mendeley.api.params;
 /**
  * This class represents parameters for document SDK requests
  * Uninitialised properties will be ignored.
- *
  */
 public class DocumentRequestParameters extends MendeleyRequest {
-	
 	/**
 	 * The required document view.
 	 * {@link #view}
@@ -34,11 +32,6 @@ public class DocumentRequestParameters extends MendeleyRequest {
 	public Integer limit;
 	
 	/**
-	 * A marker for the last key in the previous page.
-	 */
-	public String marker;
-	
-	/**
 	 * A flag to indicate that the scrolling direction has switched.
 	 */
 	public Boolean reverse;
@@ -54,7 +47,4 @@ public class DocumentRequestParameters extends MendeleyRequest {
 	 * {@link #sort}
 	 */
 	public Sort sort;
-	
-	public DocumentRequestParameters() {}
-
 }

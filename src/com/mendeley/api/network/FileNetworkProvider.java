@@ -187,10 +187,6 @@ public class FileNetworkProvider extends NetworkProvider {
                 url.append(firstParam?"?":"&").append("limit="+params.limit);
                 firstParam = false;
             }
-            if (params.marker != null) {
-                url.append(firstParam?"?":"&").append("marker="+params.marker);
-                firstParam = false;
-            }
             if (params.catalogId != null) {
                 url.append(firstParam?"?":"&").append("catalog_id="+params.catalogId);
                 firstParam = false;

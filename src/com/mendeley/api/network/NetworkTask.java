@@ -20,7 +20,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException>
             implements RequestHandle {
-    Page next = new Page();
+    Page next;
     String location;
     Date serverDate;
 
@@ -65,7 +65,7 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
                                 linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
                             } catch (IndexOutOfBoundsException e) {}
                             if (link.indexOf("next") != -1) {
-                                next.link = linkString;
+                                next = new Page(linkString);
                             }
                             // "last" and "prev" links are not used
                         }

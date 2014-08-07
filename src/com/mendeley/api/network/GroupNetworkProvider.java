@@ -120,9 +120,6 @@ public class GroupNetworkProvider extends NetworkProvider{
                 url.append(firstParam?"?":"&").append("limit="+params.limit);
                 firstParam = false;
             }
-            if (params.marker != null) {
-                url.append(firstParam?"?":"&").append("marker="+params.marker);
-            }
         }
         return url.toString();
     }
