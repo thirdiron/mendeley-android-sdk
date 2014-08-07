@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 /**
  * Model class representing document json object.
  *
  */
-public class Document implements Parcelable {
+public class Document {
 		
 	public final String lastModified;
 	public final String groupId;
@@ -44,6 +41,11 @@ public class Document implements Parcelable {
 	public final String series;
 	public final String chapter;
 	public final ArrayList<Person> editors;
+    public final ArrayList<String> tags;
+    public final String accessed;
+    public final Boolean fileAttached;
+    public final ArrayList<String> keywords;
+    public final ArrayList<String> websites;
 	
 	final static String ET_EL = "et. al";
 		
@@ -78,7 +80,12 @@ public class Document implements Parcelable {
 			String institution,
 			String series,
 			String chapter,
-			ArrayList<Person> editors) {
+			ArrayList<Person> editors,
+            ArrayList<String> tags,
+            String accessed,
+            Boolean fileAttached,
+            ArrayList<String> keywords,
+            ArrayList<String> websites) {
 		this.lastModified = lastModified;
 		this.groupId = groupId;
 		this.profileId = profileId;
@@ -110,6 +117,11 @@ public class Document implements Parcelable {
 		this.series = series;
 		this.chapter = chapter;
 		this.editors = editors==null?new ArrayList<Person>():editors;
+        this.tags = tags==null?new ArrayList<String>():tags;
+        this.accessed = accessed;
+        this.fileAttached = fileAttached;
+        this.keywords = keywords==null?new ArrayList<String>():keywords;
+        this.websites = websites==null?new ArrayList<String>():websites;
 	}
 	
 	public static class Builder {
@@ -145,6 +157,11 @@ public class Document implements Parcelable {
 		private String series;
 		private String chapter;
 		private ArrayList<Person> editors;
+        private ArrayList<String> tags;
+        private String accessed;
+        private Boolean fileAttached;
+        private ArrayList<String> keywords;
+        private ArrayList<String> websites;
 		
 		public Builder(String title, String type) {
             this.title = title;
@@ -183,6 +200,11 @@ public class Document implements Parcelable {
 			this.series = from.series;
 			this.chapter = from.chapter;
 			this.editors =  from.editors==null?new ArrayList<Person>():from.editors;
+            this.tags = from.tags==null?new ArrayList<String>():from.tags;
+            this.accessed = from.accessed;
+            this.fileAttached = from.fileAttached;
+            this.keywords = from.keywords==null?new ArrayList<String>():from.keywords;
+            this.websites = from.websites==null?new ArrayList<String>():from.websites;
 		}
 		
 		public Builder setLastModified(String lastModified) {
@@ -326,11 +348,35 @@ public class Document implements Parcelable {
 		}
 
 		public Builder setEditors(ArrayList<Person> editors) {
-			this.editors = editors;
-			return this;
-		}
+            this.editors = editors;
+            return this;
+        }
 
-		
+        public Builder setTags(ArrayList<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public Builder setAccessed(String accessed) {
+            this.accessed = accessed;
+            return this;
+        }
+
+        public Builder setFileAttached(Boolean fileAttached) {
+            this.fileAttached = fileAttached;
+            return this;
+        }
+
+        public Builder setKeywords(ArrayList<String> keywords) {
+            this.keywords = keywords;
+            return this;
+        }
+
+        public Builder setWebsites(ArrayList<String> websites) {
+            this.websites = websites;
+            return this;
+        }
+
 		public Document build() {
 			return new Document(
 					lastModified,
@@ -363,7 +409,12 @@ public class Document implements Parcelable {
 					institution,
 					series,
 					chapter,
-					editors);
+					editors,
+                    tags,
+                    accessed,
+                    fileAttached,
+                    keywords,
+                    websites);
 		}
 	}
 	
@@ -444,131 +495,4 @@ public class Document implements Parcelable {
 				", editors: " + editors.size() +
 				", identifiers: " + identifiers.size();
 	}
-	
-	public static final Parcelable.Creator<Document> CREATOR = new Parcelable.Creator<Document>() {
-	    public Document createFromParcel(Parcel in) {
-	    	return new Document(in);
-	    }
-
-	    public Document[] newArray(int size) {
-	    	return new Document[size];
-	    }
-	};
-	
-	@Override
-	public int describeContents() {
-		return 0;
-	} 
-	  
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(lastModified);
-	    dest.writeString(groupId);
-	    dest.writeString(profileId);
-	    dest.writeByte((byte) (read == null ? -1 : (read ? 1 : 0))); 
-	    dest.writeByte((byte) (starred == null ? -1 : (starred ? 1 : 0))); 
-	    dest.writeByte((byte) (authored == null ? -1 : (authored ? 1 : 0))); 
-	    dest.writeByte((byte) (confirmed == null ? -1 : (confirmed ? 1 : 0))); 
-	    dest.writeByte((byte) (hidden == null ? -1 : (hidden ? 1 : 0))); 
-	    dest.writeString(id);
-	    dest.writeString(type);
-	    dest.writeInt(month == null ? -1 : month);
-	    dest.writeInt(year == null ? -1 : year);
-	    dest.writeInt(day == null ? -1 : day);
-	    dest.writeString(source);
-	    dest.writeString(title);
-	    dest.writeString(revision);
-	    
-	    dest.writeInt(identifiers.size());
-	    for(String key : identifiers.keySet()){
-	    	dest.writeString(key);
-	    	dest.writeString(identifiers.get(key));
-	    }
-	    
-		dest.writeString(abstractString);
-		
-		dest.writeInt(authors.size());
-	    for(Person person : authors){
-	    	dest.writeString(person.firstName);
-	    	dest.writeString(person.lastName);
-	    }
-	    
-		dest.writeString(created);
-		dest.writeString(pages);
-		dest.writeString(volume);
-		dest.writeString(issue);
-		dest.writeString(website);
-		dest.writeString(publisher);
-		dest.writeString(city);
-		dest.writeString(edition);
-		dest.writeString(institution);
-		dest.writeString(series);
-		dest.writeString(chapter);
-
-		dest.writeInt(editors.size());
-	    for(Person person : editors){
-	    	dest.writeString(person.firstName);
-	    	dest.writeString(person.lastName);
-	    }
-	}
-	
-	  
-	private Document(Parcel in) {
-		lastModified = in.readString();
-		groupId = in.readString();
-		profileId = in.readString();
-		read = in.readByte() != 0; 
-		starred =  (in.readByte() == -1 ? null : (in.readByte() != 0));
-		authored = (in.readByte() == -1 ? null : (in.readByte() != 0));
-		confirmed = (in.readByte() == -1 ? null : (in.readByte() != 0));
-		hidden = (in.readByte() == -1 ? null : (in.readByte() != 0));
-		id = in.readString();
-		type = in.readString();
-		month = (in.readInt() == -1 ?  null : in.readInt());
-		year = (in.readInt() == -1 ?  null : in.readInt());
-		day = (in.readInt() == -1 ?  null : in.readInt());
-		source = in.readString();
-		title = in.readString();
-		revision = in.readString();
-		
-		identifiers = new HashMap<String, String>();
-		int size = in.readInt();
-		for(int i = 0; i < size; i++) {
-		    String key = in.readString();
-		    String value = in.readString();
-		    identifiers.put(key,value);
-	    }
-		
-		abstractString = in.readString();
-		
-		authors = new ArrayList<Person>();
-		size = in.readInt();
-		for(int i = 0; i < size; i++) {
-		    String firstName = in.readString();
-		    String lastName = in.readString();
-		    Person person = new Person(firstName, lastName);
-		    authors.add(person);
-	    }
-		
-		created = in.readString();
-		pages = in.readString();
-		volume = in.readString();
-		issue = in.readString();
-		website = in.readString();
-		city = in.readString();
-		publisher = in.readString();
-		edition = in.readString();
-		institution = in.readString();
-		series = in.readString();
-		chapter = in.readString();
-		
-		editors = new ArrayList<Person>();
-		size = in.readInt();
-		for(int i = 0; i < size; i++) {
-		    String firstName = in.readString();
-		    String lastName = in.readString();
-		    Person person = new Person(firstName, lastName);
-		    editors.add(person);
-	    }
-	} 
 }

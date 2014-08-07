@@ -701,6 +701,41 @@ public class JsonParser {
 
 					 mendeleyDocument.setIdentifiers(identifiersMap);
 					 break;
+                case "tags":
+                    JSONArray tags = documentObject.getJSONArray(key);
+                    ArrayList<String> tagsList = new ArrayList<String>();
+
+                    for (int i = 0; i < tags.length(); i++) {
+                        tagsList.add(tags.getString(i));
+                    }
+
+                    mendeleyDocument.setTags(tagsList);
+                    break;
+                case "accessed":
+                    mendeleyDocument.setAccessed(documentObject.getString(key));
+                    break;
+                case "file_attached":
+                    mendeleyDocument.setFileAttached(documentObject.getBoolean(key));
+                    break;
+                case "keywords":
+                    JSONArray keywords = documentObject.getJSONArray(key);
+                    ArrayList<String> keywordsList = new ArrayList<String>();
+
+                    for (int i = 0; i < keywords.length(); i++) {
+                        keywordsList.add(keywords.getString(i));
+                    }
+
+                    mendeleyDocument.setKeywords(keywordsList);
+                    break;
+                case "websites":
+                    JSONArray websites = documentObject.getJSONArray(key);
+                    ArrayList<String> websitesList = new ArrayList<String>();
+
+                    for (int i = 0; i < websites.length(); i++) {
+                        websitesList.add(websites.getString(i));
+                    }
+                    mendeleyDocument.setTags(websitesList);
+                    break;
 			}
 		}
 
