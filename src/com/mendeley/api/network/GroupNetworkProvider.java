@@ -40,7 +40,7 @@ public class GroupNetworkProvider extends NetworkProvider{
      * @param callback GetGroupsCallback callback object
      */
     public RequestHandle doGetGroups(GroupRequestParameters params, GetGroupsCallback callback) {
-        String[] paramsArray = new String[]{getGetGroupsUrl(params)};
+        String[] paramsArray = new String[] { getGetGroupsUrl(params) };
         GetGroupsTask getGroupsTask = new GetGroupsTask(callback);
         getGroupsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
         return getGroupsTask;
@@ -112,12 +112,12 @@ public class GroupNetworkProvider extends NetworkProvider{
     String getGetGroupsUrl(GroupRequestParameters params, String requestUrl) {
         StringBuilder url = new StringBuilder();
 
-        url.append(requestUrl==null?groupsUrl:requestUrl);
+        url.append(requestUrl == null ? groupsUrl : requestUrl);
 
         if (params != null) {
             boolean firstParam = true;
             if (params.limit != null) {
-                url.append(firstParam?"?":"&").append("limit="+params.limit);
+                url.append(firstParam ? "?" : "&").append("limit=" + params.limit);
                 firstParam = false;
             }
         }

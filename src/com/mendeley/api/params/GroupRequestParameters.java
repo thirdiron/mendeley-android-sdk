@@ -1,6 +1,6 @@
 package com.mendeley.api.params;
 
-public class GroupRequestParameters extends MendeleyRequest {
+public class GroupRequestParameters {
     /**
      * The maximum number of items on the page. If not supplied, the default is 20. The largest allowable value is 500.
      */

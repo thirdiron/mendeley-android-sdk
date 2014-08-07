@@ -4,7 +4,7 @@ package com.mendeley.api.params;
  * This class represents parameters for folder SDK requests
  * Uninitialised properties will be ignored.
  */
-public class FolderRequestParameters extends MendeleyRequest {
+public class FolderRequestParameters {
 	/**
 	 * Group ID. If not supplied, returns user folders.
 	 */

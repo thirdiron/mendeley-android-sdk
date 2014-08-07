@@ -20,6 +20,7 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
+import com.mendeley.api.params.View;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -58,7 +59,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
      */
     public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(params) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getDocumentsTask;
@@ -74,12 +75,9 @@ public class DocumentNetworkProvider extends NetworkProvider {
      *
      * @param params the document request parameters
      */
-    public RequestHandle doGetDeletedDocuments(DocumentRequestParameters params, GetDeletedDocumentsCallback callback) {
-        if (params.deletedSince == null) {
-            callback.onDeletedDocumentsNotReceived(new MendeleyException("deletedSince cannot be null"));
-        }
+    public RequestHandle doGetDeletedDocuments(String deletedSince, DocumentRequestParameters params, GetDeletedDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(params) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params, deletedSince) };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
             return getDocumentsTask;
@@ -125,14 +123,8 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
     }
 
-    /**
-     * Getting the appropriate url string and executes the GetDocumentTask.
-     *
-     * @param documentId the document id
-     * @param params the document request parameters
-     */
-    public void doGetDocument(String documentId, DocumentRequestParameters params, GetDocumentCallback callback) {
-        String[] paramsArray = new String[]{getGetDocumentUrl(documentId, params)};
+    public void doGetDocument(String documentId, View view, GetDocumentCallback callback) {
+        String[] paramsArray = new String[] { getGetDocumentUrl(documentId, view) };
         new GetDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
     }
 
@@ -227,21 +219,18 @@ public class DocumentNetworkProvider extends NetworkProvider {
     }
 
     /**
-     * Building the url for get document
+     * Builds the url for get document
      *
      * @param documentId the document id
-     * @param params the document request parameters
      * @return the url string
      */
-    String getGetDocumentUrl(String documentId, DocumentRequestParameters params) {
+    String getGetDocumentUrl(String documentId, View view) {
         StringBuilder url = new StringBuilder();
         url.append(documentsUrl);
         url.append("/").append(documentId);
 
-        if (params != null) {
-            if (params.view != null) {
-                url.append("?").append("view="+params.view);
-            }
+        if (view != null) {
+            url.append("?").append("view=" + view);
         }
 
         return url.toString();
@@ -254,7 +243,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 * @return the url string
 	 * @throws UnsupportedEncodingException 
 	 */
-	String getGetDocumentsUrl(DocumentRequestParameters params) throws UnsupportedEncodingException {
+	String getGetDocumentsUrl(DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
 		StringBuilder url = new StringBuilder();
 		url.append(documentsUrl);
 		StringBuilder paramsString = new StringBuilder();
@@ -273,13 +262,6 @@ public class DocumentNetworkProvider extends NetworkProvider {
 				paramsString.append(firstParam?"?":"&").append("modified_since="+URLEncoder.encode(params.modifiedSince, "ISO-8859-1"));
 				firstParam = false;
 			}
-			if (params.deletedSince != null) {
-				paramsString.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
-				firstParam = false;
-			} else if (params.view == null) {
-				paramsString.append(firstParam?"?":"&").append("view=all");
-				firstParam = false;
-            }
 			if (params.limit != null) {
 				paramsString.append(firstParam?"?":"&").append("limit="+params.limit);
 				firstParam = false;
@@ -295,12 +277,16 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			if (params.sort != null) {
 				paramsString.append(firstParam?"?":"&").append("sort="+params.sort);
 			}
+            if (deletedSince != null) {
+                paramsString.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(deletedSince, "ISO-8859-1"));
+                firstParam = false;
+            }
 		}
 		
 		url.append(paramsString.toString());
 		return url.toString();
 	}
-	
+
 	/**
 	 * Building the url for patch document
 	 * 

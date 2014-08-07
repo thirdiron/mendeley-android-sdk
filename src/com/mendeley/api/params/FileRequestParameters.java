@@ -4,7 +4,7 @@ package com.mendeley.api.params;
  * This class represents parameters for file SDK requests
  * Uninitialised properties will be ignored.
  */
-public class FileRequestParameters extends MendeleyRequest {
+public class FileRequestParameters {
 	/**
 	 * The document ID.
 	 */

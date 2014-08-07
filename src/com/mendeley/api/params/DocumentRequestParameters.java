@@ -1,10 +1,10 @@
 package com.mendeley.api.params;
 
 /**
- * This class represents parameters for document SDK requests
+ * Parameters for requests to retrieve documents.
  * Uninitialised properties will be ignored.
  */
-public class DocumentRequestParameters extends MendeleyRequest {
+public class DocumentRequestParameters {
 	/**
 	 * The required document view.
 	 * {@link #view}
@@ -20,11 +20,6 @@ public class DocumentRequestParameters extends MendeleyRequest {
 	 * Returns only documents modified since this timestamp. Should be supplied in ISO 8601 format.
 	 */
 	public String modifiedSince;
-	
-	/**
-	 * Returns only documents deleted since this timestamp. Should be supplied in ISO 8601 format.
-	 */
-	public String deletedSince;
 	
 	/**
 	 * The maximum number of items on the page. If not supplied, the default is 20. The largest allowable value is 500.

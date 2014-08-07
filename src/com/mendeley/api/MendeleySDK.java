@@ -64,6 +64,7 @@ import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
+import com.mendeley.api.params.View;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -233,7 +234,7 @@ public class MendeleySDK {
      */
     public RequestHandle getDocuments(Page next, GetDocumentsCallback callback) {
         if (checkNetworkCall(
-                new Class[] { DocumentRequestParameters.class, GetDocumentsCallback.class },
+                new Class[] { Page.class, GetDocumentsCallback.class },
                 new Object[] { next, callback })) {
             return documentNetworkProvider.doGetDocuments(next, callback);
         } else {
@@ -244,27 +245,28 @@ public class MendeleySDK {
     /**
      * Retrieve a single document, specified by ID.
      *
-     * @param documentId the document id to get
-     * @param parameters holds optional query parameters, will be ignored if null
+     * @param documentId the document id to get.
+     * @param view extended document view. If null, only core fields are returned.
      */
-    public void getDocument(String documentId, DocumentRequestParameters parameters, GetDocumentCallback callback) {
+    public void getDocument(String documentId, View view, GetDocumentCallback callback) {
         if (checkNetworkCall(
-                new Class[] { String.class, DocumentRequestParameters.class, GetDocumentCallback.class },
-                new Object[] { documentId, parameters, callback })) {
-            documentNetworkProvider.doGetDocument(documentId, parameters, callback);
+                new Class[] { String.class, View.class, GetDocumentCallback.class },
+                new Object[] { documentId, view, callback })) {
+            documentNetworkProvider.doGetDocument(documentId, view, callback);
         }
     }
 
     /**
      * Retrieve a list of deleted documents in the user's library.
      *
+     * @param deletedSince only return documents deleted since this timestamp. Should be supplied in ISO 8601 format.
      * @param parameters holds optional query parameters, will be ignored if null
      */
-    public RequestHandle getDeletedDocuments(DocumentRequestParameters parameters, GetDeletedDocumentsCallback callback) {
+    public RequestHandle getDeletedDocuments(String deletedSince, DocumentRequestParameters parameters, GetDeletedDocumentsCallback callback) {
         if (checkNetworkCall(
-                new Class[] { DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
-                new Object[] { parameters, callback })) {
-            return documentNetworkProvider.doGetDeletedDocuments(parameters, callback);
+                new Class[] { String.class, DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
+                new Object[] { deletedSince, parameters, callback })) {
+            return documentNetworkProvider.doGetDeletedDocuments(deletedSince, parameters, callback);
         } else {
             return NullRequest.get();
         }
@@ -523,56 +525,6 @@ public class MendeleySDK {
     }
 
     /**
-     * Return metadata for all the user's groups.
-     */
-    public RequestHandle getGroups(GroupRequestParameters parameters, GetGroupsCallback callback) {
-        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, GetGroupsCallback.class },
-                new Object[] { parameters, callback })) {
-            return groupNetworkProvider.doGetGroups(parameters, callback);
-        } else {
-            return NullRequest.get();
-        }
-    }
-
-    /**
-     * Returns the next page of group metadata entries.
-     *
-     * @param next returned from a previous getGroups() call.
-     */
-    public RequestHandle getGroups(Page next, GetGroupsCallback callback) {
-        if (checkNetworkCall(new Class[] { Page.class, GetGroupsCallback.class },
-                new Object[] { next, callback })) {
-            return groupNetworkProvider.doGetGroups(next, callback);
-        } else {
-            return NullRequest.get();
-        }
-    }
-
-    /**
-     * Returns metadata for a single group, specified by ID.
-     *
-     * @param groupId ID of the group to retrieve metadata for.
-     */
-    public void getGroup(String groupId, GetGroupCallback callback) {
-        if (checkNetworkCall(new Class[] { String.class, GetGroupCallback.class },
-                new Object[] { groupId, callback })) {
-            groupNetworkProvider.doGetGroup(groupId, callback);
-        }
-    }
-
-    /**
-     * Return a list of members user roles of a particular group.
-     *
-     * @param groupId ID of the group to inspect.
-     */
-    public void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback) {
-        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, String.class, GetGroupMembersCallback.class },
-                new Object[] { parameters, groupId, callback })) {
-            groupNetworkProvider.doGetGroupMembers(parameters, groupId, callback);
-        }
-    }
-
-    /**
      * Returns the next page of members user roles of a group.
      *
      * @param next returned by a previous call to getGroupMembers().
@@ -585,7 +537,6 @@ public class MendeleySDK {
             groupNetworkProvider.doGetGroupMembers(next, groupId, callback);
         }
     }
-
 
     /**
 	 * Returns metadata for a single folder, specified by ID.
@@ -701,8 +652,62 @@ public class MendeleySDK {
             utilsNetworkProvider.doGetImage(url, callback);
         }
     }
-	
-	/**
+
+    /* GROUPS */
+
+    /**
+     * Return metadata for all the user's groups.
+     */
+    public RequestHandle getGroups(GroupRequestParameters parameters, GetGroupsCallback callback) {
+        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, GetGroupsCallback.class },
+                new Object[] { parameters, callback })) {
+            return groupNetworkProvider.doGetGroups(parameters, callback);
+        } else {
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Returns the next page of group metadata entries.
+     *
+     * @param next returned from a previous getGroups() call.
+     */
+    public RequestHandle getGroups(Page next, GetGroupsCallback callback) {
+        if (checkNetworkCall(new Class[] { Page.class, GetGroupsCallback.class },
+                new Object[] { next, callback })) {
+            return groupNetworkProvider.doGetGroups(next, callback);
+        } else {
+            return NullRequest.get();
+        }
+    }
+
+    /**
+     * Returns metadata for a single group, specified by ID.
+     *
+     * @param groupId ID of the group to retrieve metadata for.
+     */
+    public void getGroup(String groupId, GetGroupCallback callback) {
+        if (checkNetworkCall(new Class[] { String.class, GetGroupCallback.class },
+                new Object[] { groupId, callback })) {
+            groupNetworkProvider.doGetGroup(groupId, callback);
+        }
+    }
+
+    /**
+     * Return a list of members user roles of a particular group.
+     *
+     * @param groupId ID of the group to inspect.
+     */
+    public void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback) {
+        if (checkNetworkCall(new Class[] { GroupRequestParameters.class, String.class, GetGroupMembersCallback.class },
+                new Object[] { parameters, groupId, callback })) {
+            groupNetworkProvider.doGetGroupMembers(parameters, groupId, callback);
+        }
+    }
+
+    /* MISC */
+
+    /**
 	 * public method to call clearCredentials method on the protected AuthenticationManager
 	 */
 	public void clearCredentials() {
