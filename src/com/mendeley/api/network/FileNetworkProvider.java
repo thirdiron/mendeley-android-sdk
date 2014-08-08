@@ -1,7 +1,6 @@
 package com.mendeley.api.network;
 
-import android.os.AsyncTask;
-
+import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.GetFileCallback;
@@ -46,8 +45,14 @@ public class FileNetworkProvider extends NetworkProvider {
 
 	private static String filesUrl = API_URL + "files";
 	private static final String TAG = FileNetworkProvider.class.getSimpleName();
-	
-	/**
+
+    private final Environment environment;
+
+    public FileNetworkProvider(Environment environment) {
+        this.environment = environment;
+    }
+
+    /**
 	 * Getting the appropriate url string and executes the GetFilesTask
 	 *
      * @param params the file request parameters
@@ -57,7 +62,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		try {
             String[] paramsArray = new String[] { getGetFilesUrl(params) };
 			GetFilesTask getFilesTask = new GetFilesTask(callback);
-			getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+			getFilesTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getFilesTask;
 		}
 		catch (UnsupportedEncodingException e) {
@@ -76,7 +81,7 @@ public class FileNetworkProvider extends NetworkProvider {
         if (Page.isValidPage(next)) {
         	String[] paramsArray = new String[] { next.link };
             GetFilesTask getFilesTask = new GetFilesTask(callback);
-            getFilesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            getFilesTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getFilesTask;
         } else {
             callback.onFilesNotReceived(new NoMorePagesException());
@@ -94,7 +99,7 @@ public class FileNetworkProvider extends NetworkProvider {
 		final GetFileTask fileTask = new GetFileTask(callback);
 		fileTaskMap.put(fileId, fileTask);
 		String[] params = new String[] { getGetFileUrl(fileId), folderPath, fileId, documentId };
-		fileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+		fileTask.executeOnExecutor(environment.getExecutor(), params);
 	}
 
     /**
@@ -116,7 +121,7 @@ public class FileNetworkProvider extends NetworkProvider {
             callback.onFileNotPosted(new MendeleyException("File " + filePath + " not found"));
             return;
         }
-        new PostFileTask(callback, inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new PostFileTask(callback, inputStream).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -128,7 +133,7 @@ public class FileNetworkProvider extends NetworkProvider {
      */
     public void doPostFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) {
         String[] paramsArray = new String[] { contentType, documentId, fileName };
-        new PostFileTask(callback, inputStream).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new PostFileTask(callback, inputStream).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -139,7 +144,7 @@ public class FileNetworkProvider extends NetworkProvider {
      */
     public void doDeleteFile(String fileId, DeleteFileCallback callback) {
 		String[] paramsArray = new String[]{ getDeleteFileUrl(fileId) };
-		new DeleteFileTask(callback, fileId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+		new DeleteFileTask(callback, fileId).executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 	
     /**
@@ -500,7 +505,4 @@ public class FileNetworkProvider extends NetworkProvider {
 			callback.onFileNotDeleted(exception);
 		}
 	}
-
-	// Testing
-	public FileNetworkProvider() {}
 }

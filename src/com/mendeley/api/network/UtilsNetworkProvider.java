@@ -1,8 +1,8 @@
 package com.mendeley.api.network;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 
@@ -10,13 +10,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-
 public class UtilsNetworkProvider extends NetworkProvider {
+
+    private final Environment environment;
+
+    public UtilsNetworkProvider(Environment environment) {
+        this.environment = environment;
+    }
 
     public void doGetImage(final String url, GetImageCallback callback) {
         final GetImageTask imageTask = new GetImageTask(callback);
         String[] params = new String[] {url};
-        imageTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+        imageTask.executeOnExecutor(environment.getExecutor(), params);
     }
 
     private class GetImageTask extends NetworkTask {

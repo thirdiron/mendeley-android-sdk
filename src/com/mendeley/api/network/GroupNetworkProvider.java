@@ -1,13 +1,10 @@
 package com.mendeley.api.network;
 
-import android.os.AsyncTask;
-
+import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
-import com.mendeley.api.exceptions.HttpResponseException;
-import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.UserCancelledException;
@@ -18,13 +15,10 @@ import com.mendeley.api.params.Page;
 
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.mendeley.api.network.NetworkUtils.API_URL;
-import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
-import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * NetworkProvider class for Group API calls
@@ -32,6 +26,12 @@ import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 public class GroupNetworkProvider extends NetworkProvider{
     private static String groupsUrl = API_URL + "groups";
+
+    private final Environment environment;
+
+    public GroupNetworkProvider(Environment environment) {
+       this.environment = environment;
+    }
 
     /**
      * Getting the appropriate url string and executes the GetGroupsTask
@@ -42,7 +42,7 @@ public class GroupNetworkProvider extends NetworkProvider{
     public RequestHandle doGetGroups(GroupRequestParameters params, GetGroupsCallback callback) {
         String[] paramsArray = new String[] { getGetGroupsUrl(params) };
         GetGroupsTask getGroupsTask = new GetGroupsTask(callback);
-        getGroupsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        getGroupsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
         return getGroupsTask;
     }
 
@@ -55,7 +55,7 @@ public class GroupNetworkProvider extends NetworkProvider{
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
             GetGroupsTask getGroupsTask = new GetGroupsTask(callback);
-            new GetGroupsTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            new GetGroupsTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
             return getGroupsTask;
         } else {
             callback.onGroupsNotReceived(new NoMorePagesException());
@@ -70,7 +70,7 @@ public class GroupNetworkProvider extends NetworkProvider{
      */
     public void doGetGroup(String groupId, GetGroupCallback callback) {
         String[] paramsArray = new String[] { getGetGroupUrl(groupId) };
-        new GetGroupTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new GetGroupTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -80,7 +80,7 @@ public class GroupNetworkProvider extends NetworkProvider{
      */
     public void doGetGroupMembers(GroupRequestParameters params, String groupId, GetGroupMembersCallback callback) {
         String[] paramsArray = new String[] { getGetGroupsUrl(params, getGetGroupMembersUrl(groupId)) };
-        new GetGroupMembersTask(callback, groupId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new GetGroupMembersTask(callback, groupId).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -91,7 +91,7 @@ public class GroupNetworkProvider extends NetworkProvider{
     public void doGetGroupMembers(Page next, String groupId, GetGroupMembersCallback callback) {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[] { next.link };
-            new GetGroupMembersTask(callback, groupId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            new GetGroupMembersTask(callback, groupId).executeOnExecutor(environment.getExecutor(), paramsArray);
         } else {
             callback.onGroupMembersNotReceived(new NoMorePagesException());
         }

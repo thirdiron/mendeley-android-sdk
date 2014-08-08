@@ -1,7 +1,6 @@
 package com.mendeley.api.network;
 
-import android.os.AsyncTask;
-
+import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
@@ -51,7 +50,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	private static String documentTypesUrl = API_URL + "document_types";
 	
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
-	
+
+    private final Environment environment;
+
+    public DocumentNetworkProvider(Environment environment) {
+        this.environment = environment;
+    }
+
     /**
      * Getting the appropriate url string and executes the GetDocumentsTask.
      *
@@ -61,7 +66,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
         try {
             String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
-            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         }
         catch (UnsupportedEncodingException e) {
@@ -79,7 +84,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
         try {
             String[] paramsArray = new String[] { getGetDocumentsUrl(params, deletedSince) };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
-            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         }
         catch (UnsupportedEncodingException e) {
@@ -97,7 +102,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
-            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         } else {
             callback.onDocumentsNotReceived(new NoMorePagesException());
@@ -115,7 +120,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
-            getDocumentsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         } else {
             callback.onDeletedDocumentsNotReceived(new NoMorePagesException());
@@ -125,7 +130,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
     public void doGetDocument(String documentId, View view, GetDocumentCallback callback) {
         String[] paramsArray = new String[] { getGetDocumentUrl(documentId, view) };
-        new GetDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new GetDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
 	/**
@@ -137,7 +142,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		JsonParser parser = new JsonParser();
 		try {
 			String[] paramsArray = new String[]{documentsUrl, parser.jsonFromDocument(document)};			
-			new PostDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+			new PostDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 		} catch (JSONException e) {
             callback.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
         }
@@ -160,7 +165,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
         JsonParser parser = new JsonParser();
         try {
             String[] paramsArray = new String[]{getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document)};
-            new PatchDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+            new PatchDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
         } catch (JSONException e) {
             callback.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
         }
@@ -173,7 +178,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	 */
     public void doPostTrashDocument(String documentId, TrashDocumentCallback callback) {
 		String[] paramsArray = new String[]{getTrashDocumentUrl(documentId), documentId};			
-		new PostTrashDocumentTask(callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+		new PostTrashDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 
     /**
@@ -183,7 +188,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
      */
     public void doDeleteDocument(String documentId, DeleteDocumentCallback callback) {
         String[] paramsArray = new String[] { getDeleteDocumentUrl(documentId) };
-        new DeleteDocumentTask(documentId, callback).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        new DeleteDocumentTask(documentId, callback).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -192,7 +197,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
     public RequestHandle doGetDocumentTypes(GetDocumentTypesCallback callback) {
         String[] paramsArray = new String[] { documentTypesUrl };
         GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask(callback);
-        getDocumentTypesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+        getDocumentTypesTask.executeOnExecutor(environment.getExecutor(), paramsArray);
         return getDocumentTypesTask;
     }
 
@@ -624,7 +629,4 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			callback.onDocumentTypesNotReceived(exception);
 		}
 	}
-
-	//TESTING
-	public DocumentNetworkProvider() {}
 }
