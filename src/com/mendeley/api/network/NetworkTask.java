@@ -35,6 +35,11 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
      */
     protected void getResponseHeaders() throws IOException {
         Map<String, List<String>> headersMap = con.getHeaderFields();
+        if (headersMap == null) {
+            // No headers implies an error, which should be handled based on the HTTP status code;
+            // no need to throw another error here.
+            return;
+        }
         for (String key : headersMap.keySet()) {
             if (key != null) {
                 switch (key) {
