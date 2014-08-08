@@ -31,8 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.Assert.assertNotNull;
-
 /**
  * This class is responsible for authenticating the user, 
  * using a WebView to display the authentication web page.
@@ -116,7 +114,9 @@ public class AuthenticationManager implements Serializable {
     }
 
     public static AuthenticationManager getInstance() {
-        assertNotNull("authManager must have been configured", authManager);
+        if (authManager == null) {
+            throw new RuntimeException("authManager must have been configured");
+        }
 		return authManager;
 	}
 
