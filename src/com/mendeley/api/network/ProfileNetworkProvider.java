@@ -2,8 +2,7 @@ package com.mendeley.api.network;
 
 import org.json.JSONException;
 
-import android.os.AsyncTask;
-
+import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
@@ -16,13 +15,19 @@ import static com.mendeley.api.network.NetworkUtils.*;
 public class ProfileNetworkProvider extends NetworkProvider {
 	private static String profilesUrl = API_URL + "profiles/";
 
-	/**
+    private final Environment environment;
+
+    public ProfileNetworkProvider(Environment environment) {
+        this.environment = environment;
+    }
+
+    /**
 	 *  Executing GetMyProfileTask
 	 */
     public void doGetMyProfile(GetProfileCallback callback) {
 		String[] paramsArray = new String[] { profilesUrl + "me" };
         GetProfileTask task = new GetProfileTask(callback);
-		task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+		task.executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 	
 	/**
@@ -33,7 +38,7 @@ public class ProfileNetworkProvider extends NetworkProvider {
     public void doGetProfile(String profileId, GetProfileCallback callback) {
 		String[] paramsArray = new String[] { profilesUrl + profileId };
         GetProfileTask task = new GetProfileTask(callback);
-		task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, paramsArray);
+		task.executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 
     /* TASKS */

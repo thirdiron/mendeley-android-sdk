@@ -18,6 +18,7 @@ package com.mendeley.api;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mendeley.api.auth.AuthenticationInterface;
@@ -53,6 +54,7 @@ import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.DocumentNetworkProvider;
+import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.FileNetworkProvider;
 import com.mendeley.api.network.FolderNetworkProvider;
 import com.mendeley.api.network.GroupNetworkProvider;
@@ -69,11 +71,12 @@ import com.mendeley.api.params.View;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.concurrent.Executor;
 
 /**
  * Main entry points for making calls to the Mendeley SDK.
  */
-public class MendeleySDK {
+public class MendeleySDK implements Environment {
     public static class ClientCredentials {
         public final String clientId;
         public final String clientSecret;
@@ -97,7 +100,9 @@ public class MendeleySDK {
     private FolderNetworkProvider folderNetworkProvider;
     private GroupNetworkProvider groupNetworkProvider;
     private UtilsNetworkProvider utilsNetworkProvider;
-	
+
+    private Executor executor = AsyncTask.THREAD_POOL_EXECUTOR;
+
 	private MendeleySignInInterface mendeleySignInInterface;
 
     /**
@@ -708,7 +713,23 @@ public class MendeleySDK {
     /* MISC */
 
     /**
-	 * public method to call clearCredentials method on the protected AuthenticationManager
+     * Specify the executor used to run background tasks.
+     */
+    public MendeleySDK setExecutor(Executor executor) {
+        this.executor = executor;
+        return this;
+    }
+
+    /**
+     * Return the executor used to run background tasks.
+     */
+    @Override
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    /**
+	 * Clear credentials (sign out).
 	 */
 	public void clearCredentials() {
 		authenticationManager.clearCredentials();
@@ -728,12 +749,12 @@ public class MendeleySDK {
 	 * and initialising the relevant objects for sending callbacks.
 	 */
 	private void initialiseInterfaces() {
-		documentNetworkProvider = new DocumentNetworkProvider();
-        fileNetworkProvider = new FileNetworkProvider();
-		profileNetworkProvider = new ProfileNetworkProvider();
-		folderNetworkProvider = new FolderNetworkProvider();
-        groupNetworkProvider = new GroupNetworkProvider();
-        utilsNetworkProvider = new UtilsNetworkProvider();
+		documentNetworkProvider = new DocumentNetworkProvider(this);
+        fileNetworkProvider = new FileNetworkProvider(this);
+		profileNetworkProvider = new ProfileNetworkProvider(this);
+		folderNetworkProvider = new FolderNetworkProvider(this);
+        groupNetworkProvider = new GroupNetworkProvider(this);
+        utilsNetworkProvider = new UtilsNetworkProvider(this);
 	} 
 		
     /**
