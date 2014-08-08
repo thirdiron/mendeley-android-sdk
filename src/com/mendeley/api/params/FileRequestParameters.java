@@ -1,7 +1,8 @@
 package com.mendeley.api.params;
 
 /**
- * This class represents parameters for file SDK requests
+ * This class represents parameters for file SDK requests.
+ * <p>
  * Uninitialised properties will be ignored.
  */
 public class FileRequestParameters {

@@ -806,7 +806,7 @@ public class MendeleySDK implements Environment {
 	/**
 	 * Class that holds details of the method and arguments to be called once the client has been authenticated.
 	 */
-	protected class MethodtoInvoke {
+	private class MethodtoInvoke {
 		String methodName;
 		@SuppressWarnings("rawtypes")
 		Class[] argumentTypes;
@@ -823,11 +823,5 @@ public class MendeleySDK implements Environment {
 			this.argumentTypes = argumentTypes;
 			this.arguments = arguments;
 		}
-	}
-	
-	/**
-	 * public default constructor for junit testing.
-	 */
-	public MendeleySDK() {
 	}
 }

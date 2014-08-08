@@ -5,15 +5,15 @@ package com.mendeley.api.params;
  */
 public enum Sort {
     /**
-     * modified.
+     * Sort by last modified date.
      */
     MODIFIED("last_modified"),
     /**
-     * added.
+     * Sort by date added.
      */
     ADDED("created"),
     /**
-     * title.
+     * Sort by title alphabetically.
      */
     TITLE("title");
 
