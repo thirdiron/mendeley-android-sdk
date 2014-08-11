@@ -2,12 +2,12 @@ package com.mendeley.api.params;
 
 /**
  * Parameters for requests to retrieve documents.
+ * <p>
  * Uninitialised properties will be ignored.
  */
 public class DocumentRequestParameters {
 	/**
 	 * The required document view.
-	 * {@link #view}
 	 */
 	public View view;
 	
@@ -32,14 +32,12 @@ public class DocumentRequestParameters {
 	public Boolean reverse;
 	
 	/**
-	 * The sort order
-	 * {@link #order}
+	 * The sort order.
 	 */
 	public Order order;
 	
 	/**
-	 * The field to sort on
-	 * {@link #sort}
+	 * The field to sort on.
 	 */
 	public Sort sort;
 }

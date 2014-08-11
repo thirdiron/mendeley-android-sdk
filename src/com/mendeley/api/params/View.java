@@ -6,15 +6,15 @@ package com.mendeley.api.params;
  */
 public enum View {
     /**
-     * bib
+     * Core + bibliographic fields.
      */
     BIB("bib"),
     /**
-     * client
+     * Core + client fields.
      */
     CLIENT("client"),
     /**
-     * all
+     * Core + bibliographic + client fields.
      */
     ALL("all");
 
