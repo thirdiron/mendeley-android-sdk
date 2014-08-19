@@ -123,7 +123,7 @@ public class Document {
         this.keywords = keywords==null?new ArrayList<String>():keywords;
         this.websites = websites==null?new ArrayList<String>():websites;
 	}
-	
+
 	public static class Builder {
         private final String title;
         private final String type;
@@ -417,8 +417,12 @@ public class Document {
                     websites);
 		}
 	}
-	
-	public String getAuthorsString() {
+
+    public static Builder getBuilder(String title, String type) {
+        return new Builder(title, type);
+    }
+
+    public String getAuthorsString() {
 		String authorsString = "";
 		for (int i = 0; i < authors.size() && i < 2; i++) {
 			if (i > 0) {

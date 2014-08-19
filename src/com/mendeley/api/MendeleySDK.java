@@ -76,7 +76,7 @@ import java.util.concurrent.Executor;
 /**
  * Main entry points for making calls to the Mendeley SDK.
  */
-public class MendeleySDK implements Environment {
+public class MendeleySDK implements AbstractMendeleySDK, Environment {
     public static class ClientCredentials {
         public final String clientId;
         public final String clientSecret;
@@ -215,6 +215,7 @@ public class MendeleySDK implements Environment {
     /**
      * Retrieve a list of documents in the user's library.
      */
+    @Override
     public RequestHandle getDocuments(DocumentRequestParameters parameters, GetDocumentsCallback callback) {
         if (checkNetworkCall(
                 new Class[] { DocumentRequestParameters.class, GetDocumentsCallback.class },
@@ -228,6 +229,7 @@ public class MendeleySDK implements Environment {
     /**
      * Retrieve a list of documents in the user's library.
      */
+    @Override
     public RequestHandle getDocuments(GetDocumentsCallback callback) {
         return getDocuments((DocumentRequestParameters) null, callback);
     }
@@ -237,6 +239,7 @@ public class MendeleySDK implements Environment {
      *
      * @next reference to next page returned by a previous onDocumentsReceived() callback.
      */
+    @Override
     public RequestHandle getDocuments(Page next, GetDocumentsCallback callback) {
         if (checkNetworkCall(
                 new Class[] { Page.class, GetDocumentsCallback.class },
@@ -253,6 +256,7 @@ public class MendeleySDK implements Environment {
      * @param documentId the document id to get.
      * @param view extended document view. If null, only core fields are returned.
      */
+    @Override
     public void getDocument(String documentId, View view, GetDocumentCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, View.class, GetDocumentCallback.class },
@@ -267,6 +271,7 @@ public class MendeleySDK implements Environment {
      * @param deletedSince only return documents deleted since this timestamp. Should be supplied in ISO 8601 format.
      * @param parameters holds optional query parameters, will be ignored if null
      */
+    @Override
     public RequestHandle getDeletedDocuments(String deletedSince, DocumentRequestParameters parameters, GetDeletedDocumentsCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
@@ -282,6 +287,7 @@ public class MendeleySDK implements Environment {
      *
      * @next reference to next page returned by a previous onDeletedDocumentsReceived() callback.
      */
+    @Override
     public RequestHandle getDeletedDocuments(Page next, GetDeletedDocumentsCallback callback) {
         if (checkNetworkCall(
                 new Class[] { DocumentRequestParameters.class, GetDeletedDocumentsCallback.class },
@@ -297,6 +303,7 @@ public class MendeleySDK implements Environment {
      *
      * @param document the document object to be added.
      */
+    @Override
     public void postDocument(Document document, PostDocumentCallback callback) {
         if (checkNetworkCall(
                 new Class[] { Document.class, PostDocumentCallback.class },
@@ -314,6 +321,7 @@ public class MendeleySDK implements Environment {
      * @param document a document object containing the fields to be updated.
      *                 Missing fields are left unchanged (not cleared).
      */
+    @Override
     public void patchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, Date.class, Document.class, PatchDocumentCallback.class },
@@ -327,6 +335,7 @@ public class MendeleySDK implements Environment {
      *
      * @param documentId id of the document to be trashed.
      */
+    @Override
     public void trashDocument(String documentId, TrashDocumentCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, TrashDocumentCallback.class },
@@ -340,6 +349,7 @@ public class MendeleySDK implements Environment {
      *
      * @param documentId id of the document to be deleted.
      */
+    @Override
     public void deleteDocument(String documentId, DeleteDocumentCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, DeleteDocumentCallback.class },
@@ -351,6 +361,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return a list of valid document types.
      */
+    @Override
     public RequestHandle getDocumentTypes(GetDocumentTypesCallback callback) {
         if (checkNetworkCall(
                 new Class[] { GetDocumentTypesCallback.class },
@@ -366,6 +377,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return metadata for a user's files, subject to specified query parameters.
      */
+    @Override
     public RequestHandle getFiles(FileRequestParameters parameters, GetFilesCallback callback) {
         if (checkNetworkCall(
                 new Class[] { FileRequestParameters.class, GetFilesCallback.class },
@@ -379,6 +391,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return metadata for all files associated with all of the user's documents.
      */
+    @Override
     public RequestHandle getFiles(GetFilesCallback callback) {
         return getFiles((FileRequestParameters) null, callback);
     }
@@ -388,6 +401,7 @@ public class MendeleySDK implements Environment {
      *
      * @param next returned from previous getFiles() call.
      */
+    @Override
     public RequestHandle getFiles(Page next, GetFilesCallback callback) {
         if (checkNetworkCall(
                 new Class[] { FileRequestParameters.class, GetFilesCallback.class },
@@ -404,6 +418,7 @@ public class MendeleySDK implements Environment {
      * @param fileId the id of the file to download.
      * @param folderPath the local filesystem path in which to save the file.
      */
+    @Override
     public void getFile(String fileId, String documentId, String folderPath, GetFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, String.class, GetFileCallback.class },
@@ -417,6 +432,7 @@ public class MendeleySDK implements Environment {
      *
      * @param fileId the id of the file being downloaded.
      */
+    @Override
     public void cancelDownload(String fileId) {
         if (checkNetworkCall(
                 new Class[] { String.class },
@@ -432,6 +448,7 @@ public class MendeleySDK implements Environment {
      * @param documentId the ID of the document the file should be attached to.
      * @param filePath the absolute local filesystem path where the file can be found.
      */
+    @Override
     public void postFile(String contentType, String documentId, String filePath, PostFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, String.class, PostFileCallback.class },
@@ -448,6 +465,7 @@ public class MendeleySDK implements Environment {
      * @param inputStream stream providing the data to be uploaded.
      * @param fileName the name to be used for the file.
      */
+    @Override
     public void postFile(String contentType, String documentId, InputStream inputStream, String fileName, PostFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, String.class, InputStream.class, String.class, PostFileCallback.class },
@@ -461,6 +479,7 @@ public class MendeleySDK implements Environment {
      *
      * @param fileId the ID of the file to be deleted.
      */
+    @Override
     public void deleteFile(String fileId, DeleteFileCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, DeleteFileCallback.class },
@@ -474,6 +493,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return the user's profile information.
      */
+    @Override
     public void getMyProfile(GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { GetProfileCallback.class },
                              new Object[] { callback })) {
@@ -487,6 +507,7 @@ public class MendeleySDK implements Environment {
      *
      * @param  profileId ID of the profile to be fetched.
      */
+    @Override
     public void getProfile(String profileId, GetProfileCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, GetProfileCallback.class },
                              new Object[] { profileId, callback })) {
@@ -499,7 +520,8 @@ public class MendeleySDK implements Environment {
     /**
      * Return metadata for all the user's folders.
 	 */
-	public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) {
+	@Override
+    public RequestHandle getFolders(FolderRequestParameters parameters, GetFoldersCallback callback) {
 		if (checkNetworkCall(new Class[] { FolderRequestParameters.class, GetFoldersCallback.class },
 			 				 new Object[] { parameters, callback })) {
 			return folderNetworkProvider.doGetFolders(parameters, callback);
@@ -511,6 +533,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return metadata for all the user's folders.
      */
+    @Override
     public RequestHandle getFolders(GetFoldersCallback callback) {
         return getFolders((FolderRequestParameters) null, callback);
     }
@@ -520,6 +543,7 @@ public class MendeleySDK implements Environment {
      *
      * @param next returned from a previous getFolders() call.
      */
+    @Override
     public RequestHandle getFolders(Page next, GetFoldersCallback callback) {
         if (checkNetworkCall(new Class[] { Page.class, GetFolderCallback.class },
                              new Object[] { next, callback })) {
@@ -536,6 +560,7 @@ public class MendeleySDK implements Environment {
      * @param groupId provides an ID to return in the callback (the value is not actually
      *                 checked by this call).
      */
+    @Override
     public void getFolderDocumentIds(Page next, String groupId, GetGroupMembersCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, String.class, GetGroupMembersCallback.class },
                 new Object[] { next, groupId, callback })) {
@@ -548,7 +573,8 @@ public class MendeleySDK implements Environment {
 	 * 
 	 * @param folderId ID of the folder to retrieve metadata for.
 	 */
-	public void getFolder(String folderId, GetFolderCallback callback) {
+	@Override
+    public void getFolder(String folderId, GetFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, GetFolderCallback.class },
 			 				 new Object[] { folderId, callback })) {
 			folderNetworkProvider.doGetFolder(folderId, callback);
@@ -560,7 +586,8 @@ public class MendeleySDK implements Environment {
 	 * 
 	 * @param folder metadata for the folder to create.
 	 */
-	public void postFolder(Folder folder, PostFolderCallback callback) {
+	@Override
+    public void postFolder(Folder folder, PostFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { Folder.class, PostFolderCallback.class },
 			 				 new Object[] { folder, callback })) {
 			folderNetworkProvider.doPostFolder(folder, callback);
@@ -575,6 +602,7 @@ public class MendeleySDK implements Environment {
      * @param folderId the id of the folder to modify.
      * @param folder metadata object that provides the new name and parentId.
      */
+    @Override
     public void patchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, Folder.class, PatchFolderCallback.class },
                              new Object[] { folderId, folder, callback })) {
@@ -587,6 +615,7 @@ public class MendeleySDK implements Environment {
      *
      * @param folderId ID of the folder to inspect.
      */
+    @Override
     public void getFolderDocumentIds(FolderRequestParameters parameters, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { FolderRequestParameters.class, String.class, GetFolderDocumentIdsCallback.class },
                              new Object[] { parameters, folderId, callback })) {
@@ -601,6 +630,7 @@ public class MendeleySDK implements Environment {
      * @param folderId provides an ID to return in the callback (the value is not actually
      *                 checked by this call).
      */
+    @Override
     public void getFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, String.class, GetFolderDocumentIdsCallback.class },
                              new Object[] { next, folderId, callback })) {
@@ -614,7 +644,8 @@ public class MendeleySDK implements Environment {
 	 * @param folderId the ID the folder.
 	 * @param documentId the ID of the document to add to the folder.
 	 */
-	public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
+	@Override
+    public void postDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, PostDocumentToFolderCallback.class },
 			 				 new Object[] { folderId, documentId, callback })) {
 			folderNetworkProvider.doPostDocumentToFolder(folderId, documentId, callback);
@@ -628,7 +659,8 @@ public class MendeleySDK implements Environment {
 	 *
 	 * @param folderId the ID of the folder to delete.
 	 */
-	public void deleteFolder(String folderId, DeleteFolderCallback callback) {
+	@Override
+    public void deleteFolder(String folderId, DeleteFolderCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, DeleteFolderCallback.class },
 			 				 new Object[] { folderId, callback })) {
 			folderNetworkProvider.doDeleteFolder(folderId, callback);
@@ -643,13 +675,15 @@ public class MendeleySDK implements Environment {
 	 * @param folderId the ID of the folder.
 	 * @param documentId the ID of the document to remove.
 	 */
-	public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) {
+	@Override
+    public void deleteDocumentFromFolder(String folderId, String documentId, DeleteFolderDocumentCallback callback) {
 		if (checkNetworkCall(new Class[] { String.class, String.class, DeleteFolderDocumentCallback.class },
 			 				 new Object[] { folderId, documentId, callback })) {
 			folderNetworkProvider.doDeleteDocumentFromFolder(folderId, documentId, callback);
 		}
 	}
 
+    @Override
     public void getImage(String url, GetImageCallback callback) {
         if (checkNetworkCall(
                 new Class[] { String.class, GetImageCallback.class },
@@ -663,6 +697,7 @@ public class MendeleySDK implements Environment {
     /**
      * Return metadata for all the user's groups.
      */
+    @Override
     public RequestHandle getGroups(GroupRequestParameters parameters, GetGroupsCallback callback) {
         if (checkNetworkCall(new Class[] { GroupRequestParameters.class, GetGroupsCallback.class },
                 new Object[] { parameters, callback })) {
@@ -677,6 +712,7 @@ public class MendeleySDK implements Environment {
      *
      * @param next returned from a previous getGroups() call.
      */
+    @Override
     public RequestHandle getGroups(Page next, GetGroupsCallback callback) {
         if (checkNetworkCall(new Class[] { Page.class, GetGroupsCallback.class },
                 new Object[] { next, callback })) {
@@ -691,6 +727,7 @@ public class MendeleySDK implements Environment {
      *
      * @param groupId ID of the group to retrieve metadata for.
      */
+    @Override
     public void getGroup(String groupId, GetGroupCallback callback) {
         if (checkNetworkCall(new Class[] { String.class, GetGroupCallback.class },
                 new Object[] { groupId, callback })) {
@@ -703,6 +740,7 @@ public class MendeleySDK implements Environment {
      *
      * @param groupId ID of the group to inspect.
      */
+    @Override
     public void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback) {
         if (checkNetworkCall(new Class[] { GroupRequestParameters.class, String.class, GetGroupMembersCallback.class },
                 new Object[] { parameters, groupId, callback })) {
