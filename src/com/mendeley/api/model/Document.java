@@ -33,7 +33,6 @@ public class Document {
 	public final String pages;
 	public final String volume;
 	public final String issue;
-	public final String website;
 	public final String publisher;
 	public final String city;
 	public final String edition;
@@ -113,7 +112,6 @@ public class Document {
 		this.pages = pages;
 		this.volume = volume;
 		this.issue = issue;
-		this.website = website;
 		this.publisher = publisher;
 		this.city = city;
 		this.edition = edition;
@@ -200,7 +198,6 @@ public class Document {
 			this.pages = from.pages;
 			this.volume = from.volume;
 			this.issue = from.issue;
-			this.website = from.website;
 			this.publisher = from.publisher;
 			this.city = from.city;
 			this.edition = from.edition;
@@ -213,8 +210,8 @@ public class Document {
             this.fileAttached = from.fileAttached;
             this.keywords = from.keywords==null?new ArrayList<String>():from.keywords;
             this.websites = from.websites==null?new ArrayList<String>():from.websites;
-            this.clientData = clientData;
-            this.uniqueId = uniqueId;
+            this.clientData = from.clientData;
+            this.uniqueId = from.uniqueId;
 		}
 		
 		public Builder setLastModified(String lastModified) {
@@ -314,11 +311,6 @@ public class Document {
 		
 		public Builder setIssue(String issue) {
 			this.issue = issue;
-			return this;
-		}
-		
-		public Builder setWebsite(String website) {
-			this.website = website;
 			return this;
 		}
 		
