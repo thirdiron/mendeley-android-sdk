@@ -294,6 +294,7 @@ public class FileNetworkProvider {
 			return 303;
 		}
 
+
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
@@ -384,13 +385,13 @@ public class FileNetworkProvider {
 		@Override
 		protected void onSuccess() {		
 			fileTaskMap.remove(fileId);
-			callback.onFileReceived(fileName, fileId);
+			callback.onFileReceived(fileId, documentId, fileName);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
 			fileTaskMap.remove(fileId);
-			callback.onFileNotReceived(exception);
+			callback.onFileNotReceived(fileId, documentId, exception);
 		}
 	}
 
