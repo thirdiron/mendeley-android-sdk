@@ -46,6 +46,8 @@ public class Document {
     public final Boolean fileAttached;
     public final ArrayList<String> keywords;
     public final ArrayList<String> websites;
+    public final String clientData;
+    public final String uniqueId;
 	
 	final static String ET_EL = "et. al";
 		
@@ -85,7 +87,9 @@ public class Document {
             String accessed,
             Boolean fileAttached,
             ArrayList<String> keywords,
-            ArrayList<String> websites) {
+            ArrayList<String> websites,
+            String clientData,
+            String uniqueId) {
 		this.lastModified = lastModified;
 		this.groupId = groupId;
 		this.profileId = profileId;
@@ -122,6 +126,8 @@ public class Document {
         this.fileAttached = fileAttached;
         this.keywords = keywords==null?new ArrayList<String>():keywords;
         this.websites = websites==null?new ArrayList<String>():websites;
+        this.clientData = clientData;
+        this.uniqueId = uniqueId;
 	}
 
 	public static class Builder {
@@ -162,6 +168,8 @@ public class Document {
         private Boolean fileAttached;
         private ArrayList<String> keywords;
         private ArrayList<String> websites;
+        private String clientData;
+        private String uniqueId;
 		
 		public Builder(String title, String type) {
             this.title = title;
@@ -205,6 +213,8 @@ public class Document {
             this.fileAttached = from.fileAttached;
             this.keywords = from.keywords==null?new ArrayList<String>():from.keywords;
             this.websites = from.websites==null?new ArrayList<String>():from.websites;
+            this.clientData = clientData;
+            this.uniqueId = uniqueId;
 		}
 		
 		public Builder setLastModified(String lastModified) {
@@ -377,6 +387,16 @@ public class Document {
             return this;
         }
 
+        public Builder setClientData(String clientData) {
+            this.clientData = clientData;
+            return this;
+        }
+
+        public Builder setUniqueId(String uniqueId) {
+            this.uniqueId = uniqueId;
+            return this;
+        }
+
 		public Document build() {
 			return new Document(
 					lastModified,
@@ -414,7 +434,9 @@ public class Document {
                     accessed,
                     fileAttached,
                     keywords,
-                    websites);
+                    websites,
+                    clientData,
+                    uniqueId);
 		}
 	}
 
@@ -462,41 +484,5 @@ public class Document {
 		} else {
 			return other.id.equals(this.id);
 		}
-	}
-	
-	@Override
-	public String toString() {
-		
-		return "lastModified: " + lastModified +
-				", groupId: " + groupId +
-				", profileId: " + profileId +
-				", read: " + read +
-				", starred: " + starred +
-				", authored: " + authored +
-				", confirmed: " + confirmed +
-				", hidden: " + hidden +
-				", id: " + id +
-				", type: " + type +
-				", month: " + month +
-				", year: " + year +
-				", day: " + day +
-				", source: " + source +
-				", title: " + title +
-				", revision: " + revision +
-				", created: " + created +
-				", pages: " + pages +
-				", volume: " + volume +
-				", issue: " + issue +
-				", website: " + website +
-				", publisher: " + publisher +
-				", city: " + city +
-				", edition: " + edition +
-				", institution: " + institution +
-				", series: " + series +
-				", chapter: " + chapter +
-				", abstract: " + abstractString +
-				", authors: " + authors.size() +
-				", editors: " + editors.size() +
-				", identifiers: " + identifiers.size();
 	}
 }

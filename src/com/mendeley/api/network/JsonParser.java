@@ -41,6 +41,21 @@ public class JsonParser {
 	 */
 	public static String jsonFromDocument(Document document) throws JSONException {
 
+        JSONArray websites = new JSONArray();
+        for (int i = 0; i < document.websites.size(); i++) {;
+            websites.put(i, document.websites.get(i));
+        }
+
+        JSONArray keywords = new JSONArray();
+        for (int i = 0; i < document.keywords.size(); i++) {;
+            keywords.put(i, document.keywords.get(i));
+        }
+
+        JSONArray tags = new JSONArray();
+        for (int i = 0; i < document.tags.size(); i++) {;
+            tags.put(i, document.tags.get(i));
+        }
+
 		JSONArray authors = new JSONArray();
 		for (int i = 0; i < document.authors.size(); i++) {
 			JSONObject author = new JSONObject();
@@ -66,6 +81,9 @@ public class JsonParser {
 		
 		jDocument.put("title", document.title);
 		jDocument.put("authors", authors);
+        jDocument.put("keywords", keywords);
+        jDocument.put("tags", tags);
+        jDocument.put("websites", websites);
 		jDocument.put("type", document.type);
 		jDocument.put("id", document.id);
 		
@@ -87,7 +105,6 @@ public class JsonParser {
 		jDocument.put("pages", document.pages);
 		jDocument.put("volume", document.volume);
 		jDocument.put("issue", document.issue);
-		jDocument.put("website", document.website);
 		jDocument.put("publisher", document.publisher);
 		jDocument.put("city", document.city);
 		jDocument.put("edition", document.edition);
@@ -96,7 +113,11 @@ public class JsonParser {
 		jDocument.put("chapter", document.chapter);
 		jDocument.put("identifiers", identifiers);
 		jDocument.put("editors", editors);
-		
+        jDocument.put("accessed", document.accessed);
+        jDocument.put("file_attached", document.fileAttached);
+        jDocument.put("client_data", document.clientData);
+        jDocument.put("unique_id", document.uniqueId);
+
 		return jDocument.toString();
 	}
 	
@@ -639,9 +660,6 @@ public class JsonParser {
 				case "issue":
 					mendeleyDocument.setIssue(documentObject.getString(key));
 					break;
-				case "website":
-					mendeleyDocument.setWebsite(documentObject.getString(key));
-					break;
 				case "publisher":
 					mendeleyDocument.setPublisher(documentObject.getString(key));
 					break;
@@ -660,6 +678,12 @@ public class JsonParser {
 				case "chapter":
 					mendeleyDocument.setChapter(documentObject.getString(key));
 					break;
+                case "client_data":
+                    mendeleyDocument.setClientData(documentObject.getString(key));
+                    break;
+                case "unique_id":
+                    mendeleyDocument.setUniqueId(documentObject.getString(key));
+                    break;
 				case "authors":
 
 					JSONArray authors = documentObject.getJSONArray(key);
@@ -734,7 +758,7 @@ public class JsonParser {
                     for (int i = 0; i < websites.length(); i++) {
                         websitesList.add(websites.getString(i));
                     }
-                    mendeleyDocument.setTags(websitesList);
+                    mendeleyDocument.setWebsites(websitesList);
                     break;
 			}
 		}
