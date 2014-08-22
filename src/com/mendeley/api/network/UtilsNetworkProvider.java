@@ -3,6 +3,7 @@ package com.mendeley.api.network;
 import android.util.Log;
 
 import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 
@@ -10,12 +11,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-public class UtilsNetworkProvider extends NetworkProvider {
+public class UtilsNetworkProvider {
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public UtilsNetworkProvider(Environment environment) {
+    public UtilsNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
         this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
     public void doGetImage(final String url, GetImageCallback callback) {
@@ -37,6 +40,11 @@ public class UtilsNetworkProvider extends NetworkProvider {
         @Override
         protected int getExpectedResponse() {
             return 200;
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override

@@ -115,5 +115,5 @@ public interface AbstractMendeleySDK {
 
     void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback);
 
-    void clearCredentials();
+    void signOut();
 }

@@ -187,8 +187,15 @@ public class MendeleySDK implements AbstractMendeleySDK, Environment {
 
     private void init() {
         authenticationManager = AuthenticationManager.getInstance();
-        initialiseInterfaces();
-        if (!hasCredentials()) {
+
+        documentNetworkProvider = new DocumentNetworkProvider(this, authenticationManager);
+        fileNetworkProvider = new FileNetworkProvider(this, authenticationManager);
+        profileNetworkProvider = new ProfileNetworkProvider(this, authenticationManager);
+        folderNetworkProvider = new FolderNetworkProvider(this, authenticationManager);
+        groupNetworkProvider = new GroupNetworkProvider(this, authenticationManager);
+        utilsNetworkProvider = new UtilsNetworkProvider(this, authenticationManager);
+
+        if (!authenticationManager.hasCredentials()) {
             authenticationManager.authenticate();
         }
     }
@@ -767,34 +774,12 @@ public class MendeleySDK implements AbstractMendeleySDK, Environment {
     }
 
     /**
-	 * Clear credentials (sign out).
+	 * Sign out from the user's account.
 	 */
-	public void clearCredentials() {
+	public void signOut() {
 		authenticationManager.clearCredentials();
 	}
 	
-	/**
-	 * Call checkCredentialsAndCopyToNetworkProvider method on the protected AuthenticationManager
-	 * 
-	 * @return true if credentials are stored already in SharedPreferences.
-	 */
-	private boolean hasCredentials() {
-		return authenticationManager.checkCredentialsAndCopyToNetworkProvider();
-	}
-	
-	/**
-	 * Checking the given context to see which interfaces are implemented by the calling activity
-	 * and initialising the relevant objects for sending callbacks.
-	 */
-	private void initialiseInterfaces() {
-		documentNetworkProvider = new DocumentNetworkProvider(this);
-        fileNetworkProvider = new FileNetworkProvider(this);
-		profileNetworkProvider = new ProfileNetworkProvider(this);
-		folderNetworkProvider = new FolderNetworkProvider(this);
-        groupNetworkProvider = new GroupNetworkProvider(this);
-        utilsNetworkProvider = new UtilsNetworkProvider(this);
-	} 
-		
     /**
      * Checks if client is authenticated, if false initialises the MethodToInvoke object with the calling method name and its arguments
      * and calls authenticate on the AuthenticationManager, else returns true.

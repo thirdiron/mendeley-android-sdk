@@ -14,6 +14,9 @@ import org.json.JSONException;
 import android.os.AsyncTask;
 
 import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationInterface;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
 import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
@@ -38,13 +41,15 @@ import static com.mendeley.api.network.NetworkUtils.*;
 /**
  * NetworkProvider class for Folder API calls
  */
-public class FolderNetworkProvider extends NetworkProvider{
+public class FolderNetworkProvider {
 	private static String foldersUrl = API_URL + "folders";
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public FolderNetworkProvider(Environment environment) {
+    public FolderNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
         this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
 	/**
@@ -304,6 +309,11 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onFoldersReceived(folders, next);
         }
@@ -331,6 +341,11 @@ public class FolderNetworkProvider extends NetworkProvider{
         @Override
         protected String getContentType() {
             return "application/vnd.mendeley-folder.1+json";
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override
@@ -370,6 +385,11 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onFolderPosted(folder);
         }
@@ -400,8 +420,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		protected int getExpectedResponse() {
 			return 200;
 		}
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
@@ -409,7 +434,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 			String jsonString = params[2];
 			
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getFolderHttpPatch(url);
+			HttpPatch httpPatch = getFolderHttpPatch(url, getAccessTokenProvider());
 
 	        try {
 	        	
@@ -455,6 +480,11 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onFolderDeleted(folderId);
         }
@@ -486,13 +516,18 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected MendeleyException doInBackground(String... params) {
 
             String url = params[0];
             String jsonString = params[1];
 
             try {
-                con = getConnection(url, "POST");
+                con = getConnection(url, "POST", getAccessTokenProvider());
                 con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-add-document.1+json");
                 con.connect();
 
@@ -548,6 +583,11 @@ public class FolderNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected void onSuccess() {
 			callback.onFolderDocumentDeleted(documentId);
 		}
@@ -579,8 +619,13 @@ public class FolderNetworkProvider extends NetworkProvider{
 		protected int getExpectedResponse() {
 			return 200;
 		}
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected MendeleyException doInBackground(String... params) {
 
 			String url = params[0];
@@ -588,7 +633,7 @@ public class FolderNetworkProvider extends NetworkProvider{
 				folderId = params[1];
 			}
 			try {
-				con = getConnection(url, "GET");
+				con = getConnection(url, "GET", getAccessTokenProvider());
 				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
 				con.connect();
 				

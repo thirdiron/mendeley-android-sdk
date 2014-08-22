@@ -2,6 +2,7 @@ package com.mendeley.api.network;
 
 import android.os.AsyncTask;
 
+import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.params.Page;
@@ -29,6 +30,8 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
     HttpsURLConnection con = null;
 
     protected abstract int getExpectedResponse();
+
+    protected abstract AccessTokenProvider getAccessTokenProvider();
 
     /**
      * Extracts the headers from the given HttpsURLConnection object.

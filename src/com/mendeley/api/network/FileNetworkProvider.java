@@ -1,6 +1,8 @@
 package com.mendeley.api.network;
 
 import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.GetFileCallback;
@@ -40,16 +42,18 @@ import static com.mendeley.api.network.NetworkUtils.getJsonString;
 /**
  * NetworkProvider class for Files API calls
  */
-public class FileNetworkProvider extends NetworkProvider {
+public class FileNetworkProvider {
 	private Map<String, NetworkTask> fileTaskMap = new HashMap<String, NetworkTask>();
 
 	private static String filesUrl = API_URL + "files";
 	private static final String TAG = FileNetworkProvider.class.getSimpleName();
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public FileNetworkProvider(Environment environment) {
+    public FileNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
         this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
     /**
@@ -246,8 +250,13 @@ public class FileNetworkProvider extends NetworkProvider {
 	    protected void onCancelled (MendeleyException result) {
 	    	callback.onFilesNotReceived(new UserCancelledException());
 	    }
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 
 		protected void onSuccess() {
             callback.onFilesReceived(files, next, serverDate);
@@ -284,8 +293,13 @@ public class FileNetworkProvider extends NetworkProvider {
 		protected int getExpectedResponse() {
 			return 303;
 		}
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected MendeleyException doInBackground(String... params) {
 			
 			String url = params[0];
@@ -296,7 +310,7 @@ public class FileNetworkProvider extends NetworkProvider {
 			FileOutputStream fileOutputStream = null;
 
 			try {
-				con = getConnection(url, "GET");
+				con = getConnection(url, "GET", getAccessTokenProvider());
 				con.setInstanceFollowRedirects(false);
 				con.connect();
 				
@@ -405,6 +419,11 @@ public class FileNetworkProvider extends NetworkProvider {
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected MendeleyException doInBackground(String... params) {
             String contentType = params[0];
             String documentId = params[1];
@@ -420,7 +439,7 @@ public class FileNetworkProvider extends NetworkProvider {
                 final byte[] buffer = new byte[MAX_BUF_SIZE];
                 int bytesRead;
 
-                con = getConnection(filesUrl, "POST");
+                con = getConnection(filesUrl, "POST", getAccessTokenProvider());
                 con.addRequestProperty("Content-Disposition", contentDisposition);
                 con.addRequestProperty("Content-type", contentType);
                 con.addRequestProperty("Link", link);
@@ -493,6 +512,11 @@ public class FileNetworkProvider extends NetworkProvider {
         public DeleteFileTask(DeleteFileCallback callback, String fileId) {
             this.callback = callback;
             this.fileId = fileId;
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override

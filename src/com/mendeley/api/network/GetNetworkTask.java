@@ -1,5 +1,6 @@
 package com.mendeley.api.network;
 
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -25,7 +26,7 @@ public abstract class GetNetworkTask extends NetworkTask {
         String url = params[0];
 
         try {
-            con = getConnection(url, "GET");
+            con = getConnection(url, "GET", getAccessTokenProvider());
             con.addRequestProperty("Content-type", getContentType());
             con.connect();
 

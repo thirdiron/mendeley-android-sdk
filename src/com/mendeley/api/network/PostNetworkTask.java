@@ -1,5 +1,6 @@
 package com.mendeley.api.network;
 
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -26,7 +27,7 @@ public abstract class PostNetworkTask extends NetworkTask {
         String jsonString = params[1];
 
         try {
-            con = getConnection(url, "POST");
+            con = getConnection(url, "POST", getAccessTokenProvider());
             con.addRequestProperty("Content-type", getContentType());
             con.setFixedLengthStreamingMode(jsonString.getBytes().length);
             con.connect();

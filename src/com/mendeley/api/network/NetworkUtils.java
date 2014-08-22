@@ -1,5 +1,8 @@
 package com.mendeley.api.network;
 
+import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 
@@ -114,9 +117,9 @@ public class NetworkUtils {
      * @param date the required date string
      * @return the HttpPatch object
      */
-    static HttpPatch getHttpPatch(String url, String date) {
+    static HttpPatch getHttpPatch(String url, String date, AccessTokenProvider accessTokenProvider) {
         HttpPatch httpPatch = new HttpPatch(url);
-        httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+        httpPatch.setHeader("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
         httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
         if (date != null) {
             httpPatch.setHeader("If-Unmodified-Since", date);
@@ -132,9 +135,9 @@ public class NetworkUtils {
      * @param url the call url
      * @return the HttpPatch object
      */
-    static HttpPatch getFolderHttpPatch(String url) {
+    static HttpPatch getFolderHttpPatch(String url, AccessTokenProvider accessTokenProvider) {
         HttpPatch httpPatch = new HttpPatch(url);
-        httpPatch.setHeader("Authorization", "Bearer " + NetworkProvider.accessToken);
+        httpPatch.setHeader("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
         httpPatch.setHeader("Content-type", "application/vnd.mendeley-folder-update-folder.1+json");
 
         return httpPatch;
@@ -149,7 +152,7 @@ public class NetworkUtils {
      * @return the HttpsURLConnection object
      * @throws IOException
      */
-    static HttpsURLConnection getConnection(String url, String method) throws IOException {
+    static HttpsURLConnection getConnection(String url, String method, AccessTokenProvider accessTokenProvider) throws IOException {
         HttpsURLConnection con = null;
         URL callUrl = new URL(url);
         con = (HttpsURLConnection) callUrl.openConnection();
@@ -157,7 +160,7 @@ public class NetworkUtils {
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);
 
-        con.addRequestProperty("Authorization", "Bearer " + NetworkProvider.accessToken);
+        con.addRequestProperty("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
 
         return con;
     }

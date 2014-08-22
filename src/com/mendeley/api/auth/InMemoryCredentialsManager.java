@@ -1,9 +1,5 @@
 package com.mendeley.api.auth;
 
-import com.mendeley.api.auth.CredentialsManager;
-import com.mendeley.api.auth.SharedPreferencesCredentialsManager;
-import com.mendeley.api.network.NetworkProvider;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,7 +11,7 @@ public class InMemoryCredentialsManager implements CredentialsManager {
     private String expiresAt;
 
     @Override
-    public void setTokenDetails(String tokenString) throws JSONException {
+    public void setCredentials(String tokenString) throws JSONException {
         JSONObject tokenObject = new JSONObject(tokenString);
 
         accessToken = tokenObject.getString("access_token");
@@ -24,26 +20,16 @@ public class InMemoryCredentialsManager implements CredentialsManager {
         expiresIn = tokenObject.getInt("expires_in");
         
         expiresAt = SharedPreferencesCredentialsManager.generateExpiresAtFromExpiresIn(expiresIn);
-        
-        NetworkProvider.accessToken = accessToken;
     }
 
     @Override
     public void clearCredentials() {
         accessToken = null;
-
-        NetworkProvider.accessToken = null;
     }
 
     @Override
-    public boolean checkCredentialsAndCopyToNetworkProvider() {
-        boolean hasCredentials = getAccessToken() != null;
-
-        if (hasCredentials) {
-            NetworkProvider.accessToken = getAccessToken();
-        }
-
-        return hasCredentials;
+    public boolean hasCredentials() {
+        return accessToken != null;
     }
 
     @Override
@@ -61,7 +47,8 @@ public class InMemoryCredentialsManager implements CredentialsManager {
         return refreshToken;
     }
 
-    private String getAccessToken() {
+    @Override
+    public String getAccessToken() {
         return accessToken;
     }
 }

@@ -1,6 +1,6 @@
 package com.mendeley.api.network;
 
-import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
@@ -44,7 +44,7 @@ import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
 /**
  * NetworkProvider class for Documents API calls
  */
-public class DocumentNetworkProvider extends NetworkProvider {
+public class DocumentNetworkProvider {
 	private static String documentsUrl = API_URL + "documents";
 	
 	private static String documentTypesUrl = API_URL + "document_types";
@@ -52,9 +52,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public DocumentNetworkProvider(Environment environment) {
+    public DocumentNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
         this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
     /**
@@ -337,6 +339,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onDocumentsReceived(documents, next, serverDate);
         }
@@ -372,6 +379,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onDeletedDocumentsReceived(documentIds, next, serverDate);
         }
@@ -402,6 +414,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onDocumentReceived(document);
         }
@@ -425,6 +442,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
 
         private PostDocumentTask(PostDocumentCallback callback) {
             this.callback = callback;
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override
@@ -468,8 +490,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		protected int getExpectedResponse() {
 			return 200;
 		}
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected MendeleyException doInBackground(String... params) {
 			String url = params[0];
 			String id = params[1];
@@ -477,7 +504,7 @@ public class DocumentNetworkProvider extends NetworkProvider {
 			String jsonString = params[3];
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatch(url, date); 
+			HttpPatch httpPatch = getHttpPatch(url, date, getAccessTokenProvider());
 
 	        try {
 	        	httpPatch.setEntity(new StringEntity(jsonString));
@@ -527,14 +554,19 @@ public class DocumentNetworkProvider extends NetworkProvider {
 		protected int getExpectedResponse() {
 			return 204;
 		}
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected MendeleyException doInBackground(String... params) {
 			String url = params[0];
 			String id = params[1];
 
 			try {
-				con = getConnection(url, "POST");
+				con = getConnection(url, "POST", getAccessTokenProvider());
 				con.connect();
 				
 				getResponseHeaders();
@@ -581,6 +613,11 @@ public class DocumentNetworkProvider extends NetworkProvider {
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onDocumentDeleted(documentId);
         }
@@ -618,8 +655,13 @@ public class DocumentNetworkProvider extends NetworkProvider {
 	    protected void onCancelled (MendeleyException result) {
 	    	callback.onDocumentTypesNotReceived(new UserCancelledException());
 	    }
-		
-		@Override
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
 		protected void onSuccess() {
 			callback.onDocumentTypesReceived(typesMap);
 		}

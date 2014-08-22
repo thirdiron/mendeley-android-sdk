@@ -10,7 +10,6 @@ import android.util.Log;
 
 import com.mendeley.api.activity.SignInActivity;
 import com.mendeley.api.network.JsonParser;
-import com.mendeley.api.network.NetworkProvider;
 import com.mendeley.api.util.Utils;
 
 import org.apache.http.HttpResponse;
@@ -35,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * This class is responsible for authenticating the user, 
  * using a WebView to display the authentication web page.
  */
-public class AuthenticationManager implements Serializable {
+public class AuthenticationManager implements Serializable, AccessTokenProvider {
     public static final String TOKENS_URL = "https://api.mendeley.com/oauth/token";
     public static final String GRANT_TYPE_AUTH = "authorization_code";
     public static final String GRANT_TYPE_REFRESH = "refresh_token";
@@ -126,7 +125,7 @@ public class AuthenticationManager implements Serializable {
      * @return true if authenticated.
      */
     public boolean isAuthenticated() {
-        if (NetworkProvider.accessToken != null && credentialsManager.getExpiresAt() != null) {
+        if (credentialsManager.getAccessToken() != null && credentialsManager.getExpiresAt() != null) {
             Date now = new Date();
             Date expires = null;
             try {
@@ -158,14 +157,18 @@ public class AuthenticationManager implements Serializable {
     }
 
     /**
-	 * Querying the CredentialManager if credentials are already stored on the device.
-	 * 
-	 * @return true if credentials exists, false otherwise.
+	 * Determine if credentials are already stored on the device.
+	 *
+	 * @return true if credentials exist, false otherwise.
 	 */
-    public boolean checkCredentialsAndCopyToNetworkProvider() {
-		return credentialsManager.checkCredentialsAndCopyToNetworkProvider();
+    public boolean hasCredentials() {
+		return credentialsManager.hasCredentials();
 	}
-	
+
+    public String getAccessToken() {
+        return credentialsManager.getAccessToken();
+    }
+
 	/**
 	 * Forwarding a call to the AuthenticationManager to clear user credentials from the device.
 	 */
@@ -180,7 +183,7 @@ public class AuthenticationManager implements Serializable {
 	 * enter his username and password.
 	 */
 	public void authenticate() {
-		if (checkCredentialsAndCopyToNetworkProvider()) {
+		if (hasCredentials()) {
             createRefreshHandler(true);
 		} else {
 			startSignInFlow();
@@ -214,7 +217,7 @@ public class AuthenticationManager implements Serializable {
      * @throws JSONException
      */
     public void setTokenDetails(String tokenString) throws JSONException {
-        credentialsManager.setTokenDetails(tokenString);
+        credentialsManager.setCredentials(tokenString);
     }
 
     /**
@@ -253,7 +256,7 @@ public class AuthenticationManager implements Serializable {
 	 * AsyncTask class that carries out the refreshing of access token.
 	 * If passed a true argument, it calls the onAuthenticated() method of the AuthenticationInterface instance
 	 */
-    class RefreshTokenTask extends AsyncTask<Boolean, Void, String> {
+    private class RefreshTokenTask extends AsyncTask<Boolean, Void, String> {
     	private boolean notify = false;
     	
 		@Override
@@ -296,7 +299,7 @@ public class AuthenticationManager implements Serializable {
     /**
      * AsyncTask class that obtains an access token from username and password.
      */
-    class PasswordAuthenticationTask extends AsyncTask<Void, Void, String> {
+    private class PasswordAuthenticationTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... params) {
             String result = null;

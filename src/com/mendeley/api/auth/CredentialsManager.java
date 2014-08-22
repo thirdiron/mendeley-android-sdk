@@ -3,7 +3,7 @@ package com.mendeley.api.auth;
 import org.json.JSONException;
 
 public interface CredentialsManager {
-    public void setTokenDetails(String tokenString) throws JSONException;
+    public void setCredentials(String tokenString) throws JSONException;
 
     /**
      * Removes the credentials from the SharedPreferences as well as the NetworkProvider static string objects.
@@ -11,12 +11,9 @@ public interface CredentialsManager {
     public void clearCredentials();
 
     /**
-     * Checks if all required credentials exist.
-     * If so, updates the value of the appropriate NetworkProvider static string objects.
-     *
-     * @return true of all credentials exist, false otherwise.
+     * Check if required credentials exist.
      */
-    public boolean checkCredentialsAndCopyToNetworkProvider();
+    public boolean hasCredentials();
 
     /**
      * @return the expires in integer or -1 if it does not exist.
@@ -32,4 +29,9 @@ public interface CredentialsManager {
      * @return the refresh token string or null if it does not exist.
      */
     public String getRefreshToken();
+
+    /**
+     * @return the access token string or null if it does not exist.
+     */
+    public String getAccessToken();
 }

@@ -3,6 +3,7 @@ package com.mendeley.api.network;
 import org.json.JSONException;
 
 import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
@@ -12,13 +13,15 @@ import static com.mendeley.api.network.NetworkUtils.*;
 /**
  * NetworkProvider class for Profile API calls
  */
-public class ProfileNetworkProvider extends NetworkProvider {
+public class ProfileNetworkProvider {
 	private static String profilesUrl = API_URL + "profiles/";
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public ProfileNetworkProvider(Environment environment) {
+    public ProfileNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
         this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
     /**
@@ -61,6 +64,11 @@ public class ProfileNetworkProvider extends NetworkProvider {
         @Override
         protected String getContentType() {
             return "application/vnd.mendeley-profiles.1+json";
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override

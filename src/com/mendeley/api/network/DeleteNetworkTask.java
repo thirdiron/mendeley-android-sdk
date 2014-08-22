@@ -1,5 +1,6 @@
 package com.mendeley.api.network;
 
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -23,7 +24,7 @@ public abstract class DeleteNetworkTask extends NetworkTask {
         String url = params[0];
 
         try {
-            con = getConnection(url, "DELETE");
+            con = getConnection(url, "DELETE", getAccessTokenProvider());
             con.connect();
 
             getResponseHeaders();

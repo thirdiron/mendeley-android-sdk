@@ -1,6 +1,7 @@
 package com.mendeley.api.network;
 
 import com.mendeley.api.MendeleySDK;
+import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
@@ -24,13 +25,15 @@ import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
  * NetworkProvider class for Group API calls
  */
 
-public class GroupNetworkProvider extends NetworkProvider{
+public class GroupNetworkProvider {
     private static String groupsUrl = API_URL + "groups";
 
     private final Environment environment;
+    private final AccessTokenProvider accessTokenProvider;
 
-    public GroupNetworkProvider(Environment environment) {
+    public GroupNetworkProvider(Environment environment, AccessTokenProvider accessTokenProvider) {
        this.environment = environment;
+        this.accessTokenProvider = accessTokenProvider;
     }
 
     /**
@@ -171,6 +174,11 @@ public class GroupNetworkProvider extends NetworkProvider{
         }
 
         @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
+        }
+
+        @Override
         protected void onSuccess() {
             callback.onGroupsReceived(groups, next);
         }
@@ -198,6 +206,11 @@ public class GroupNetworkProvider extends NetworkProvider{
         @Override
         protected String getContentType() {
             return "application/vnd.mendeley-group.1+json";
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override
@@ -230,6 +243,11 @@ public class GroupNetworkProvider extends NetworkProvider{
         @Override
         protected String getContentType() {
             return "application/vnd.mendeley-membership.1+json";
+        }
+
+        @Override
+        protected AccessTokenProvider getAccessTokenProvider() {
+            return accessTokenProvider;
         }
 
         @Override
