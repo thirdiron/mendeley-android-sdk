@@ -2,7 +2,6 @@ package com.mendeley.api.network;
 
 import android.util.Log;
 
-import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.exceptions.MendeleyException;

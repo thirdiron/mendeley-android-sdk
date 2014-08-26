@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.mendeley.api.activity.SignInActivity;
+import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.impl.BaseMendeleySdk;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.util.Utils;
 
@@ -23,18 +25,15 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * This class is responsible for authenticating the user, 
- * using a WebView to display the authentication web page.
- */
-public class AuthenticationManager implements Serializable, AccessTokenProvider {
+import static com.mendeley.api.impl.BaseMendeleySdk.Command;
+
+public class AuthenticationManager implements AccessTokenProvider {
     public static final String TOKENS_URL = "https://api.mendeley.com/oauth/token";
     public static final String GRANT_TYPE_AUTH = "authorization_code";
     public static final String GRANT_TYPE_REFRESH = "refresh_token";
@@ -42,13 +41,12 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
     public static final String SCOPE = "all";
     public static final String RESPONSE_TYPE = "code";
 
-    private static final long serialVersionUID = 1L;
+    // Only use tokens which don't expire in the next 5 mins:
+    private static final int MIN_TOKEN_VALIDITY_SEC = 300;
 
-    private static AuthenticationManager authManager;
-
-	private final Context context;
     private final String username;
     private final String password;
+
     private final String clientId;
     private final String clientSecret;
     private final String redirectUri;
@@ -60,18 +58,8 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
 
     private Handler refreshHandler;
 
-	/**
-	 *  The constructor takes context which will be used for displaying the WebView
-	 *  and an instance of AuthenticationInterface which will be used for callbacks, 
-	 *  once user has been authentication, or authentication has failed.
-	 *  
-	 * @param context the context object
-	 * @param authInterface the AuthenticationInterface instance for callbacks
-	 */
-    private AuthenticationManager(Context context,
-    		                      AuthenticationInterface authInterface,
-                                  String clientId, String clientSecret, String redirectUri) {
-        this.context = context;
+    public AuthenticationManager(Context context, AuthenticationInterface authInterface,
+                                 String clientId, String clientSecret, String redirectUri) {
         this.username = null;
         this.password = null;
         this.authInterface = authInterface;
@@ -83,10 +71,9 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
         credentialsManager = new SharedPreferencesCredentialsManager(preferences);
     }
 
-    private AuthenticationManager(String username, String password,
-                                  AuthenticationInterface authInterface,
-                                  String clientId, String clientSecret, String redirectUri) {
-        this.context = null;
+    public AuthenticationManager(String username, String password,
+                                 AuthenticationInterface authInterface,
+                                 String clientId, String clientSecret, String redirectUri) {
         this.username = username;
         this.password = password;
         this.authInterface = authInterface;
@@ -97,51 +84,24 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
         credentialsManager = new InMemoryCredentialsManager();
     }
 
-    public static void configure(Context context, AuthenticationInterface authInterface,
-                                 String clientId, String clientSecret, String redirectUri) {
-        // TODO: Uncomment the following assertion once MendeleySDK is a singleton
-        // assertNull("configure can only be called once", authManager);
-        authManager = new AuthenticationManager(context, authInterface, clientId, clientSecret, redirectUri);
-	}
-
-    public static void configure(String username, String password,
-                                 AuthenticationInterface authInterface,
-                                 String clientId, String clientSecret, String redirectUri) {
-        // TODO: Uncomment the following assertion once MendeleySDK is a singleton
-        // assertNull("configure can only be called once", authManager);
-        authManager = new AuthenticationManager(username, password, authInterface, clientId, clientSecret, redirectUri);
+    public boolean isSignedIn() {
+        return credentialsManager.hasCredentials();
     }
 
-    public static AuthenticationManager getInstance() {
-        if (authManager == null) {
-            throw new RuntimeException("authManager must have been configured");
+    public void signIn(Activity activity) {
+        if (isSignedIn()) {
+            return;
         }
-		return authManager;
-	}
-
-    /**
-     * Checks if the current access token has expired
-     *
-     * @return true if authenticated.
-     */
-    public boolean isAuthenticated() {
-        if (credentialsManager.getAccessToken() != null && credentialsManager.getExpiresAt() != null) {
-            Date now = new Date();
-            Date expires = null;
-            try {
-                expires = Utils.dateFormat.parse(credentialsManager.getExpiresAt());
-            } catch (ParseException e) {
-                Log.e(TAG, "", e);
-                return false;
-            }
-
-            long diffInMs = expires.getTime() - now.getTime();
-            long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-
-            return diffInSec > 0;
+        if (username == null) {
+            Intent intent = new Intent(activity, SignInActivity.class);
+            activity.startActivity(intent);
         } else {
-        	return false;
+            new PasswordAuthenticationTask().execute();
         }
+    }
+
+    public void clearCredentials() {
+        credentialsManager.clearCredentials();
     }
 
     public String getClientId() {
@@ -156,59 +116,9 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
         return redirectUri;
     }
 
-    /**
-	 * Determine if credentials are already stored on the device.
-	 *
-	 * @return true if credentials exist, false otherwise.
-	 */
-    public boolean hasCredentials() {
-		return credentialsManager.hasCredentials();
-	}
-
     public String getAccessToken() {
         return credentialsManager.getAccessToken();
     }
-
-	/**
-	 * Forwarding a call to the AuthenticationManager to clear user credentials from the device.
-	 */
-    public void clearCredentials() {
-		credentialsManager.clearCredentials();
-	}
-	
-	/**
-	 * Authenticating the User. 
-	 * If credentials exist already, creating a RefreshHandler for refreshing the access token,
-	 * otherwise displaying a WebView with the authentication web page, in which the user will have to
-	 * enter his username and password.
-	 */
-	public void authenticate() {
-		if (hasCredentials()) {
-            createRefreshHandler(true);
-		} else {
-			startSignInFlow();
-		}
-	}
-
-    private void startSignInFlow() {
-        if (username == null) {
-            startSignInActivity();
-        } else {
-            startAutomaticSignIn();
-        }
-    }
-
-    private void startAutomaticSignIn() {
-        new PasswordAuthenticationTask().execute();
-    }
-
-    /**
-	 * Starting the sign in activity.
-	 */
-	private void startSignInActivity() {
-		Intent intent = new Intent(context, SignInActivity.class);
-		((Activity) context).startActivity(intent);	
-	}
 
     /**
      * Extracts the token details from the token string and sends them to the CredentialManager.
@@ -220,80 +130,105 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
         credentialsManager.setCredentials(tokenString);
     }
 
+    public void authenticated(boolean manualSignIn) {
+        authInterface.onAuthenticated(manualSignIn);
+    }
+
+    public void failedToAuthenticate() {
+        authInterface.onAuthenticationFail();
+    }
+
     /**
-	 * Creating a RefreshHandler which will refresh the access token before it expires.
-	 * If immediateExecution is true, the delay of the execution will be set to 0 and the refresh
-	 * will execute immediately (called from authenticate() if credentials exist already), else 
-	 * will set the execution to happen before the access token is expired.
-	 * 
-	 * @param immediateExecution indicates whether the refresh of access token should happen immediately or not.
-	 */
-	private void createRefreshHandler(final boolean immediateExecution) {
-		Runnable runnableNotify = new Runnable() {	
-			@Override
-			public void run() {
-				refreshToken(immediateExecution);
-			}
-		};
-		
-		long delayMillis = immediateExecution ? 0 : (long)((credentialsManager.getExpiresIn() * 0.9) * 1000);
-		refreshHandler = new Handler();
-		
-		refreshHandler.postDelayed(runnableNotify, delayMillis);
-	}
-	
+     * Checks if the current access token will expire soon (or isn't valid at all).
+     */
+    public boolean willExpireSoon() {
+        if (!credentialsManager.hasCredentials() || credentialsManager.getExpiresAt() == null) {
+            return true;
+        }
+        Date now = new Date();
+        Date expires = null;
+        try {
+            expires = Utils.dateFormat.parse(credentialsManager.getExpiresAt());
+        } catch (ParseException e) {
+            return true;
+        }
+
+        long timeToExpiryMs = expires.getTime() - now.getTime();
+        long timeToExpirySec = TimeUnit.MILLISECONDS.toSeconds(timeToExpiryMs);
+
+        return timeToExpirySec < MIN_TOKEN_VALIDITY_SEC;
+    }
+
+    public RequestHandle refreshToken(Command command) {
+        // Start the refresh process, and return a provisional RequestHandle
+        RefreshTokenTask refreshTask = new RefreshTokenTask(command);
+        RequestHandle requestHandle = refreshTask.getRequestHandle();
+        refreshTask.execute();
+        return requestHandle;
+    }
 	
 	/**
-	 * Convenience method to start the RefreshTokenTask
-	 * 
-	 * @param immediateExecution
+	 * Task to refresh the access token.
 	 */
-	public void refreshToken(boolean immediateExecution) {
-		new RefreshTokenTask().execute(immediateExecution);
-	}
-		        
-	/**
-	 * AsyncTask class that carries out the refreshing of access token.
-	 * If passed a true argument, it calls the onAuthenticated() method of the AuthenticationInterface instance
-	 */
-    private class RefreshTokenTask extends AsyncTask<Boolean, Void, String> {
-    	private boolean notify = false;
-    	
+    private class RefreshTokenTask extends AsyncTask<Void, Void, Boolean> {
+        private Command command;
+        private ChainedRequestHandle chainedRequestHandle;
+
+        public RefreshTokenTask(Command command) {
+            this.command = command;
+            chainedRequestHandle = new ChainedRequestHandle();
+        }
+
+        public RequestHandle getRequestHandle() {
+            return chainedRequestHandle;
+        }
+
 		@Override
-		protected String doInBackground(Boolean... params) {
-			if (params.length > 0) {
-				notify = params[0];
-			}
-
-			String result = null;
-				try {
-                    HttpResponse response = doRefreshPost();
-                    String jsonTokenString = JsonParser.getJsonString(response.getEntity().getContent());
-					setTokenDetails(jsonTokenString);
-					result = "ok";
-				} 
-				catch (JSONException e) {
-					return result;
-				} catch (ClientProtocolException e) {
-					return result;
-				} catch (IOException e) {
-					return result;
-				}
-
-			return result;
+		protected Boolean doInBackground(Void... params) {
+			boolean result = false;
+            try {
+                HttpResponse response = doRefreshPost();
+                String jsonTokenString = JsonParser.getJsonString(response.getEntity().getContent());
+                setTokenDetails(jsonTokenString);
+                result = true;
+            }
+            catch (JSONException | IOException ignored) {
+            }
+            return result;
 		}
 		
 		@Override
-		protected void onPostExecute(String result) {		
-			if (result == null) {
-				authInterface.onAuthenticationFail();
-			} else {
-				createRefreshHandler(false);
-				if (notify) {
-					authInterface.onAuthenticated(false);
-				}
-			}
+		protected void onPostExecute(Boolean result) {
+            if (!chainedRequestHandle.isCancelled()) {
+                RequestHandle innerRequestHandle = command.exec();
+                chainedRequestHandle.setInnerRequestHandle(innerRequestHandle);
+            }
 		}
+    }
+
+    private class ChainedRequestHandle implements RequestHandle {
+        private boolean cancelled;
+        private RequestHandle innerRequestHandle;
+
+        public ChainedRequestHandle() {
+            cancelled = false;
+        }
+
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        public void setInnerRequestHandle(RequestHandle handle) {
+            innerRequestHandle = handle;
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+            if (innerRequestHandle != null) {
+                innerRequestHandle.cancel();
+            }
+        }
     }
 
     /**
@@ -309,15 +244,8 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
                 setTokenDetails(jsonTokenString);
                 result = "ok";
             }
-            catch (JSONException e) {
+            catch (JSONException | IOException e) {
                 Log.e(TAG, "", e);
-                return result;
-            } catch (ClientProtocolException e) {
-                Log.e(TAG, "", e);
-                return result;
-            } catch (IOException e) {
-                Log.e(TAG, "", e);
-                return result;
             }
 
             return result;
@@ -375,13 +303,4 @@ public class AuthenticationManager implements Serializable, AccessTokenProvider 
 
         return response;
     }
-
-    public void authenticated(boolean manualSignIn) {
-		authInterface.onAuthenticated(manualSignIn);
-		createRefreshHandler(false);
-	}
-    
-	public void failedToAuthenticate() {
-		authInterface.onAuthenticationFail();
-	}
 }

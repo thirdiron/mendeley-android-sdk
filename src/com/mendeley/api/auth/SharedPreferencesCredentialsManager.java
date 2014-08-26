@@ -21,7 +21,6 @@ public class SharedPreferencesCredentialsManager implements CredentialsManager {
     // Shared preferences keys:
 	private static final String ACCESS_TOKEN_KEY = "accessToken";
 	private static final String REFRESH_TOKEN_KEY = "refreshToken";
-	private static final String EXPIRES_IN_KEY = "expiresIn";
 	private static final String EXPIRES_AT_KEY = "expiresAt";
 	private static final String TOKEN_TYPE_KEY = "tokenType";
  
@@ -60,7 +59,6 @@ public class SharedPreferencesCredentialsManager implements CredentialsManager {
 		editor.remove(ACCESS_TOKEN_KEY);
 		editor.remove(REFRESH_TOKEN_KEY);
 		editor.remove(EXPIRES_AT_KEY);
-		editor.remove(EXPIRES_IN_KEY);
 		editor.remove(TOKEN_TYPE_KEY);
 		editor.commit();
 	}
@@ -69,11 +67,6 @@ public class SharedPreferencesCredentialsManager implements CredentialsManager {
     public boolean hasCredentials() {
 		return getAccessToken() != null;
 	}
-
-    @Override
-    public int getExpiresIn() {
-        return preferences.getInt(EXPIRES_IN_KEY, -1);
-    }
 
     @Override
     public String getExpiresAt() {
@@ -109,7 +102,6 @@ public class SharedPreferencesCredentialsManager implements CredentialsManager {
         editor.putString(REFRESH_TOKEN_KEY, refreshToken);
         editor.putString(TOKEN_TYPE_KEY, tokenType);
         editor.putString(EXPIRES_AT_KEY, expiresAt);
-        editor.putInt(EXPIRES_IN_KEY, expiresIn);
         editor.commit();
     }
 

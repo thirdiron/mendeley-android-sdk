@@ -2,7 +2,6 @@ package com.mendeley.api.network;
 
 import org.json.JSONException;
 
-import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.MendeleyException;

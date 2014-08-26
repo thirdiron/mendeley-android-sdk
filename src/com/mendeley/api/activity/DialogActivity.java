@@ -24,6 +24,8 @@ import android.util.Log;
 import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.mendeley.api.impl.DefaultMendeleySdk;
 import com.mendeley.api.R;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.network.JsonParser;
@@ -39,10 +41,15 @@ public class DialogActivity extends Activity {
 	private static final double SMALL_SCREEN_SIZE = 7.0;
 	private static final String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
 	private static final String TAG = DialogActivity.class.getSimpleName();
-	
+
+    private AuthenticationManager authenticationManager;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        authenticationManager = DefaultMendeleySdk.getInstance().getAuthenticationManager();
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         if (getScreenSize() > SMALL_SCREEN_SIZE) {
@@ -62,7 +69,7 @@ public class DialogActivity extends Activity {
 	    webView.getSettings().setLoadWithOverviewMode(true);
 	    webView.getSettings().setBuiltInZoomControls(true);
 		webView.setWebViewClient(new MendeleyWebViewClient());
-		webView.loadUrl(getOauth2URL());
+		webView.loadUrl(getOauth2URL(authenticationManager));
     }
 
     /**
@@ -85,11 +92,10 @@ public class DialogActivity extends Activity {
 	 * Creating and return the Oauth2 url string.
 	 * 
 	 * @return the url string
+     * @param authenticationManager
 	 */
-	private static String getOauth2URL() {
-        AuthenticationManager authenticationManager = AuthenticationManager.getInstance();
-
-        StringBuffer urlString = new StringBuffer(OAUTH2_URL);
+	private static String getOauth2URL(AuthenticationManager authenticationManager) {
+        StringBuilder urlString = new StringBuilder(OAUTH2_URL);
 		
 		urlString
 		.append("?").append("grant_type=").append(AuthenticationManager.GRANT_TYPE_AUTH)
@@ -135,10 +141,9 @@ public class DialogActivity extends Activity {
         private String authorizationCode;
 
     	protected String getJSONTokenString(String authorizationCode) throws ClientProtocolException, IOException {
-    		HttpResponse response = doPost(AuthenticationManager.TOKENS_URL, AuthenticationManager.GRANT_TYPE_AUTH, authorizationCode);
-    		String data = JsonParser.getJsonString(response.getEntity().getContent());
-	           
-    		return data;
+    		HttpResponse response = doPost(AuthenticationManager.TOKENS_URL, AuthenticationManager.GRANT_TYPE_AUTH,
+                    authorizationCode, authenticationManager);
+    		return JsonParser.getJsonString(response.getEntity().getContent());
 		}
     	
     	protected String getAuthorizationCode(String authReturnUrl) {
@@ -160,7 +165,7 @@ public class DialogActivity extends Activity {
 			if (authorizationCode != null) {
 				try {
 					String jsonTokenString = getJSONTokenString(authorizationCode);
-                    AuthenticationManager.getInstance().setTokenDetails(jsonTokenString);
+                    authenticationManager.setTokenDetails(jsonTokenString);
                     result = "ok";
 				} catch (IOException e) {
 					Log.e(TAG, "", e);
@@ -194,9 +199,8 @@ public class DialogActivity extends Activity {
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 */
-	private static HttpResponse doPost(String url, String grantType, String authorizationCode)
+	private static HttpResponse doPost(String url, String grantType, String authorizationCode, AuthenticationManager authenticationManager)
             throws ClientProtocolException, IOException {
-        AuthenticationManager authenticationManager = AuthenticationManager.getInstance();
 
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost(url);

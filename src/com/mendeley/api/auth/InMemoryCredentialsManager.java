@@ -7,7 +7,6 @@ public class InMemoryCredentialsManager implements CredentialsManager {
     private String accessToken; // null if not set
     private String refreshToken;
     private String tokenType;
-    private int expiresIn;
     private String expiresAt;
 
     @Override
@@ -17,8 +16,8 @@ public class InMemoryCredentialsManager implements CredentialsManager {
         accessToken = tokenObject.getString("access_token");
         refreshToken = tokenObject.getString("refresh_token");
         tokenType = tokenObject.getString("token_type");
-        expiresIn = tokenObject.getInt("expires_in");
-        
+        int expiresIn = tokenObject.getInt("expires_in");
+
         expiresAt = SharedPreferencesCredentialsManager.generateExpiresAtFromExpiresIn(expiresIn);
     }
 
@@ -30,11 +29,6 @@ public class InMemoryCredentialsManager implements CredentialsManager {
     @Override
     public boolean hasCredentials() {
         return accessToken != null;
-    }
-
-    @Override
-    public int getExpiresIn() {
-        return expiresIn;
     }
 
     @Override

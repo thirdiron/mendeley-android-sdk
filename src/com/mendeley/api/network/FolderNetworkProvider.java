@@ -11,12 +11,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import android.os.AsyncTask;
-
-import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.auth.AccessTokenProvider;
-import com.mendeley.api.auth.AuthenticationInterface;
-import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
 import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;

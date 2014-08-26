@@ -16,11 +16,6 @@ public interface CredentialsManager {
     public boolean hasCredentials();
 
     /**
-     * @return the expires in integer or -1 if it does not exist.
-     */
-    public int getExpiresIn();
-
-    /**
      * @return the expires in string value or null if it does not exist.
      */
     public String getExpiresAt();

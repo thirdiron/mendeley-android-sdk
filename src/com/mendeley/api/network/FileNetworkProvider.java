@@ -1,8 +1,6 @@
 package com.mendeley.api.network;
 
-import com.mendeley.api.MendeleySDK;
 import com.mendeley.api.auth.AccessTokenProvider;
-import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.GetFileCallback;

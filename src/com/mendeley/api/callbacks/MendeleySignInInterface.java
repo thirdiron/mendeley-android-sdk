@@ -6,4 +6,5 @@ package com.mendeley.api.callbacks;
  */
 public interface MendeleySignInInterface {
 	public void onSignedIn();
+    public void onSignInFailure();
 }
