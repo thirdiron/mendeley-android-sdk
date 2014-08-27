@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mendeley SDK Example</string>
+    <string name="get_documents">Get Documents</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_in">Sign in</string>
+</resources>
