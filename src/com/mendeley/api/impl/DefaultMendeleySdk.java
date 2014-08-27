@@ -21,13 +21,7 @@ public class DefaultMendeleySdk extends BaseMendeleySdk {
         return instance;
     }
 
-    /**
-     * Sign the user in.
-     *
-     * @param activity used for creating the sign-in activity.
-     * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process.
-     * @param signInCallback used to receive sign in/out events. May be null.
-     */
+    @Override
     public void signIn(Activity activity, MendeleySignInInterface signInCallback,
                        ClientCredentials clientCredentials) {
         this.mendeleySignInInterface = signInCallback;

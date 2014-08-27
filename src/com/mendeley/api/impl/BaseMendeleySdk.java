@@ -53,7 +53,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.concurrent.Executor;
 
-public class BaseMendeleySdk implements MendeleySdk, Environment {
+public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
 
     private static final String TAG = MendeleySdk.class.getSimpleName();
 

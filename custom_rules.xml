@@ -5,7 +5,7 @@
 
 <target name="doc" description="Generate javadoc">
     <javadoc sourcepath="${source.dir}" destdir="${doc.dir}" windowtitle="Mendeley Android SDK"
-		excludepackagenames="com.mendeley.api.auth,com.mendeley.api.network,com.mendeley.api.util,com.mendeley.api.activity"/>
+		excludepackagenames="com.mendeley.api.auth,com.mendeley.api.network,com.mendeley.api.util,com.mendeley.api.activity,com.mendeley.api.impl"/>
 </target>
 
 <target name="properties" description="Show properties">

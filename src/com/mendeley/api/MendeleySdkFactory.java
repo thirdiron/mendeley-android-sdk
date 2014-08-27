@@ -11,7 +11,7 @@ public class MendeleySdkFactory {
     /**
      * Return the MendeleySdk singleton.
      */
-    public static DefaultMendeleySdk getInstance() {
+    public static MendeleySdk getInstance() {
         return DefaultMendeleySdk.getInstance();
     }
 

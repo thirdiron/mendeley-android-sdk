@@ -1,5 +1,7 @@
 package com.mendeley.api.impl;
 
+import android.app.Activity;
+
 import com.mendeley.api.ClientCredentials;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
@@ -8,8 +10,10 @@ import com.mendeley.api.callbacks.MendeleySignInInterface;
 /**
  * Internal version of MendeleySdk.
  * <p>
- * Developer applications should not use this constructor; this is only required for unit
- * testing the SDK, in which sign is handled via the resource owner password flow.
+ * This is used to run integration tests on the SDK, in which sign is handled via the resource owner
+ * password flow.
+ * <p>
+ * Developer applications should not use this class.
  */
 public class InternalMendeleySdk extends BaseMendeleySdk {
     private static InternalMendeleySdk instance;
@@ -35,5 +39,10 @@ public class InternalMendeleySdk extends BaseMendeleySdk {
                 clientCredentials.redirectUri);
         initProviders();
         authenticationManager.signIn(null);
+    }
+
+    @Override
+    public void signIn(Activity activity, MendeleySignInInterface signInCallback, ClientCredentials clientCredentials) {
+        throw new UnsupportedOperationException("Internal SDK only supports resource owner password auth flow");
     }
 }

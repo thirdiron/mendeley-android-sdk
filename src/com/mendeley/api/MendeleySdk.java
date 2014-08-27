@@ -16,6 +16,9 @@
 
 package com.mendeley.api;
 
+import android.app.Activity;
+
+import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
@@ -59,6 +62,19 @@ import java.util.concurrent.Executor;
  * Main entry points for making calls to the Mendeley SDK.
  */
 public interface MendeleySdk {
+
+    /* SIGNING IN */
+
+    /**
+     * Sign the user in.
+     *
+     * @param activity used for creating the sign-in activity.
+     * @param clientCredentials your app's Mendeley ID/secret/Uri, from the registration process.
+     * @param signInCallback used to receive sign in/out events. May be null.
+     */
+    void signIn(Activity activity, MendeleySignInInterface signInCallback,
+                ClientCredentials clientCredentials);
+
     /**
      * Determine if the user is signed in.
      * <p>
