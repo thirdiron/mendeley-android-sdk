@@ -54,4 +54,4 @@ Reference documentation: [Javadoc](http://mendeley.github.io/mendeley-android-sd
 
 ## Support ##
 
-E-mail: api@mendeley.com
+Email: api@mendeley.com
