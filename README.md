@@ -4,9 +4,7 @@ Version: Alpha-1
 
 Released: 1 September 2014
 
-<aside class="warning">
 **Important note: this is an early pre-release version, and is subject to change.**
-</aside>
 
 ## About the SDK ##
 
@@ -21,21 +19,19 @@ Java version: 1.7
 
 ## Getting started ##
 
-A sample app is provided, which illustrates basic use of the library. The path to the
-library is specified by the sample app's `project.properties` file.
+A sample app is provided, which illustrates basic use of the library. The app links to the
+SDK library via a relative path in its `project.properties` file, as usual for Android libraries.
 
-<aside class="notice">
-**To run it you must change the dummy client ID, client secret and redirect URI constants
+**To run the sample app you must change the dummy client ID, client secret and redirect URI constants
 defined at the top of `ExampleActivity.java` to the correct ones for your own app.**
-These can be generated from the Mendeley developers website.
-</aside>
+These values can be generated from the Mendeley developers website.
 
 ## Using the library ##
 
 You should start by calling `MendeleySdkFactory.getInstance()` to get a
 `MendeleySdk` object. This contains methods for all the API calls, as well as
-`isSignedIn()`, `signIn()` and `signOut()`. Be sure to call `signIn()` before
-making API calls.
+`isSignedIn()`, `signIn()` and `signOut()`. The client must call `signIn()` before
+making API calls, otherwise a `NotSignedInException` will be thrown.
 
 Many of the API calls take parameters, which are defined in the `com.mendeley.api.params` package.
 They return a callback defined in one of the  of `com.mendeley.api.callbacks.*` subpackages.
@@ -51,6 +47,46 @@ Blocking versions are likely to be provided as an option in future releases.
 ## Resources ##
 
 Reference documentation: [Javadoc](http://mendeley.github.io/mendeley-android-sdk/)
+
+## Methods ##
+
+The main API calls provided by `MendeleySdk` methods are as follows (arguments omitted
+for brevity):
+
+```
+getDocuments
+getDocument
+getDeletedDocuments
+postDocument
+patchDocument
+trashDocument
+deleteDocument
+getDocumentTypes
+
+getFiles
+getFile
+cancelDownload
+postFile
+deleteFile
+
+getMyProfile
+getProfile
+
+getFolders
+getFolder
+postFolder
+patchFolder
+deleteFolder
+getFolderDocumentIds
+postDocumentToFolder
+deleteDocumentFromFolder
+
+getImage
+
+getGroups
+getGroup
+getGroupMembers
+```
 
 ## Support ##
 
