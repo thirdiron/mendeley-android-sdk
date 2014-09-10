@@ -138,7 +138,7 @@ public class NetworkUtils {
     static HttpPatch getFolderHttpPatch(String url, AccessTokenProvider accessTokenProvider) {
         HttpPatch httpPatch = new HttpPatch(url);
         httpPatch.setHeader("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
-        httpPatch.setHeader("Content-type", "application/vnd.mendeley-folder-update-folder.1+json");
+        httpPatch.setHeader("Content-type", "application/vnd.mendeley-folder.1+json");
 
         return httpPatch;
     }
