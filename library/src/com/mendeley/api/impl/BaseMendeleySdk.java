@@ -257,7 +257,18 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
         run(new Command() {
             @Override
             public RequestHandle exec() {
-                fileNetworkProvider.doGetFile(fileId, documentId, folderPath, callback);
+                fileNetworkProvider.doGetFile(fileId, documentId, folderPath, null, callback);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void getFile(final String fileId, final String documentId, final String folderPath, final String fileName, final GetFileCallback callback) {
+        run(new Command() {
+            @Override
+            public RequestHandle exec() {
+                fileNetworkProvider.doGetFile(fileId, documentId, folderPath, fileName, callback);
                 return null;
             }
         });
