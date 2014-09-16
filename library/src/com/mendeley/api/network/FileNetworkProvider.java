@@ -97,10 +97,10 @@ public class FileNetworkProvider {
 	 * @param folderPath the path in which to save the file
      * @param callback
      */
-    public void doGetFile(final String fileId, final String documentId, final String folderPath, GetFileCallback callback) {
-		final GetFileTask fileTask = new GetFileTask(callback);
+    public void doGetFile(final String fileId, final String documentId, final String folderPath, String fileName, GetFileCallback callback) {
+		final GetFileTask fileTask = new GetFileTask(folderPath, fileName, fileId, documentId, callback);
 		fileTaskMap.put(fileId, fileTask);
-		String[] params = new String[] { getGetFileUrl(fileId), folderPath, fileId, documentId };
+		String[] params = new String[] { getGetFileUrl(fileId) };
 		fileTask.executeOnExecutor(environment.getExecutor(), params);
 	}
 
@@ -266,24 +266,27 @@ public class FileNetworkProvider {
 		}
     }
 	
-	/**
-	 * Executing the api call for getting a file in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to object
-	 * and send the data to the relevant callback method in the MendeleyFileInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
 	private class GetFileTask extends NetworkTask {
+        private static final String PARTIALLY_DOWNLOADED_EXTENSION = ".part";
         private final GetFileCallback callback;
 
-		List<File> files;
-		byte[] fileData;
-		String fileName;
-		String fileId;
-		String documentId;
-		String filePath;
+        private final String folderPath;
+		private String fileName;
 
-        private GetFileTask(GetFileCallback callback) {
+        private final String fileId;
+        private final String documentId;
+
+        private String tempFilePath;
+        private String finalFilePath;
+
+        /**
+         * @param fileName if null, use the name from the file itself.
+         */
+        private GetFileTask(String folderPath, String fileName, String fileId, String documentId, GetFileCallback callback) {
+            this.folderPath = folderPath;
+            this.fileName = fileName;
+            this.fileId = fileId;
+            this.documentId = documentId;
             this.callback = callback;
         }
 
@@ -292,7 +295,6 @@ public class FileNetworkProvider {
 			return 303;
 		}
 
-
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
@@ -300,11 +302,7 @@ public class FileNetworkProvider {
 
         @Override
 		protected MendeleyException doInBackground(String... params) {
-			
 			String url = params[0];
-			String folderPath = params[1];
-			fileId = params[2];
-			documentId = params[3];
 
 			FileOutputStream fileOutputStream = null;
 
@@ -328,13 +326,17 @@ public class FileNetworkProvider {
 					if (responseCode != 200) {
 						return new FileDownloadException(getErrorMessage(con), fileId);
 					} else {
-						String content = con.getHeaderFields().get("Content-Disposition").get(0);
-						fileName = content.substring(content.indexOf("\"")+1, content.lastIndexOf("\""));
+                        if (fileName == null) {
+                            String content = con.getHeaderFields().get("Content-Disposition").get(0);
+                            fileName = content.substring(content.indexOf("\"") + 1, content.lastIndexOf("\""));
+                        }
 						
-						int fileLength = con.getContentLength();
-						is = con.getInputStream();			
-						filePath = folderPath+java.io.File.separator+fileName;
-						fileOutputStream = new FileOutputStream(new java.io.File(filePath));
+						finalFilePath = folderPath + java.io.File.separator + fileName;
+                        tempFilePath = finalFilePath + PARTIALLY_DOWNLOADED_EXTENSION;
+
+                        int fileLength = con.getContentLength();
+                        is = con.getInputStream();
+						fileOutputStream = new FileOutputStream(new java.io.File(tempFilePath));
 						
 						byte data[] = new byte[1024];
 			            long total = 0;
@@ -357,7 +359,6 @@ public class FileNetworkProvider {
 				if (fileOutputStream != null) {
 					try {
 						fileOutputStream.close();
-						fileOutputStream = null;
 					} catch (IOException e) {
 						return new FileDownloadException(e.getMessage(), fileId);
 					}
@@ -374,16 +375,23 @@ public class FileNetworkProvider {
 	    protected void onCancelled (MendeleyException result) {
 	    	fileTaskMap.remove(fileId);
 	    	
-	    	if (filePath != null) {
-		    	java.io.File file = new java.io.File(filePath);
+	    	if (tempFilePath != null) {
+		    	java.io.File file = new java.io.File(tempFilePath);
 		    	file.delete();
 	    	}
 	    }
 	    
 		@Override
-		protected void onSuccess() {		
-			fileTaskMap.remove(fileId);
-			callback.onFileReceived(fileId, documentId, fileName);
+		protected void onSuccess() {
+            java.io.File tempFile = new java.io.File(tempFilePath);
+            java.io.File finalFile = new java.io.File(finalFilePath);
+            boolean renamedOk = tempFile.renameTo(finalFile);
+            if (renamedOk) {
+                fileTaskMap.remove(fileId);
+                callback.onFileReceived(fileId, documentId, fileName);
+            } else {
+                onFailure(new FileDownloadException("Cannot rename downloaded file", fileId));
+            }
 		}
 
 		@Override
