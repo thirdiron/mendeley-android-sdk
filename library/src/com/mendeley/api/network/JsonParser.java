@@ -217,6 +217,8 @@ public class JsonParser {
 				case "filehash":
 					mendeleyFile.setFileHash(documentObject.getString(key));
 					break;
+                case "size":
+                    mendeleyFile.setFileSize(documentObject.getInt(key));
 			}
 		}
 		

@@ -11,13 +11,16 @@ public class File {
     public final String mimeType;
     public final String fileName;
     public final String fileHash;
+    /** Size of file in bytes */
+    public final int fileSize;
 
-    private File(String id, String documentId, String mimeType, String fileName, String fileHash) {
+    private File(String id, String documentId, String mimeType, String fileName, String fileHash, int fileSize) {
         this.id = id;
         this.documentId = documentId;
         this.mimeType = mimeType;
         this.fileName = fileName;
         this.fileHash = fileHash;
+        this.fileSize = fileSize;
     }
 
     @Override
@@ -26,7 +29,9 @@ public class File {
                 ", documentId: " + documentId +
                 ", mimeType: " + mimeType +
                 ", fileName: " + fileName +
-                ", fileHash: " + fileHash;
+                ", fileHash: " + fileHash +
+                ", fileSize: " + fileSize ;
+
     }
 
     @Override
@@ -52,6 +57,7 @@ public class File {
         private String mimeType;
         private String fileName;
         private String fileHash;
+        private int fileSize;
 
         public Builder() {}
 
@@ -80,13 +86,19 @@ public class File {
             return this;
         }
 
+        public Builder setFileSize(int fileSize) {
+            this.fileSize = fileSize;
+            return this;
+        }
+
         public File build() {
             return new File(
                     id,
                     documentId,
                     mimeType,
                     fileName,
-                    fileHash
+                    fileHash,
+                    fileSize
             );
         }
     }
