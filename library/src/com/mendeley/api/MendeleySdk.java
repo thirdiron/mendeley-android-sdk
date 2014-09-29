@@ -44,6 +44,7 @@ import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
+import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
@@ -383,6 +384,32 @@ public interface MendeleySdk {
      * @param groupId ID of the group to inspect.
      */
     void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback);
+
+    /* TRASH */
+
+    /**
+     * Retrieve a list of documents in the user's trash.
+     */
+    RequestHandle getTrashedDocuments(DocumentRequestParameters parameters, GetDocumentsCallback callback);
+
+    /**
+     * Retrieve a list of documents in the user's trash.
+     */
+    RequestHandle getTrashedDocuments(GetDocumentsCallback callback);
+
+    /**
+     * Retrieve subsequent pages of documents from the user's trash.
+     *
+     * @next reference to next page returned by a previous onDocumentsReceived() callback from getTrashedDocuments().
+     */
+    RequestHandle getTrashedDocuments(Page next, GetDocumentsCallback callback);
+
+    /**
+     * Move a document from trash into the user's library.
+     *
+     * @param documentId id of the document to restore.
+     */
+    void restoreDocument(String documentId, RestoreDocumentCallback callback);
 
     /* CONTROL */
 
