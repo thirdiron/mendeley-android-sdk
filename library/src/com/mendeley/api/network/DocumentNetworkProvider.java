@@ -45,9 +45,8 @@ import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
  * NetworkProvider class for Documents API calls
  */
 public class DocumentNetworkProvider {
-	private static String documentsUrl = API_URL + "documents";
-	
-	private static String documentTypesUrl = API_URL + "document_types";
+	public static String DOCUMENTS_BASE_URL = API_URL + "documents";
+	public static String DOCUMENT_TYPES_BASE_URL = API_URL + "document_types";
 	
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 
@@ -59,15 +58,10 @@ public class DocumentNetworkProvider {
         this.accessTokenProvider = accessTokenProvider;
     }
 
-    /**
-     * Getting the appropriate url string and executes the GetDocumentsTask.
-     *
-     * @param params the document request parameters
-     */
     public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
-            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
+            String[] paramsArray = new String[] { getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, null) };
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         }
@@ -77,14 +71,9 @@ public class DocumentNetworkProvider {
         }
     }
 
-    /**
-     * Getting the appropriate url string and executes the GetDeletedDocumentsTask.
-     *
-     * @param params the document request parameters
-     */
     public RequestHandle doGetDeletedDocuments(String deletedSince, DocumentRequestParameters params, GetDeletedDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(params, deletedSince) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, deletedSince) };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
@@ -95,15 +84,10 @@ public class DocumentNetworkProvider {
         }
     }
 
-    /**
-     * Getting the appropriate url string and executes the GetDocumentsTask.
-     *
-     * @param next reference to next page
-     */
     public RequestHandle doGetDocuments(Page next, GetDocumentsCallback callback) {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
-            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback);
+            GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
         } else {
@@ -113,11 +97,6 @@ public class DocumentNetworkProvider {
     }
 
 
-    /**
-     * Getting the appropriate url string and executes the GetDeletedDocumentsTask.
-     *
-     * @param next reference to next page
-     */
     public RequestHandle doGetDeletedDocuments(Page next, GetDeletedDocumentsCallback callback) {
         if (Page.isValidPage(next)) {
             String[] paramsArray = new String[]{next.link};
@@ -137,13 +116,13 @@ public class DocumentNetworkProvider {
 
 	/**
 	 * Building the url string with the parameters and executes the PostDocumentTask.
-	 * 
+	 *
 	 * @param document the document to post
 	 */
     public void doPostDocument(Document document, PostDocumentCallback callback) {
 		JsonParser parser = new JsonParser();
 		try {
-			String[] paramsArray = new String[]{documentsUrl, parser.jsonFromDocument(document)};			
+			String[] paramsArray = new String[]{DOCUMENTS_BASE_URL, parser.jsonFromDocument(document)};
 			new PostDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 		} catch (JSONException e) {
             callback.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
@@ -173,14 +152,9 @@ public class DocumentNetworkProvider {
         }
     }
 
-    /**
-	 * Getting the appropriate url string and executes the PostTrashDocumentTask.
-	 * 
-	 * @param documentId the document id to trash
-	 */
     public void doPostTrashDocument(String documentId, TrashDocumentCallback callback) {
-		String[] paramsArray = new String[]{getTrashDocumentUrl(documentId), documentId};			
-		new PostTrashDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+		String[] paramsArray = new String[] { getTrashDocumentUrl(documentId) };
+		new PostTrashDocumentTask(callback, documentId).executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 
     /**
@@ -197,7 +171,7 @@ public class DocumentNetworkProvider {
      * Getting the appropriate url string and executes the GetDocumentTypesTask.
      */
     public RequestHandle doGetDocumentTypes(GetDocumentTypesCallback callback) {
-        String[] paramsArray = new String[] { documentTypesUrl };
+        String[] paramsArray = new String[] {DOCUMENT_TYPES_BASE_URL};
         GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask(callback);
         getDocumentTypesTask.executeOnExecutor(environment.getExecutor(), paramsArray);
         return getDocumentTypesTask;
@@ -212,7 +186,7 @@ public class DocumentNetworkProvider {
      * @return the url string
      */
     String getDeleteDocumentUrl(String documentId) {
-        return documentsUrl + "/"+documentId;
+        return DOCUMENTS_BASE_URL + "/"+documentId;
     }
 
     /**
@@ -222,7 +196,7 @@ public class DocumentNetworkProvider {
      * @return the url string
      */
     String getTrashDocumentUrl(String documentId) {
-        return documentsUrl + "/" + documentId + "/trash";
+        return DOCUMENTS_BASE_URL + "/" + documentId + "/trash";
     }
 
     /**
@@ -233,7 +207,7 @@ public class DocumentNetworkProvider {
      */
     String getGetDocumentUrl(String documentId, View view) {
         StringBuilder url = new StringBuilder();
-        url.append(documentsUrl);
+        url.append(DOCUMENTS_BASE_URL);
         url.append("/").append(documentId);
 
         if (view != null) {
@@ -250,42 +224,44 @@ public class DocumentNetworkProvider {
 	 * @return the url string
 	 * @throws UnsupportedEncodingException 
 	 */
-	String getGetDocumentsUrl(DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
+	public static String getGetDocumentsUrl(String baseUrl, DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
 		StringBuilder url = new StringBuilder();
-		url.append(documentsUrl);
+		url.append(baseUrl);
 		StringBuilder paramsString = new StringBuilder();
 		
 		if (params != null) {
 			boolean firstParam = true;		
 			if (params.view != null) {
-				paramsString.append(firstParam?"?":"&").append("view="+params.view);
+				paramsString.append(firstParam ? "?" : "&").append("view=" + params.view);
 				firstParam = false;
 			}
 			if (params.groupId != null) {
-				paramsString.append(firstParam?"?":"&").append("group_id="+params.groupId);
+				paramsString.append(firstParam ? "?" : "&").append("group_id=" + params.groupId);
 				firstParam = false;
 			}
 			if (params.modifiedSince != null) {
-				paramsString.append(firstParam?"?":"&").append("modified_since="+URLEncoder.encode(params.modifiedSince, "ISO-8859-1"));
+				paramsString.append(firstParam ? "?" : "&").append("modified_since="
+                        + URLEncoder.encode(params.modifiedSince, "ISO-8859-1"));
 				firstParam = false;
 			}
 			if (params.limit != null) {
-				paramsString.append(firstParam?"?":"&").append("limit="+params.limit);
+				paramsString.append(firstParam ? "?" : "&").append("limit=" + params.limit);
 				firstParam = false;
 			}
 			if (params.reverse != null) {
-				paramsString.append(firstParam?"?":"&").append("reverse="+params.reverse);
+				paramsString.append(firstParam ? "?" : "&").append("reverse=" + params.reverse);
 				firstParam = false;
 			}
 			if (params.order != null) {
-				paramsString.append(firstParam?"?":"&").append("order="+params.order);
+				paramsString.append(firstParam ? "?" : "&").append("order=" + params.order);
 				firstParam = false;
 			}
 			if (params.sort != null) {
-				paramsString.append(firstParam?"?":"&").append("sort="+params.sort);
+				paramsString.append(firstParam ? "?" : "&").append("sort=" + params.sort);
 			}
             if (deletedSince != null) {
-                paramsString.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(deletedSince, "ISO-8859-1"));
+                paramsString.append(firstParam ? "?" : "&").append("deleted_since="
+                        + URLEncoder.encode(deletedSince, "ISO-8859-1"));
                 firstParam = false;
             }
 		}
@@ -301,7 +277,7 @@ public class DocumentNetworkProvider {
 	 * @return the url string
 	 */
 	String getPatchDocumentUrl(String documentId) {
-		return documentsUrl + "/" + documentId;
+		return DOCUMENTS_BASE_URL + "/" + documentId;
 	}
 
     /**
@@ -314,13 +290,15 @@ public class DocumentNetworkProvider {
 
     /* TASKS */
 
-    private class GetDocumentsTask extends GetNetworkTask {
+    public static class GetDocumentsTask extends GetNetworkTask {
         private final GetDocumentsCallback callback;
+        private final AccessTokenProvider accessTokenProvider;
 
         List<Document> documents;
 
-        private GetDocumentsTask(GetDocumentsCallback callback) {
+        public GetDocumentsTask(GetDocumentsCallback callback, AccessTokenProvider accessTokenProvider) {
             this.callback = callback;
+            this.accessTokenProvider = accessTokenProvider;
         }
 
         @Override
@@ -535,56 +513,21 @@ public class DocumentNetworkProvider {
 		}
 	}
 	
-	/**
-	 * Executing the api call for posting trash document in the background.
-	 * sending the data to the relevant callback method in the MendeleyDocumentInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
-	private class PostTrashDocumentTask extends NetworkTask {
+	private class PostTrashDocumentTask extends PostNoBodyNetworkTask {
         private final TrashDocumentCallback callback;
 
-		String documentId = null;
+		private final String documentId;
 
-        private PostTrashDocumentTask(TrashDocumentCallback callback) {
+        private PostTrashDocumentTask(TrashDocumentCallback callback, String documentId) {
             this.callback = callback;
+            this.documentId = documentId;
         }
-
-        @Override
-		protected int getExpectedResponse() {
-			return 204;
-		}
 
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }
 
-        @Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
-			String id = params[1];
-
-			try {
-				con = getConnection(url, "POST", getAccessTokenProvider());
-				con.connect();
-				
-				getResponseHeaders();
-
-                final int responseCode = con.getResponseCode();
-                if (responseCode != getExpectedResponse()) {
-					return new HttpResponseException(responseCode, getErrorMessage(con));
-				} else {
-					documentId = id;
-					return null;
-				}
-			}	catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
 		@Override
 		protected void onSuccess() {
 			callback.onDocumentTrashed(documentId);

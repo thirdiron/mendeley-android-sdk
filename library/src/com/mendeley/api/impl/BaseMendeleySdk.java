@@ -31,6 +31,7 @@ import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
+import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Document;
@@ -41,6 +42,7 @@ import com.mendeley.api.network.FileNetworkProvider;
 import com.mendeley.api.network.FolderNetworkProvider;
 import com.mendeley.api.network.GroupNetworkProvider;
 import com.mendeley.api.network.ProfileNetworkProvider;
+import com.mendeley.api.network.TrashNetworkProvider;
 import com.mendeley.api.network.UtilsNetworkProvider;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
@@ -66,6 +68,7 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
     private FolderNetworkProvider folderNetworkProvider;
     private GroupNetworkProvider groupNetworkProvider;
     private UtilsNetworkProvider utilsNetworkProvider;
+    private TrashNetworkProvider trashNetworkProvider;
 
     private Executor executor = AsyncTask.THREAD_POOL_EXECUTOR;
 
@@ -88,6 +91,7 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
         folderNetworkProvider = new FolderNetworkProvider(this, authenticationManager);
         groupNetworkProvider = new GroupNetworkProvider(this, authenticationManager);
         utilsNetworkProvider = new UtilsNetworkProvider(this, authenticationManager);
+        trashNetworkProvider = new TrashNetworkProvider(this, authenticationManager);
     }
 
     protected AuthenticationInterface createAuthenticationInterface() {
@@ -520,6 +524,44 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
             @Override
             public RequestHandle exec() {
                 groupNetworkProvider.doGetGroupMembers(parameters, groupId, callback);
+                return null;
+            }
+        });
+    }
+
+    /* TRASH */
+
+    @Override
+    public RequestHandle getTrashedDocuments(final DocumentRequestParameters parameters, final GetDocumentsCallback callback) {
+        return run(new Command() {
+            @Override
+            public RequestHandle exec() {
+                return trashNetworkProvider.doGetDocuments(parameters, callback);
+            }
+        });
+    }
+
+    @Override
+    public RequestHandle getTrashedDocuments(final GetDocumentsCallback callback) {
+        return getTrashedDocuments((DocumentRequestParameters) null, callback);
+    }
+
+    @Override
+    public RequestHandle getTrashedDocuments(final Page next, final GetDocumentsCallback callback) {
+        return run(new Command() {
+            @Override
+            public RequestHandle exec() {
+                return trashNetworkProvider.doGetDocuments(next, callback);
+            }
+        });
+    }
+
+    @Override
+    public void restoreDocument(final String documentId, final RestoreDocumentCallback callback) {
+        run(new Command() {
+            @Override
+            public RequestHandle exec() {
+                trashNetworkProvider.doPostRecoverDocument(documentId, callback);
                 return null;
             }
         });
