@@ -707,7 +707,7 @@ public class JsonParser {
 
 		            for (int i = 0; i < editors.length(); i++) {
 		            	Person editor = new Person (
-		            			editors.getJSONObject(i).getString("first_name"),
+		            			editors.getJSONObject(i).optString("first_name"),
 		            			editors.getJSONObject(i).getString("last_name"));
 		            	editorsList.add(editor);
 		            }
