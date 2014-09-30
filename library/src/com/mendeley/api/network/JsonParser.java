@@ -688,12 +688,12 @@ public class JsonParser {
                     break;
 				case "authors":
 
-					JSONArray authors = documentObject.getJSONArray(key);
-					ArrayList<Person> authorsList = new ArrayList<Person>();
+					final JSONArray authors = documentObject.getJSONArray(key);
+                    final ArrayList<Person> authorsList = new ArrayList<Person>();
 
 		            for (int i = 0; i < authors.length(); i++) {
-		            	Person author = new Person (
-		            			authors.getJSONObject(i).getString("first_name"),
+		            	final Person author = new Person (
+		            			authors.getJSONObject(i).optString("first_name"),
 		            			authors.getJSONObject(i).getString("last_name"));
 		            	authorsList.add(author);
 		            }
