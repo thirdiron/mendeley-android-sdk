@@ -312,11 +312,6 @@ public class DocumentNetworkProvider {
         }
 
         @Override
-        protected void onCancelled (MendeleyException result) {
-            callback.onDocumentsNotReceived(new UserCancelledException());
-        }
-
-        @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }
@@ -349,11 +344,6 @@ public class DocumentNetworkProvider {
         @Override
         protected String getContentType() {
             return "application/vnd.mendeley-document.1+json";
-        }
-
-        @Override
-        protected void onCancelled (MendeleyException result) {
-            callback.onDeletedDocumentsNotReceived(new UserCancelledException());
         }
 
         @Override
@@ -593,11 +583,6 @@ public class DocumentNetworkProvider {
         protected String getContentType() {
             return "application/vnd.mendeley-document-type.1+json";
         }
-
-	    @Override
-	    protected void onCancelled (MendeleyException result) {
-	    	callback.onDocumentTypesNotReceived(new UserCancelledException());
-	    }
 
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {

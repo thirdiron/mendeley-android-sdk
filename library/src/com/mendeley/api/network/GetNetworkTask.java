@@ -1,6 +1,5 @@
 package com.mendeley.api.network;
 
-import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
@@ -35,16 +34,18 @@ public abstract class GetNetworkTask extends NetworkTask {
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
                 return new HttpResponseException(responseCode, getErrorMessage(con));
-            } else if (!isCancelled()) {
-                is = con.getInputStream();
-                String jsonString = getJsonString(is);
-                processJsonString(jsonString);
-                return null;
-            } else {
+            }
+
+            if (isCancelled()) {
                 return new UserCancelledException();
             }
 
-        }	catch (IOException | JSONException e) {
+            is = con.getInputStream();
+            String jsonString = getJsonString(is);
+            processJsonString(jsonString);
+            return null;
+
+        } catch (IOException | JSONException e) {
             return new JsonParsingException(e.getMessage());
         } finally {
             closeConnection();

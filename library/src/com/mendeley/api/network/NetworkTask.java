@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.util.Utils;
 
@@ -92,12 +93,25 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
     }
 
     @Override
-    protected void onPostExecute(MendeleyException exception) {
+    protected final void onPostExecute(MendeleyException exception) {
         if (exception == null) {
             onSuccess();
         } else {
             onFailure(exception);
         }
+    }
+
+    @Override
+    protected void onCancelled(MendeleyException e) {
+        super.onCancelled(e);
+        // NOTE: this assumes that subclasses return an UserCancelledException in case of cancellation
+        onFailure(e);
+    }
+
+    @Override
+    protected final void onCancelled() {
+        super.onCancelled();
+        onFailure(new UserCancelledException());
     }
 
     protected void onProgressUpdate(Integer[] progress) {
