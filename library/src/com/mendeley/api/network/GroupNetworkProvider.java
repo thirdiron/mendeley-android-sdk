@@ -168,11 +168,6 @@ public class GroupNetworkProvider {
         }
 
         @Override
-        protected void onCancelled (MendeleyException result) {
-            callback.onGroupsNotReceived(new UserCancelledException());
-        }
-
-        @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }

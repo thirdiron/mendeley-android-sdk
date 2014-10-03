@@ -245,11 +245,6 @@ public class FileNetworkProvider {
         }
 
         @Override
-	    protected void onCancelled (MendeleyException result) {
-	    	callback.onFilesNotReceived(new UserCancelledException());
-	    }
-
-        @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }
@@ -380,11 +375,12 @@ public class FileNetworkProvider {
 	    @Override
 	    protected void onCancelled (MendeleyException result) {
 	    	fileTaskMap.remove(fileId);
-	    	
+
 	    	if (tempFilePath != null) {
 		    	java.io.File file = new java.io.File(tempFilePath);
 		    	file.delete();
 	    	}
+            super.onCancelled(result);
 	    }
 
         /**

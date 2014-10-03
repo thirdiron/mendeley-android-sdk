@@ -299,11 +299,6 @@ public class FolderNetworkProvider {
         }
 
         @Override
-        protected void onCancelled (MendeleyException result) {
-            callback.onFoldersNotReceived(new UserCancelledException());
-        }
-
-        @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }

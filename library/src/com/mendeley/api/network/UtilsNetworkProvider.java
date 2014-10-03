@@ -101,6 +101,7 @@ public class UtilsNetworkProvider {
         @Override
         protected void onCancelled (MendeleyException result) {
             fileData = null;
+            super.onCancelled(result);
         }
 
         @Override
