@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.provider;
 
 import org.json.JSONException;
 
@@ -6,6 +6,9 @@ import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.network.Environment;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.task.GetNetworkTask;
 
 import static com.mendeley.api.network.NetworkUtils.*;
 

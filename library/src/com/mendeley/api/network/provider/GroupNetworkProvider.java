@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
@@ -7,9 +7,12 @@ import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
-import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.UserRole;
+import com.mendeley.api.network.Environment;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 

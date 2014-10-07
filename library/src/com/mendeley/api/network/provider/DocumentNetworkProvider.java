@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.RequestHandle;
@@ -14,9 +14,18 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
-import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
+import com.mendeley.api.network.Environment;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.NetworkUtils;
+import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.task.DeleteNetworkTask;
+import com.mendeley.api.network.task.GetNetworkTask;
+import com.mendeley.api.network.task.NetworkTask;
+import com.mendeley.api.network.task.PatchNetworkTask;
+import com.mendeley.api.network.task.PostNetworkTask;
+import com.mendeley.api.network.task.PostNoBodyNetworkTask;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
@@ -37,7 +46,6 @@ import java.util.Map;
 
 import static com.mendeley.api.network.NetworkUtils.API_URL;
 import static com.mendeley.api.network.NetworkUtils.HttpPatch;
-import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
 import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
 
@@ -145,8 +153,8 @@ public class DocumentNetworkProvider {
 
         JsonParser parser = new JsonParser();
         try {
-            String[] paramsArray = new String[]{getPatchDocumentUrl(documentId), documentId, dateString, parser.jsonFromDocument(document)};
-            new PatchDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+            String[] paramsArray = new String[] { getPatchDocumentUrl(documentId), parser.jsonFromDocument(document) };
+            new PatchDocumentTask(callback, documentId, dateString).executeOnExecutor(environment.getExecutor(), paramsArray);
         } catch (JSONException e) {
             callback.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
         }
@@ -445,53 +453,23 @@ public class DocumentNetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-	private class PatchDocumentTask extends NetworkTask {
+	private class PatchDocumentTask extends PatchNetworkTask {
         private final PatchDocumentCallback callback;
 
-		String documentId = null;
+		private final String documentId;
+        private final String date;
 
-        private PatchDocumentTask(PatchDocumentCallback callback) {
+        private PatchDocumentTask(PatchDocumentCallback callback, String documentId, String date) {
             this.callback = callback;
+            this.documentId = documentId;
+            this.date = date;
         }
-
-        @Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
 
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
         }
 
-        @Override
-		protected MendeleyException doInBackground(String... params) {
-			String url = params[0];
-			String id = params[1];
-			String date = params[2];
-			String jsonString = params[3];
-
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getHttpPatch(url, date, getAccessTokenProvider());
-
-	        try {
-	        	httpPatch.setEntity(new StringEntity(jsonString));
-	        	HttpResponse response = httpclient.execute(httpPatch);
-
-				final int responseCode = response.getStatusLine().getStatusCode();
-				if (responseCode != getExpectedResponse()) {
-					return new HttpResponseException(responseCode, getErrorMessage(response));
-				} else {
-					documentId = id;
-					return null;
-				}
-			} catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
 		@Override
 		protected void onSuccess() {
 			callback.onDocumentPatched(documentId);
@@ -501,7 +479,17 @@ public class DocumentNetworkProvider {
 		protected void onFailure(MendeleyException exception) {
 			callback.onDocumentNotPatched(exception);
 		}
-	}
+
+        @Override
+        protected String getDate() {
+            return date;
+        }
+
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
+        }
+    }
 	
 	private class PostTrashDocumentTask extends PostNoBodyNetworkTask {
         private final TrashDocumentCallback callback;

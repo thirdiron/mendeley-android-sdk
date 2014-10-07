@@ -1,9 +1,9 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.task;
 
-import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.network.NetworkUtils;
 
 import java.io.IOException;
 
@@ -31,7 +31,7 @@ public abstract class DeleteNetworkTask extends NetworkTask {
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                return new HttpResponseException(responseCode, getErrorMessage(con));
+                return new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(con));
             } else {
                 return null;
             }

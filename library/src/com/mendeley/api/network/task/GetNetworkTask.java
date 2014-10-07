@@ -1,9 +1,10 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.task;
 
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.UserCancelledException;
+import com.mendeley.api.network.task.NetworkTask;
 
 import org.json.JSONException;
 

@@ -25,7 +25,7 @@ public class NetworkUtils {
     /**
      * Extends HttpEntityEnclosingRequestBase to provide PATCH request method.
      */
-    static class HttpPatch extends HttpEntityEnclosingRequestBase {
+    public static class HttpPatch extends HttpEntityEnclosingRequestBase {
         public final static String METHOD_NAME = "PATCH";
 
         public HttpPatch() {
@@ -55,7 +55,7 @@ public class NetworkUtils {
      * @param con the URLConnection object
      * @return the error message string
      */
-    static String getErrorMessage(HttpsURLConnection con) {
+    public static String getErrorMessage(HttpsURLConnection con) {
         String message = "";
         InputStream is = null;
         try {
@@ -85,7 +85,7 @@ public class NetworkUtils {
      *
      * @return the error message string
      */
-    static String getErrorMessage(HttpResponse response) {
+    public static String getErrorMessage(HttpResponse response) {
         String message = "";
         InputStream is = null;
         try {
@@ -110,35 +110,15 @@ public class NetworkUtils {
     }
 
     /**
-     * Creating HttpPatch object with the given url, the date string
-     * if not null and mendeley document content type.
-     *
-     * @param url the call url
-     * @param date the required date string
-     * @return the HttpPatch object
+     * @param date if-Unmodified-Since date, or null
      */
-    static HttpPatch getHttpPatch(String url, String date, AccessTokenProvider accessTokenProvider) {
+    public static HttpPatch getHttpPatch(String url, String date, String contentType, AccessTokenProvider accessTokenProvider) {
         HttpPatch httpPatch = new HttpPatch(url);
         httpPatch.setHeader("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
-        httpPatch.setHeader("Content-type", "application/vnd.mendeley-document.1+json");
+        httpPatch.setHeader("Content-type", contentType);
         if (date != null) {
             httpPatch.setHeader("If-Unmodified-Since", date);
         }
-
-        return httpPatch;
-    }
-
-    /**
-     * Creating HttpPatch object with the given url
-     * and mendeley folder update content type.
-     *
-     * @param url the call url
-     * @return the HttpPatch object
-     */
-    static HttpPatch getFolderHttpPatch(String url, AccessTokenProvider accessTokenProvider) {
-        HttpPatch httpPatch = new HttpPatch(url);
-        httpPatch.setHeader("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
-        httpPatch.setHeader("Content-type", "application/vnd.mendeley-folder.1+json");
 
         return httpPatch;
     }
@@ -152,7 +132,7 @@ public class NetworkUtils {
      * @return the HttpsURLConnection object
      * @throws IOException
      */
-    static HttpsURLConnection getConnection(String url, String method, AccessTokenProvider accessTokenProvider) throws IOException {
+    public static HttpsURLConnection getConnection(String url, String method, AccessTokenProvider accessTokenProvider) throws IOException {
         HttpsURLConnection con = null;
         URL callUrl = new URL(url);
         con = (HttpsURLConnection) callUrl.openConnection();
@@ -174,7 +154,7 @@ public class NetworkUtils {
      * @return the HttpsURLConnection object
      * @throws IOException
      */
-    static HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
+    public static HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
         HttpsURLConnection con = null;
         URL callUrl = new URL(url);
         con = (HttpsURLConnection) callUrl.openConnection();
@@ -185,7 +165,7 @@ public class NetworkUtils {
         return con;
     }
 
-    static HttpURLConnection getHttpDownloadConnection(String url, String method) throws IOException {
+    public static HttpURLConnection getHttpDownloadConnection(String url, String method) throws IOException {
         HttpURLConnection con = null;
         URL callUrl = new URL(url);
         con = (HttpURLConnection) callUrl.openConnection();
@@ -203,7 +183,7 @@ public class NetworkUtils {
      * @return the json string
      * @throws IOException
      */
-    static String getJsonString(InputStream stream) throws IOException {
+    public static String getJsonString(InputStream stream) throws IOException {
         StringBuffer data = new StringBuffer();
         InputStreamReader isReader = null;
         BufferedReader br = null;

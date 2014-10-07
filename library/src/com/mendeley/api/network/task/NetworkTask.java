@@ -1,4 +1,4 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.task;
 
 import android.os.AsyncTask;
 
@@ -22,13 +22,13 @@ import javax.net.ssl.HttpsURLConnection;
 
 public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyException>
             implements RequestHandle {
-    Page next;
-    String location;
-    Date serverDate;
+    protected Page next;
+    protected String location;
+    protected Date serverDate;
 
-    InputStream is = null;
-    OutputStream os = null;
-    HttpsURLConnection con = null;
+    protected InputStream is = null;
+    protected OutputStream os = null;
+    protected HttpsURLConnection con = null;
 
     protected abstract int getExpectedResponse();
 

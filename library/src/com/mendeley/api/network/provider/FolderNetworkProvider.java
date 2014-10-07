@@ -1,14 +1,10 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.provider;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
 import com.mendeley.api.auth.AccessTokenProvider;
@@ -25,9 +21,16 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
-import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.network.Environment;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.task.DeleteNetworkTask;
+import com.mendeley.api.network.task.GetNetworkTask;
+import com.mendeley.api.network.task.PatchNetworkTask;
+import com.mendeley.api.network.task.PostNetworkTask;
+import com.mendeley.api.network.task.PostNoResponseNetworkTask;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.Page;
 
@@ -92,8 +95,8 @@ public class FolderNetworkProvider {
 	 * @param folderId the folder id
 	 */
     public void doGetFolderDocumentIds(FolderRequestParameters params, String folderId, GetFolderDocumentIdsCallback callback) {
-		String[] paramsArray = new String[]{getGetFoldersUrl(params, getGetFolderDocumentIdsUrl(folderId)), folderId};			
-		new GetFolderDocumentIdsTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+		String[] paramsArray = new String[] { getGetFoldersUrl(params, getGetFolderDocumentIdsUrl(folderId)) };
+		new GetFolderDocumentIdsTask(callback, folderId).executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 
     /**
@@ -103,8 +106,8 @@ public class FolderNetworkProvider {
      */
     public void doGetFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
         if (Page.isValidPage(next)) {
-    		String[] paramsArray = new String[]{next.link, folderId};			
-            new GetFolderDocumentIdsTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+    		String[] paramsArray = new String[] { next.link };
+            new GetFolderDocumentIdsTask(callback, folderId).executeOnExecutor(environment.getExecutor(), paramsArray);
         } else {
             callback.onFolderDocumentIdsNotReceived(new NoMorePagesException());
         }
@@ -140,8 +143,8 @@ public class FolderNetworkProvider {
         } catch (JSONException e) {
             callback.onFolderNotPatched(new JsonParsingException(e.getMessage()));
         }
-        String[] paramsArray = new String[]{getPatchFolderUrl(folderId), folderId, folderString};
-        new PatchFolderTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+        String[] paramsArray = new String[] { getPatchFolderUrl(folderId), folderString };
+        new PatchFolderTask(callback, folderId).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -170,8 +173,8 @@ public class FolderNetworkProvider {
                 callback.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
             }
         }
-        String[] paramsArray = new String[]{getPostDocumentToFolderUrl(folderId), documentString, folderId};
-        new PostDocumentToFolderTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
+        String[] paramsArray = new String[] { getPostDocumentToFolderUrl(folderId), documentString };
+        new PostDocumentToFolderTask(callback, folderId).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -397,19 +400,15 @@ public class FolderNetworkProvider {
 	 * If the call response code is different than expected or an exception is being thrown in the process
 	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
 	 */
-    private class PatchFolderTask extends NetworkTask {
+    private class PatchFolderTask extends PatchNetworkTask {
         private final PatchFolderCallback callback;
 
-		String folderId = null;
+		private final String folderId;
 
-        private PatchFolderTask(PatchFolderCallback callback) {
+        private PatchFolderTask(PatchFolderCallback callback, String folderId) {
             this.callback = callback;
+            this.folderId = folderId;
         }
-
-        @Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
 
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
@@ -417,33 +416,16 @@ public class FolderNetworkProvider {
         }
 
         @Override
-		protected MendeleyException doInBackground(String... params) {
-			
-			String url = params[0];
-			String id = params[1];
-			String jsonString = params[2];
-			
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpPatch httpPatch = getFolderHttpPatch(url, getAccessTokenProvider());
+        protected String getDate() {
+            return null;
+        }
 
-	        try {
-	        	
-	        	httpPatch.setEntity(new StringEntity(jsonString));
-	        	HttpResponse response = httpclient.execute(httpPatch);
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-folder.1+json";
+        }
 
-				final int responseCode = response.getStatusLine().getStatusCode();
-				if (responseCode != getExpectedResponse()) {
-					return new HttpResponseException(responseCode, getErrorMessage(response));
-				} else {
-					folderId = id;
-					return null;
-				}
-			} catch (IOException e) {
-				return new JsonParsingException(e.getMessage());
-			} 			
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {
 			callback.onFolderPatched(folderId);
 		}
@@ -485,24 +467,14 @@ public class FolderNetworkProvider {
         }
     }
 
-    /**
-     * Executing the api call for posting a document to a folder in the background.
-     * sending the data to the relevant callback method in the MendeleyFolderInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
-    private class PostDocumentToFolderTask extends NetworkTask {
+    private class PostDocumentToFolderTask extends PostNoResponseNetworkTask {
         private final PostDocumentToFolderCallback callback;
 
-        String folderId;
+        private final String folderId;
 
-        private PostDocumentToFolderTask(PostDocumentToFolderCallback callback) {
+        private PostDocumentToFolderTask(PostDocumentToFolderCallback callback, String folderId) {
             this.callback = callback;
-        }
-
-        @Override
-        protected int getExpectedResponse() {
-            return 201;
+            this.folderId = folderId;
         }
 
         @Override
@@ -511,39 +483,8 @@ public class FolderNetworkProvider {
         }
 
         @Override
-        protected MendeleyException doInBackground(String... params) {
-
-            String url = params[0];
-            String jsonString = params[1];
-
-            try {
-                con = getConnection(url, "POST", getAccessTokenProvider());
-                con.addRequestProperty("Content-type", "application/vnd.mendeley-folder-add-document.1+json");
-                con.connect();
-
-                os = con.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(os, "UTF-8"));
-                writer.write(jsonString);
-                writer.flush();
-                writer.close();
-                os.close();
-
-                getResponseHeaders();
-
-                final int responseCode = con.getResponseCode();
-                if (responseCode != getExpectedResponse()) {
-                    return new HttpResponseException(responseCode, getErrorMessage(con));
-                } else {
-                    folderId = params[2];
-                    return null;
-                }
-
-            }	catch (IOException e) {
-                return new JsonParsingException(e.getMessage());
-            } finally {
-                closeConnection();
-            }
+        protected String getContentType() {
+            return "application/vnd.mendeley-folder-add-document.1+json";
         }
 
         @Override
@@ -557,12 +498,6 @@ public class FolderNetworkProvider {
         }
     }
 
-    /**
-	 * Executing the api call for deleting a document from folder in the background.
-	 * sending the data to the relevant callback method in the MendeleyFolderInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
     private class DeleteDocumentFromFolderTask extends DeleteNetworkTask {
 		private final String documentId;
         private final DeleteFolderDocumentCallback callback;
@@ -588,27 +523,17 @@ public class FolderNetworkProvider {
 		}
 	}
 	
-	/**
-	 * Executing the api call for getting folders in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to object
-	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
-    private class GetFolderDocumentIdsTask extends NetworkTask {
+    private class GetFolderDocumentIdsTask extends GetNetworkTask {
         private final GetFolderDocumentIdsCallback callback;
 
-		List<DocumentId> documentIds;
-		String folderId;
+        private final String folderId;
 
-        private GetFolderDocumentIdsTask(GetFolderDocumentIdsCallback callback) {
+		private List<DocumentId> documentIds;
+
+        private GetFolderDocumentIdsTask(GetFolderDocumentIdsCallback callback, String folderId) {
             this.callback = callback;
+            this.folderId = folderId;
         }
-
-        @Override
-		protected int getExpectedResponse() {
-			return 200;
-		}
 
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
@@ -616,40 +541,16 @@ public class FolderNetworkProvider {
         }
 
         @Override
-		protected MendeleyException doInBackground(String... params) {
+        protected void processJsonString(String jsonString) throws JSONException {
+            documentIds = JsonParser.parseDocumentIds(jsonString);
+        }
 
-			String url = params[0];
-			if (params.length > 1) {
-				folderId = params[1];
-			}
-			try {
-				con = getConnection(url, "GET", getAccessTokenProvider());
-				con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
-				con.connect();
-				
-				getResponseHeaders();
+        @Override
+        protected String getContentType() {
+            return "application/vnd.mendeley-document.1+json";
+        }
 
-                final int responseCode = con.getResponseCode();
-                if (responseCode != getExpectedResponse()) {
-					return new HttpResponseException(responseCode, getErrorMessage(con));
-				} else {			
-				
-					is = con.getInputStream();
-					String jsonString = getJsonString(is);					
-
-					documentIds = JsonParser.parseDocumentIds(jsonString);
-
-					return null;
-				}
-				 
-			}	catch (IOException | JSONException e) {
-				return new JsonParsingException(e.getMessage());
-			} finally {
-				closeConnection();
-			}
-		}
-		
-		@Override
+        @Override
 		protected void onSuccess() {
 			callback.onFolderDocumentIdsReceived(folderId, documentIds, next);
 		}

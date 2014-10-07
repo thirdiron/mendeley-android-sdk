@@ -1,10 +1,13 @@
-package com.mendeley.api.network;
+package com.mendeley.api.network.provider;
 
 import android.util.Log;
 
 import com.mendeley.api.auth.AccessTokenProvider;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.network.Environment;
+import com.mendeley.api.network.NetworkUtils;
+import com.mendeley.api.network.task.NetworkTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
