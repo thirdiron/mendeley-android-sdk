@@ -102,8 +102,8 @@ public class FileNetworkProvider {
 	 * @param folderPath the path in which to save the file
      * @param callback
      */
-    public void doGetFile(final String fileId, final String documentId, final String folderPath, String fileName, GetFileCallback callback) {
-		final GetFileTask fileTask = new GetFileTask(folderPath, fileName, fileId, documentId, callback);
+    public void doGetFile(final String fileId, final String folderPath, String fileName, GetFileCallback callback) {
+		final GetFileTask fileTask = new GetFileTask(folderPath, fileName, fileId, callback);
 		fileTaskMap.put(fileId, fileTask);
 		String[] params = new String[] { getGetFileUrl(fileId) };
 		fileTask.executeOnExecutor(environment.getExecutor(), params);
@@ -274,7 +274,6 @@ public class FileNetworkProvider {
 		private String fileName;
 
         private final String fileId;
-        private final String documentId;
 
         private String tempFilePath;
         private String finalFilePath;
@@ -282,11 +281,10 @@ public class FileNetworkProvider {
         /**
          * @param fileName if null, use the name from the file itself.
          */
-        private GetFileTask(String folderPath, String fileName, String fileId, String documentId, GetFileCallback callback) {
+        private GetFileTask(String folderPath, String fileName, String fileId, GetFileCallback callback) {
             this.folderPath = folderPath;
             this.fileName = fileName;
             this.fileId = fileId;
-            this.documentId = documentId;
             this.callback = callback;
         }
 
@@ -374,7 +372,7 @@ public class FileNetworkProvider {
 		
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
-	    	callback.onFileDownloadProgress(fileId, documentId, progress[0]);
+	    	callback.onFileDownloadProgress(fileId, progress[0]);
 	    }
 	    
 	    @Override
@@ -400,13 +398,13 @@ public class FileNetworkProvider {
 		@Override
 		protected void onSuccess() {
             fileTaskMap.remove(fileId);
-            callback.onFileReceived(fileId, documentId, fileName);
+            callback.onFileReceived(fileId, fileName);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {		
 			fileTaskMap.remove(fileId);
-			callback.onFileNotReceived(fileId, documentId, exception);
+			callback.onFileNotReceived(fileId, exception);
 		}
 	}
 

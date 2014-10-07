@@ -197,7 +197,7 @@ public interface MendeleySdk {
      * @param fileId the id of the file to download.
      * @param folderPath the local filesystem path in which to save the file.
      */
-    void getFile(String fileId, String documentId, String folderPath, GetFileCallback callback);
+    void getFile(String fileId, String folderPath, GetFileCallback callback);
 
     /**
      * Download the content of a file.
@@ -206,7 +206,7 @@ public interface MendeleySdk {
      * @param folderPath the local filesystem path in which to save the file.
      * @param fileName the file name to store the file as.
      */
-    void getFile(String fileId, String documentId, String folderPath, String fileName, GetFileCallback callback);
+    void getFile(String fileId, String folderPath, String fileName, GetFileCallback callback);
 
     /**
      * Cancel an in-progress file download.
