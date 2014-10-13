@@ -16,6 +16,13 @@ public class MendeleySdkFactory {
     }
 
     /**
+     * Return a version of the MendeleySdk singleton providing blocking calls.
+     */
+    public static BlockingSdk getBlockingInstance() {
+        return DefaultMendeleySdk.getInstance();
+    }
+
+    /**
      * Return the SDK version name.
      */
     public static String getSdkVersion(Context context) {

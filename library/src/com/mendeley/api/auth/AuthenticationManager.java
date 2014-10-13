@@ -10,6 +10,8 @@ import android.util.Log;
 
 import com.mendeley.api.activity.SignInActivity;
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.exceptions.AuthenticationException;
+import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.impl.BaseMendeleySdk;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.util.Utils;
@@ -159,15 +161,33 @@ public class AuthenticationManager implements AccessTokenProvider {
         return timeToExpirySec < MIN_TOKEN_VALIDITY_SEC;
     }
 
+    /**
+     * Start the refresh process, and return a provisional RequestHandle
+     */
     public RequestHandle refreshToken(Command command) {
-        // Start the refresh process, and return a provisional RequestHandle
         RefreshTokenTask refreshTask = new RefreshTokenTask(command);
         RequestHandle requestHandle = refreshTask.getRequestHandle();
         refreshTask.execute();
         return requestHandle;
     }
-	
-	/**
+
+    /**
+     * Refresh the token. Blocks until done.
+     */
+    public void refreshToken() throws MendeleyException {
+        HttpResponse response = null;
+        try {
+            response = doRefreshPost();
+            String jsonTokenString = JsonParser.getJsonString(response.getEntity().getContent());
+            setTokenDetails(jsonTokenString);
+        } catch (IOException e) {
+            throw new AuthenticationException("Cannot refresh token");
+        } catch (JSONException e) {
+            throw new AuthenticationException("Cannot refresh token");
+        }
+    }
+
+    /**
 	 * Task to refresh the access token.
 	 */
     private class RefreshTokenTask extends AsyncTask<Void, Void, Boolean> {

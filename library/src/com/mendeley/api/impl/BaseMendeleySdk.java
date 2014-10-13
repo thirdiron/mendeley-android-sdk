@@ -2,6 +2,7 @@ package com.mendeley.api.impl;
 
 import android.os.AsyncTask;
 
+import com.mendeley.api.BlockingSdk;
 import com.mendeley.api.MendeleySdk;
 import com.mendeley.api.auth.AuthenticationInterface;
 import com.mendeley.api.auth.AuthenticationManager;
@@ -33,9 +34,11 @@ import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
+import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.provider.FileNetworkProvider;
@@ -55,7 +58,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.concurrent.Executor;
 
-public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
+public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Environment {
 
     private static final String TAG = MendeleySdk.class.getSimpleName();
 
@@ -114,6 +117,29 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
 
     public interface Command {
         RequestHandle exec();
+    }
+
+    public abstract class Procedure<Result> {
+        protected abstract Result exec() throws MendeleyException;
+
+        public Result run() throws MendeleyException {
+            if (authenticationManager == null || !authenticationManager.isSignedIn()) {
+                // Must call signIn first - caller error!
+                throw new NotSignedInException();
+            }
+            if (authenticationManager.willExpireSoon()) {
+                authenticationManager.refreshToken();
+            }
+            /*
+                If the expiry time check above hasn't worked for some reason, and the server
+                believes the credentials have expired anyway, we will get 401 Unauthorized,
+                message "Could not access resource because: Token has expired".
+                Currently we do not catch this.
+                In future we intend to do so, refresh the token and re-run the procedure.
+                The 401 error code and message is under review by the Platform team.
+            */
+            return exec();
+        }
     }
 
     /* DOCUMENTS */
@@ -322,7 +348,7 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
         });
     }
 
-    /* PROFILES */
+    /* PROFILES ASYNC */
 
     @Override
     public void getMyProfile(final GetProfileCallback callback) {
@@ -344,6 +370,28 @@ public abstract class BaseMendeleySdk implements MendeleySdk, Environment {
                 return null;
             }
         });
+    }
+
+    /* PROFILES BLOCKING */
+
+    @Override
+    public Profile getMyProfile() throws MendeleyException {
+        return new Procedure<Profile>() {
+            @Override
+            public Profile exec() throws MendeleyException {
+                return profileNetworkProvider.doGetMyProfile();
+            }
+        }.run();
+    }
+
+    @Override
+    public Profile getProfile(final String profileId) throws MendeleyException {
+        return new Procedure<Profile>() {
+            @Override
+            public Profile exec() throws MendeleyException {
+                return profileNetworkProvider.doGetProfile(profileId);
+            }
+        }.run();
     }
 
     /* FOLDERS */
