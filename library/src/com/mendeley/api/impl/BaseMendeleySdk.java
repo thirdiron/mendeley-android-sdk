@@ -34,6 +34,7 @@ import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
+import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Document;
@@ -130,15 +131,17 @@ public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Envir
             if (authenticationManager.willExpireSoon()) {
                 authenticationManager.refreshToken();
             }
-            /*
-                If the expiry time check above hasn't worked for some reason, and the server
-                believes the credentials have expired anyway, we will get 401 Unauthorized,
-                message "Could not access resource because: Token has expired".
-                Currently we do not catch this.
-                In future we intend to do so, refresh the token and re-run the procedure.
-                The 401 error code and message is under review by the Platform team.
-            */
-            return exec();
+            try {
+                return exec();
+            } catch (HttpResponseException e) {
+                if (e.httpReturnCode == 401 && e.getMessage().contains("Token has expired")) {
+                    // The refresh-token-in-advance logic did not work for some reason: force a refresh now
+                    authenticationManager.refreshToken();
+                    return exec();
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 
