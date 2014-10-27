@@ -15,7 +15,7 @@ import com.mendeley.api.callbacks.MendeleySignInInterface;
  * <p>
  * Developer applications should not use this class.
  */
-public class InternalMendeleySdk extends BaseMendeleySdk {
+public class InternalMendeleySdk extends AsyncMendeleySdk {
     private static InternalMendeleySdk instance;
 
     private InternalMendeleySdk() {}

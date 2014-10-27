@@ -1,6 +1,7 @@
 package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
@@ -8,6 +9,7 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
 import com.mendeley.api.network.task.PostNoBodyNetworkTask;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
@@ -19,7 +21,7 @@ import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDo
 import static com.mendeley.api.network.NetworkUtils.API_URL;
 
 public class TrashNetworkProvider {
-    private static String BASE_URL = API_URL + "trash";
+    public static String BASE_URL = API_URL + "trash";
 
     private final Environment environment;
     private final AccessTokenProvider accessTokenProvider;
@@ -62,7 +64,7 @@ public class TrashNetworkProvider {
 
     /* URLS */
 
-    String getRecoverUrl(String documentId) {
+    public static String getRecoverUrl(String documentId) {
         return BASE_URL + "/" + documentId + "/restore";
     }
 

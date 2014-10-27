@@ -6,7 +6,7 @@ import com.mendeley.api.ClientCredentials;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
 
-public class DefaultMendeleySdk extends BaseMendeleySdk {
+public class DefaultMendeleySdk extends AsyncMendeleySdk {
     private static DefaultMendeleySdk instance;
 
     private DefaultMendeleySdk() {}

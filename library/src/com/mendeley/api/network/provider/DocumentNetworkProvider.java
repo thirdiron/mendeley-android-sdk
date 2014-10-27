@@ -276,7 +276,7 @@ public class DocumentNetworkProvider {
 	 * @param documentId the id of the document to patch
 	 * @return the url string
 	 */
-	private static String getPatchDocumentUrl(String documentId) {
+	public static String getPatchDocumentUrl(String documentId) {
 		return DOCUMENTS_BASE_URL + "/" + documentId;
 	}
 

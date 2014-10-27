@@ -1,11 +1,14 @@
 package com.mendeley.api;
 
+import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
+import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.document.PatchDocumentCallback;
 import com.mendeley.api.callbacks.document.PostDocumentCallback;
 import com.mendeley.api.callbacks.document.TrashDocumentCallback;
+import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Profile;
@@ -32,7 +35,7 @@ public interface BlockingSdk {
     /**
      * Retrieve subsequent pages of documents in the user's library.
      *
-     * @next reference to next page returned by a previous onDocumentsReceived() callback.
+     * @next reference to next page returned in a previous DocumentList.
      */
     DocumentList getDocuments(Page next) throws MendeleyException;
 
@@ -55,7 +58,7 @@ public interface BlockingSdk {
     /**
      * Retrieve subsequent pages of deleted documents in the user's library.
      *
-     * @next reference to next page returned by a previous onDeletedDocumentsReceived() callback.
+     * @next reference to next page returned in a previous DocumentIdList.
      */
     DocumentIdList getDeletedDocuments(Page next) throws MendeleyException;
 
@@ -94,6 +97,32 @@ public interface BlockingSdk {
      * Return a list of valid document types.
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
+
+    /* TRASH */
+
+    /**
+     * Retrieve a list of documents in the user's trash.
+     */
+    DocumentList getTrashedDocuments(DocumentRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Retrieve a list of documents in the user's trash.
+     */
+    DocumentList getTrashedDocuments() throws MendeleyException;
+
+    /**
+     * Retrieve subsequent pages of documents from the user's trash.
+     *
+     * @next reference to next page returned by a previous DocumentList from getTrashedDocuments().
+     */
+    DocumentList getTrashedDocuments(Page next) throws MendeleyException;
+
+    /**
+     * Move a document from trash into the user's library.
+     *
+     * @param documentId id of the document to restore.
+     */
+    void restoreDocument(String documentId) throws MendeleyException;
 
     /* PROFILES */
 
