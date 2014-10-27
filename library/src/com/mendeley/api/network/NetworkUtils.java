@@ -133,13 +133,7 @@ public class NetworkUtils {
      * @throws IOException
      */
     public static HttpsURLConnection getConnection(String url, String method, AccessTokenProvider accessTokenProvider) throws IOException {
-        HttpsURLConnection con = null;
-        URL callUrl = new URL(url);
-        con = (HttpsURLConnection) callUrl.openConnection();
-        con.setReadTimeout(3000);
-        con.setConnectTimeout(3000);
-        con.setRequestMethod(method);
-
+        final HttpsURLConnection con = getDownloadConnection(url, method);
         con.addRequestProperty("Authorization", "Bearer " + accessTokenProvider.getAccessToken());
 
         return con;
@@ -155,20 +149,19 @@ public class NetworkUtils {
      * @throws IOException
      */
     public static HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
-        HttpsURLConnection con = null;
-        URL callUrl = new URL(url);
-        con = (HttpsURLConnection) callUrl.openConnection();
+        final URL callUrl = new URL(url);
+        final HttpsURLConnection con = (HttpsURLConnection) callUrl.openConnection();
         con.setReadTimeout(3000);
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);
 
+        con.setSSLSocketFactory(new PreferredCipherSuiteSSLSocketFactory(con.getSSLSocketFactory(), "TLS_RSA_WITH_AES_256_CBC_SHA"));
         return con;
     }
 
     public static HttpURLConnection getHttpDownloadConnection(String url, String method) throws IOException {
-        HttpURLConnection con = null;
-        URL callUrl = new URL(url);
-        con = (HttpURLConnection) callUrl.openConnection();
+        final URL callUrl = new URL(url);
+        final HttpURLConnection con = (HttpURLConnection) callUrl.openConnection();
         con.setReadTimeout(3000);
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);
