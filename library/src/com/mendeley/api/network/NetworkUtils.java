@@ -1,7 +1,6 @@
 package com.mendeley.api.network;
 
 import com.mendeley.api.auth.AccessTokenProvider;
-import com.mendeley.api.auth.AuthenticationManager;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -155,7 +154,7 @@ public class NetworkUtils {
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);
 
-        con.setSSLSocketFactory(new PreferredCipherSuiteSSLSocketFactory(con.getSSLSocketFactory(), "TLS_RSA_WITH_AES_256_CBC_SHA"));
+        con.setSSLSocketFactory(new TSLOnlySocketFactory(con.getSSLSocketFactory()));
         return con;
     }
 
