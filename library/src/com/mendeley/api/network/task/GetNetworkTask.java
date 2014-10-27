@@ -46,8 +46,10 @@ public abstract class GetNetworkTask extends NetworkTask {
             processJsonString(jsonString);
             return null;
 
-        } catch (IOException | JSONException e) {
-            return new JsonParsingException(e.getMessage());
+        } catch (JSONException e) {
+            return new JsonParsingException("Error parsing server response: " + e.toString(), e);
+        } catch (Exception e) {
+            return new MendeleyException("Error reading server response: " + e.toString() , e);
         } finally {
             closeConnection();
         }
