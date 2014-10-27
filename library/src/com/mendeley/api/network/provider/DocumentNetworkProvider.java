@@ -1,8 +1,11 @@
 package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.DocumentIdList;
+import com.mendeley.api.callbacks.document.DocumentList;
 import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
 import com.mendeley.api.callbacks.document.GetDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
@@ -20,6 +23,9 @@ import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NetworkUtils;
 import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.procedure.GetNetworkProcedure;
+import com.mendeley.api.network.procedure.PatchNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNetworkProcedure;
 import com.mendeley.api.network.task.DeleteNetworkTask;
 import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.network.task.NetworkTask;
@@ -79,7 +85,8 @@ public class DocumentNetworkProvider {
         }
     }
 
-    public RequestHandle doGetDeletedDocuments(String deletedSince, DocumentRequestParameters params, GetDeletedDocumentsCallback callback) {
+    public RequestHandle doGetDeletedDocuments(String deletedSince, DocumentRequestParameters params,
+                                               GetDeletedDocumentsCallback callback) {
         try {
             String[] paramsArray = new String[] { getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, deletedSince) };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
@@ -94,7 +101,7 @@ public class DocumentNetworkProvider {
 
     public RequestHandle doGetDocuments(Page next, GetDocumentsCallback callback) {
         if (Page.isValidPage(next)) {
-            String[] paramsArray = new String[]{next.link};
+            String[] paramsArray = new String[] { next.link };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
@@ -107,7 +114,7 @@ public class DocumentNetworkProvider {
 
     public RequestHandle doGetDeletedDocuments(Page next, GetDeletedDocumentsCallback callback) {
         if (Page.isValidPage(next)) {
-            String[] paramsArray = new String[]{next.link};
+            String[] paramsArray = new String[] { next.link };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
@@ -123,14 +130,11 @@ public class DocumentNetworkProvider {
     }
 
 	/**
-	 * Building the url string with the parameters and executes the PostDocumentTask.
-	 *
 	 * @param document the document to post
 	 */
     public void doPostDocument(Document document, PostDocumentCallback callback) {
-		JsonParser parser = new JsonParser();
 		try {
-			String[] paramsArray = new String[]{DOCUMENTS_BASE_URL, parser.jsonFromDocument(document)};
+			String[] paramsArray = new String[] { DOCUMENTS_BASE_URL, JsonParser.jsonFromDocument(document) };
 			new PostDocumentTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 		} catch (JSONException e) {
             callback.onDocumentNotPosted(new JsonParsingException(e.getMessage()));
@@ -138,22 +142,15 @@ public class DocumentNetworkProvider {
 	}
 
     /**
-     * Getting the appropriate url string and executes the PatchDocumentTask.
-     *
      * @param documentId the document id to be patched
      * @param date the date object
      * @param document the Document to patch
      */
     public void doPatchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
-        String dateString = null;
+        String dateString = formatDate(date);
 
-        if (date != null) {
-            dateString = formatDate(date);
-        }
-
-        JsonParser parser = new JsonParser();
         try {
-            String[] paramsArray = new String[] { getPatchDocumentUrl(documentId), parser.jsonFromDocument(document) };
+            String[] paramsArray = new String[] { getPatchDocumentUrl(documentId), JsonParser.jsonFromDocument(document) };
             new PatchDocumentTask(callback, documentId, dateString).executeOnExecutor(environment.getExecutor(), paramsArray);
         } catch (JSONException e) {
             callback.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
@@ -166,20 +163,15 @@ public class DocumentNetworkProvider {
 	}
 
     /**
-     * Getting the appropriate url string and executes the DeleteDocumentTask.
-     *
-     * @param documentId the document if to delete
+     * @param documentId the document to delete
      */
     public void doDeleteDocument(String documentId, DeleteDocumentCallback callback) {
         String[] paramsArray = new String[] { getDeleteDocumentUrl(documentId) };
         new DeleteDocumentTask(documentId, callback).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
-    /**
-     * Getting the appropriate url string and executes the GetDocumentTypesTask.
-     */
     public RequestHandle doGetDocumentTypes(GetDocumentTypesCallback callback) {
-        String[] paramsArray = new String[] {DOCUMENT_TYPES_BASE_URL};
+        String[] paramsArray = new String[] { DOCUMENT_TYPES_BASE_URL };
         GetDocumentTypesTask getDocumentTypesTask = new GetDocumentTypesTask(callback);
         getDocumentTypesTask.executeOnExecutor(environment.getExecutor(), paramsArray);
         return getDocumentTypesTask;
@@ -193,8 +185,8 @@ public class DocumentNetworkProvider {
      * @param documentId the id of the document to delete
      * @return the url string
      */
-    String getDeleteDocumentUrl(String documentId) {
-        return DOCUMENTS_BASE_URL + "/"+documentId;
+    public static String getDeleteDocumentUrl(String documentId) {
+        return DOCUMENTS_BASE_URL + "/" + documentId;
     }
 
     /**
@@ -203,7 +195,7 @@ public class DocumentNetworkProvider {
      * @param documentId the id of the document to trash
      * @return the url string
      */
-    String getTrashDocumentUrl(String documentId) {
+    public static String getTrashDocumentUrl(String documentId) {
         return DOCUMENTS_BASE_URL + "/" + documentId + "/trash";
     }
 
@@ -213,7 +205,7 @@ public class DocumentNetworkProvider {
      * @param documentId the document id
      * @return the url string
      */
-    String getGetDocumentUrl(String documentId, View view) {
+    public static String getGetDocumentUrl(String documentId, View view) {
         StringBuilder url = new StringBuilder();
         url.append(DOCUMENTS_BASE_URL);
         url.append("/").append(documentId);
@@ -284,7 +276,7 @@ public class DocumentNetworkProvider {
 	 * @param documentId the id of the document to patch
 	 * @return the url string
 	 */
-	String getPatchDocumentUrl(String documentId) {
+	private static String getPatchDocumentUrl(String documentId) {
 		return DOCUMENTS_BASE_URL + "/" + documentId;
 	}
 
@@ -292,8 +284,12 @@ public class DocumentNetworkProvider {
      * @param date the date to format
      * @return date string in the specified format
      */
-    private String formatDate(Date date) {
-        return patchDateFormat.format(date);
+    private static String formatDate(Date date) {
+        if (date == null) {
+            return null;
+        } else {
+            return patchDateFormat.format(date);
+        }
     }
 
     /* TASKS */
@@ -446,13 +442,6 @@ public class DocumentNetworkProvider {
         }
     }
 
-    /**
-	 * Executing the api call for patching a document in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to objects 
-	 * and send the data to the relevant callback method in the MendeleyDocumentInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
 	private class PatchDocumentTask extends PatchNetworkTask {
         private final PatchDocumentCallback callback;
 
@@ -549,12 +538,6 @@ public class DocumentNetworkProvider {
         }
     }
 
-	/**
-	 * Executing the api call for getting a document types in the background.
-	 * sending the data to the relevant callback method in the MendeleyDocumentInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
 	private class GetDocumentTypesTask extends GetNetworkTask {
         private final GetDocumentTypesCallback callback;
 
@@ -587,4 +570,79 @@ public class DocumentNetworkProvider {
 			callback.onDocumentTypesNotReceived(exception);
 		}
 	}
+
+    /* PROCEDURES */
+
+    public static class GetDocumentsProcedure extends GetNetworkProcedure<DocumentList> {
+        public GetDocumentsProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-document.1+json", authenticationManager);
+        }
+
+        @Override
+        protected DocumentList processJsonString(String jsonString) throws JSONException {
+            DocumentList documentList = new DocumentList();
+            documentList.documents = JsonParser.parseDocumentList(jsonString);
+            documentList.next = next;
+            documentList.serverDate = serverDate;
+            return documentList;
+        }
+   }
+
+    public static class GetDeletedDocumentsProcedure extends GetNetworkProcedure<DocumentIdList> {
+        public GetDeletedDocumentsProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-document.1+json", authenticationManager);
+        }
+
+        @Override
+        protected DocumentIdList processJsonString(String jsonString) throws JSONException {
+            DocumentIdList documentIdList = new DocumentIdList();
+            documentIdList.documentIds = JsonParser.parseDocumentIds(jsonString);
+            documentIdList.next = next;
+            documentIdList.serverDate = serverDate;
+            return documentIdList;
+        }
+    }
+
+    public static class GetDocumentProcedure extends GetNetworkProcedure<Document> {
+        public GetDocumentProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-document.1+json", authenticationManager);
+        }
+
+        @Override
+        protected Document processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseDocument(jsonString);
+        }
+    }
+
+    public static class GetDocumentTypesProcedure extends GetNetworkProcedure<Map<String, String>> {
+        public GetDocumentTypesProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-document-type.1+json", authenticationManager);
+        }
+
+        protected Map<String, String> processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseDocumentTypes(jsonString);
+        }
+    }
+
+    public static class PostDocumentProcedure extends PostNetworkProcedure<Document> {
+        public PostDocumentProcedure(Document doc, AuthenticationManager authenticationManager) throws JSONException {
+            super(DOCUMENTS_BASE_URL, "application/vnd.mendeley-document.1+json",
+                    JsonParser.jsonFromDocument(doc), authenticationManager);
+        }
+
+        @Override
+        protected Document processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseDocument(jsonString);
+        }
+    }
+
+    public static class PatchDocumentProcedure extends PatchNetworkProcedure {
+        public PatchDocumentProcedure(String documentId, String json, Date date,
+                                      AuthenticationManager authenticationManager) {
+            super(getPatchDocumentUrl(documentId), "application/vnd.mendeley-document.1+json",
+                    json,
+                    formatDate(date),
+                    authenticationManager);
+        }
+    }
 }

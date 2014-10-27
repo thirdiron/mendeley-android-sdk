@@ -1,11 +1,7 @@
-package com.mendeley.api.network.task;
+package com.mendeley.api.network.procedure;
 
-import android.os.AsyncTask;
-
-import com.mendeley.api.auth.AccessTokenProvider;
-import com.mendeley.api.callbacks.RequestHandle;
-import com.mendeley.api.exceptions.MendeleyException;
-import com.mendeley.api.exceptions.UserCancelledException;
+import com.mendeley.api.auth.AuthenticationManager;
+import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.util.Utils;
 
@@ -23,7 +19,7 @@ import javax.net.ssl.HttpsURLConnection;
 /**
  * Base class for all synchronous network calls.
  */
-public abstract class NetworkProcedure {
+public abstract class NetworkProcedure<ResultType> extends Procedure<ResultType> {
     protected Page next;
     protected String location;
     protected Date serverDate;
@@ -32,9 +28,11 @@ public abstract class NetworkProcedure {
     protected OutputStream os = null;
     protected HttpsURLConnection con = null;
 
-    protected abstract int getExpectedResponse();
+    public NetworkProcedure(AuthenticationManager authenticationManager) {
+        super(authenticationManager);
+    }
 
-    protected abstract AccessTokenProvider getAccessTokenProvider();
+    protected abstract int getExpectedResponse();
 
     /**
      * Extracts the headers from the given HttpsURLConnection object.

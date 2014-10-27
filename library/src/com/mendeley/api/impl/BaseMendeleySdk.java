@@ -9,6 +9,8 @@ import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
+import com.mendeley.api.callbacks.document.DocumentIdList;
+import com.mendeley.api.callbacks.document.DocumentList;
 import com.mendeley.api.callbacks.document.GetDeletedDocumentsCallback;
 import com.mendeley.api.callbacks.document.GetDocumentCallback;
 import com.mendeley.api.callbacks.document.GetDocumentTypesCallback;
@@ -34,12 +36,18 @@ import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.profile.GetProfileCallback;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.callbacks.utils.GetImageCallback;
-import com.mendeley.api.exceptions.HttpResponseException;
+import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
+import com.mendeley.api.network.procedure.PatchNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
+import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.provider.FileNetworkProvider;
@@ -55,9 +63,27 @@ import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
+import org.json.JSONException;
+
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Executor;
+
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENTS_BASE_URL;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentProcedure;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentTypesProcedure;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentsProcedure;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.PatchDocumentProcedure;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
+import static com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProcedure;
+import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
 
 public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Environment {
 
@@ -120,32 +146,7 @@ public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Envir
         RequestHandle exec();
     }
 
-    public abstract class Procedure<Result> {
-        protected abstract Result exec() throws MendeleyException;
-
-        public Result run() throws MendeleyException {
-            if (authenticationManager == null || !authenticationManager.isSignedIn()) {
-                // Must call signIn first - caller error!
-                throw new NotSignedInException();
-            }
-            if (authenticationManager.willExpireSoon()) {
-                authenticationManager.refreshToken();
-            }
-            try {
-                return exec();
-            } catch (HttpResponseException e) {
-                if (e.httpReturnCode == 401 && e.getMessage().contains("Token has expired")) {
-                    // The refresh-token-in-advance logic did not work for some reason: force a refresh now
-                    authenticationManager.refreshToken();
-                    return exec();
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    /* DOCUMENTS */
+    /* DOCUMENTS ASYNC */
 
     @Override
     public RequestHandle getDocuments(final DocumentRequestParameters parameters, final GetDocumentsCallback callback) {
@@ -256,6 +257,102 @@ public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Envir
                 return documentNetworkProvider.doGetDocumentTypes(callback);
             }
         });
+    }
+
+    /* DOCUMENTS BLOCKING */
+
+    @Override
+    public DocumentList getDocuments(DocumentRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = getGetDocumentsUrl(DOCUMENTS_BASE_URL, parameters, null);
+            Procedure<DocumentList> proc = new GetDocumentsProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        } catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public DocumentList getDocuments() throws MendeleyException {
+        return getDocuments((DocumentRequestParameters) null);
+    }
+
+    @Override
+    public DocumentList getDocuments(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<DocumentList> proc = new GetDocumentsProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Document getDocument(String documentId, View view) throws MendeleyException {
+        String url = getGetDocumentUrl(documentId, view);
+        Procedure<Document> proc = new GetDocumentProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public DocumentIdList getDeletedDocuments(String deletedSince, DocumentRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = getGetDocumentsUrl(DOCUMENTS_BASE_URL, parameters, deletedSince);
+            Procedure<DocumentIdList> proc = new GetDeletedDocumentsProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        } catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public DocumentIdList getDeletedDocuments(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<DocumentIdList> proc =
+                new GetDeletedDocumentsProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Document postDocument(Document document) throws MendeleyException {
+        try {
+            Procedure<Document> proc
+                    = new DocumentNetworkProvider.PostDocumentProcedure(document, authenticationManager);
+            return proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void patchDocument(String documentId, Date date, Document document) throws MendeleyException {
+        try {
+            String json = JsonParser.jsonFromDocument(document);
+            Procedure proc = new PatchDocumentProcedure(documentId, json, date, authenticationManager);
+            proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void trashDocument(String documentId) throws MendeleyException {
+        Procedure proc = new PostNoBodyNetworkProcedure(getTrashDocumentUrl(documentId), authenticationManager);
+        proc.checkedRun();
+    }
+
+    @Override
+    public void deleteDocument(String documentId) throws MendeleyException {
+        Procedure proc = new DeleteNetworkProcedure(getDeleteDocumentUrl(documentId), authenticationManager);
+        proc.checkedRun();
+    }
+
+    @Override
+    public Map<String, String> getDocumentTypes() throws MendeleyException {
+        Procedure<Map<String, String>> proc =
+                new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
+        return proc.checkedRun();
     }
 
     /* FILES */
@@ -379,22 +476,14 @@ public abstract class BaseMendeleySdk implements MendeleySdk, BlockingSdk, Envir
 
     @Override
     public Profile getMyProfile() throws MendeleyException {
-        return new Procedure<Profile>() {
-            @Override
-            public Profile exec() throws MendeleyException {
-                return profileNetworkProvider.doGetMyProfile();
-            }
-        }.run();
+        Procedure<Profile> proc = new GetProfileProcedure(PROFILES_URL + "me", authenticationManager);
+        return proc.checkedRun();
     }
 
     @Override
     public Profile getProfile(final String profileId) throws MendeleyException {
-        return new Procedure<Profile>() {
-            @Override
-            public Profile exec() throws MendeleyException {
-                return profileNetworkProvider.doGetProfile(profileId);
-            }
-        }.run();
+        Procedure<Profile> proc = new GetProfileProcedure(PROFILES_URL + profileId, authenticationManager);
+        return proc.checkedRun();
     }
 
     /* FOLDERS */
