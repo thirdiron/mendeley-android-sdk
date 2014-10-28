@@ -1,8 +1,10 @@
 package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.file.DeleteFileCallback;
+import com.mendeley.api.callbacks.file.FileList;
 import com.mendeley.api.callbacks.file.GetFileCallback;
 import com.mendeley.api.callbacks.file.GetFilesCallback;
 import com.mendeley.api.callbacks.file.PostFileCallback;
@@ -15,6 +17,7 @@ import com.mendeley.api.model.File;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.procedure.GetNetworkProcedure;
 import com.mendeley.api.network.task.DeleteNetworkTask;
 import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.network.task.NetworkTask;
@@ -174,7 +177,7 @@ public class FileNetworkProvider {
      * @return the url string
      * @throws UnsupportedEncodingException
      */
-    String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
+    public static String getGetFilesUrl(FileRequestParameters params) throws UnsupportedEncodingException {
         StringBuilder url = new StringBuilder();
         url.append(filesUrl);
 
@@ -265,7 +268,7 @@ public class FileNetworkProvider {
 			callback.onFilesNotReceived(exception);
 		}
     }
-	
+
 	private class GetFileTask extends NetworkTask {
         private static final String PARTIALLY_DOWNLOADED_EXTENSION = ".part";
         private final GetFileCallback callback;
@@ -543,4 +546,17 @@ public class FileNetworkProvider {
 			callback.onFileNotDeleted(exception);
 		}
 	}
+
+    /* PROCEDURES */
+
+    public static class GetFilesProcedure extends GetNetworkProcedure<FileList> {
+        public GetFilesProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-file.1+json", authenticationManager);
+        }
+
+        @Override
+        protected FileList processJsonString(String jsonString) throws JSONException {
+            return new FileList(JsonParser.parseFileList(jsonString), next, serverDate);
+        }
+    }
 }

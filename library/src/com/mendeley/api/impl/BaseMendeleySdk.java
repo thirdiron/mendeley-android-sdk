@@ -10,6 +10,7 @@ import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
+import com.mendeley.api.callbacks.file.FileList;
 import com.mendeley.api.callbacks.folder.FolderList;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GroupList;
@@ -63,6 +64,7 @@ import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDelet
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
+import static com.mendeley.api.network.provider.FileNetworkProvider.GetFilesProcedure;
 import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderDocumentIdsProcedure;
 import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderProcedure;
 import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFoldersProcedure;
@@ -222,6 +224,34 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     public Map<String, String> getDocumentTypes() throws MendeleyException {
         Procedure<Map<String, String>> proc =
                 new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    /* FILES BLOCKING */
+
+    @Override
+    public FileList getFiles(FileRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = FileNetworkProvider.getGetFilesUrl(parameters);
+            Procedure<FileList> proc = new GetFilesProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public FileList getFiles() throws MendeleyException {
+        return getFiles((FileRequestParameters) null);
+    }
+
+    @Override
+    public FileList getFiles(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<FileList> proc = new GetFilesProcedure(next.link, authenticationManager);
         return proc.checkedRun();
     }
 

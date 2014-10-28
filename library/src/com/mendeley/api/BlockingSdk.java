@@ -8,6 +8,11 @@ import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.document.PatchDocumentCallback;
 import com.mendeley.api.callbacks.document.PostDocumentCallback;
 import com.mendeley.api.callbacks.document.TrashDocumentCallback;
+import com.mendeley.api.callbacks.file.DeleteFileCallback;
+import com.mendeley.api.callbacks.file.FileList;
+import com.mendeley.api.callbacks.file.GetFileCallback;
+import com.mendeley.api.callbacks.file.GetFilesCallback;
+import com.mendeley.api.callbacks.file.PostFileCallback;
 import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
 import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
 import com.mendeley.api.callbacks.folder.FolderList;
@@ -29,11 +34,13 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.params.DocumentRequestParameters;
+import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -115,6 +122,25 @@ public interface BlockingSdk {
      * Return a list of valid document types.
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
+
+    /* FILES */
+
+    /**
+     * Return metadata for a user's files, subject to specified query parameters.
+     */
+    FileList getFiles(FileRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Return metadata for all files associated with all of the user's documents.
+     */
+    FileList getFiles() throws MendeleyException;
+
+    /**
+     * Return the next page of file metadata entries.
+     *
+     * @param next returned from previous getFiles() call.
+     */
+    FileList getFiles(Page next) throws MendeleyException;
 
     /* FOLDERS */
 
