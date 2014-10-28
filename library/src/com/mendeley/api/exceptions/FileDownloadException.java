@@ -14,4 +14,9 @@ public class FileDownloadException extends MendeleyException {
 	public String getFileId() {
 		return this.fileId;
 	}
+
+    public FileDownloadException(String detailMessage, Throwable throwable, String fileId) {
+        super(detailMessage, throwable);
+        this.fileId = fileId;
+    }
 }

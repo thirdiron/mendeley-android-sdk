@@ -312,7 +312,7 @@ public class FileNetworkProvider {
 				getResponseHeaders();
 
 				if (con.getResponseCode() != getExpectedResponse()) {
-					return new FileDownloadException(getErrorMessage(con), fileId);
+					return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(con.getResponseCode(), "Server did NOT redirect to final file URL"), fileId);
 				} else {		
 					con.disconnect();
 					
@@ -322,7 +322,7 @@ public class FileNetworkProvider {
 					int responseCode = con.getResponseCode();
 					
 					if (responseCode != 200) {
-						return new FileDownloadException(getErrorMessage(con), fileId);
+						return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(responseCode, getErrorMessage(con)), fileId);
 					} else {
                         if (fileName == null) {
                             String content = con.getHeaderFields().get("Content-Disposition").get(0);
@@ -357,14 +357,14 @@ public class FileNetworkProvider {
 					}
 				}
 			}	catch (IOException e) {
-				return new FileDownloadException(e.getMessage(), fileId);
+				return new FileDownloadException("Error reading file: " + e.getMessage(), e, fileId);
 			} finally {
 				closeConnection();
 				if (fileOutputStream != null) {
 					try {
 						fileOutputStream.close();
 					} catch (IOException e) {
-						return new FileDownloadException(e.getMessage(), fileId);
+						return new FileDownloadException("Error closing HTTP channel: " + e.getMessage(), e, fileId);
 					}
 				}
 			}

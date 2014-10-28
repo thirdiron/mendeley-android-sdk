@@ -9,4 +9,10 @@ public class JsonParsingException extends MendeleyException {
 	public JsonParsingException(String message) {
 		super(message);
 	}
+
+    public JsonParsingException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
+
+
 }

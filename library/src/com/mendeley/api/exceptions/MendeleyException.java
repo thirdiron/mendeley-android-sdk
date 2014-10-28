@@ -8,4 +8,9 @@ public class MendeleyException extends Exception {
 	public MendeleyException(String message) {
 		super(message);
 	}
+
+    public MendeleyException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
+
 }
