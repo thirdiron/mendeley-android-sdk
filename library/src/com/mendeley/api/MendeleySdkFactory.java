@@ -11,14 +11,7 @@ public class MendeleySdkFactory {
     /**
      * Return the MendeleySdk singleton.
      */
-    public static MendeleySdk getInstance() {
-        return DefaultMendeleySdk.getInstance();
-    }
-
-    /**
-     * Return a version of the MendeleySdk singleton providing blocking calls.
-     */
-    public static BlockingSdk getBlockingInstance() {
+    public static DefaultMendeleySdk getInstance() {
         return DefaultMendeleySdk.getInstance();
     }
 
