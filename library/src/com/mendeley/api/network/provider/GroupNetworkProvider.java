@@ -261,10 +261,7 @@ public class GroupNetworkProvider {
 
         @Override
         protected GroupList processJsonString(String jsonString) throws JSONException {
-            GroupList groupList = new GroupList();
-            groupList.groups = JsonParser.parseGroupList(jsonString);
-            groupList.next = next;
-            return groupList;
+            return new GroupList(JsonParser.parseGroupList(jsonString), next);
         }
     }
 
@@ -286,10 +283,7 @@ public class GroupNetworkProvider {
 
         @Override
         protected GroupMembersList processJsonString(String jsonString) throws JSONException {
-            GroupMembersList groupMembersList = new GroupMembersList();
-            groupMembersList.userRoles = JsonParser.parseUserRoleList(jsonString);
-            groupMembersList.next = next;
-            return groupMembersList;
+            return new GroupMembersList(JsonParser.parseUserRoleList(jsonString), next);
         }
     }
 }

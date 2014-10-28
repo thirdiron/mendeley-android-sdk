@@ -7,7 +7,13 @@ import java.util.Date;
 import java.util.List;
 
 public class DocumentList {
-    public List<Document> documents;
-    public Page next;
-    public Date serverDate;
+    public final List<Document> documents;
+    public final Page next;
+    public final Date serverDate;
+
+    public DocumentList(List<Document> documents, Page next, Date serverDate) {
+        this.documents = documents;
+        this.next = next;
+        this.serverDate = serverDate;
+    }
 }

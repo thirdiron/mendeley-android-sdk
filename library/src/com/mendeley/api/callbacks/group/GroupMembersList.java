@@ -7,6 +7,11 @@ import com.mendeley.api.params.Page;
 import java.util.List;
 
 public class GroupMembersList {
-    public List<UserRole> userRoles;
-    public Page next;
+    public final List<UserRole> userRoles;
+    public final Page next;
+
+    public GroupMembersList(List<UserRole> userRoles, Page next) {
+        this.userRoles = userRoles;
+        this.next = next;
+    }
 }

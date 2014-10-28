@@ -1,23 +1,22 @@
 package com.mendeley.api.network.provider;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.List;
 
 import org.json.JSONException;
 
 import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
 import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
+import com.mendeley.api.callbacks.folder.FolderList;
 import com.mendeley.api.callbacks.folder.GetFolderCallback;
 import com.mendeley.api.callbacks.folder.GetFolderDocumentIdsCallback;
 import com.mendeley.api.callbacks.folder.GetFoldersCallback;
 import com.mendeley.api.callbacks.folder.PatchFolderCallback;
 import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
 import com.mendeley.api.callbacks.folder.PostFolderCallback;
-import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
@@ -26,6 +25,10 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.procedure.GetNetworkProcedure;
+import com.mendeley.api.network.procedure.PatchNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNoResponseNetworkProcedure;
 import com.mendeley.api.network.task.DeleteNetworkTask;
 import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.network.task.PatchNetworkTask;
@@ -40,7 +43,7 @@ import static com.mendeley.api.network.NetworkUtils.*;
  * NetworkProvider class for Folder API calls
  */
 public class FolderNetworkProvider {
-	private static String foldersUrl = API_URL + "folders";
+	public static final String FOLDERS_URL = API_URL + "folders";
 
     private final Environment environment;
     private final AccessTokenProvider accessTokenProvider;
@@ -51,25 +54,21 @@ public class FolderNetworkProvider {
     }
 
 	/**
-	 * Getting the appropriate url string and executes the GetFoldersTask
-	 * 
 	 * @param params folder request parameters object
 	 */
     public RequestHandle doGetFolders(FolderRequestParameters params, GetFoldersCallback callback) {
-		String[] paramsArray = new String[]{getGetFoldersUrl(params)};
+		String[] paramsArray = new String[] { getGetFoldersUrl(params) };
         GetFoldersTask getFoldersTask = new GetFoldersTask(callback);
         getFoldersTask.executeOnExecutor(environment.getExecutor(), paramsArray);
         return getFoldersTask;
 	}
 
     /**
-     * Getting the appropriate url string and executes the GetFoldersTask
-     *
      * @param next reference to next page
      */
     public RequestHandle doGetFolders(Page next, GetFoldersCallback callback) {
         if (Page.isValidPage(next)) {
-    		String[] paramsArray = new String[]{next.link};
+    		String[] paramsArray = new String[] { next.link };
             GetFoldersTask getFoldersTask = new GetFoldersTask(callback);
             new GetFoldersTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
             return getFoldersTask;
@@ -80,18 +79,14 @@ public class FolderNetworkProvider {
     }
 
 	/**
-	 * Getting the appropriate url string and executes the GetFolderTask
-	 * 
 	 * @param folderId the folder id to get
 	 */
     public void doGetFolder(String folderId, GetFolderCallback callback) {
-		String[] paramsArray = new String[]{getGetFolderUrl(folderId)};			
+		String[] paramsArray = new String[] { getGetFolderUrl(folderId) };
 		new GetFolderTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 	}
 
 	/**
-	 * Getting the appropriate url string and executes the GetFolderDocumentIdsTask
-	 * 
 	 * @param folderId the folder id
 	 */
     public void doGetFolderDocumentIds(FolderRequestParameters params, String folderId, GetFolderDocumentIdsCallback callback) {
@@ -100,8 +95,6 @@ public class FolderNetworkProvider {
 	}
 
     /**
-     * Getting the appropriate url string and executes the GetFolderDocumentIdsTask
-     *
      * @param next reference to next page
      */
     public void doGetFolderDocumentIds(Page next, String folderId, GetFolderDocumentIdsCallback callback) {
@@ -114,15 +107,11 @@ public class FolderNetworkProvider {
     }
 
     /**
-	 * Building the url string with the parameters and executes the PostFolderTask.
-	 * 
 	 * @param folder the folder to post
 	 */
     public void doPostFolder(Folder folder, PostFolderCallback callback) {
-
-		JsonParser parser = new JsonParser();
 		try {
-    		String[] paramsArray = new String[]{foldersUrl, parser.jsonFromFolder(folder)};			
+    		String[] paramsArray = new String[] {FOLDERS_URL, JsonParser.jsonFromFolder(folder) };
 			new PostFolderTask(callback).executeOnExecutor(environment.getExecutor(), paramsArray);
 		} catch (JSONException e) {
             callback.onFolderNotPosted(new JsonParsingException(e.getMessage()));
@@ -130,16 +119,13 @@ public class FolderNetworkProvider {
 	}
 
     /**
-     * Getting the appropriate url string and executes the PatchFolderTask.
-     *
      * @param folderId the folder id to patch
      * @param folder the Folder object
      */
     public void doPatchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
-        JsonParser parser = new JsonParser();
         String folderString = null;
         try {
-            folderString  = parser.jsonFromFolder(folder);
+            folderString  = JsonParser.jsonFromFolder(folder);
         } catch (JSONException e) {
             callback.onFolderNotPatched(new JsonParsingException(e.getMessage()));
         }
@@ -148,8 +134,6 @@ public class FolderNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the DeleteFolderTask.
-     *
      * @param folderId the id of the folder to delete
      */
     public void doDeleteFolder(String folderId, DeleteFolderCallback callback) {
@@ -158,17 +142,14 @@ public class FolderNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the PostDocumentToFolderTask.
-     *
      * @param folderId the folder id
      * @param documentId the id of the document to add to the folder
      */
     public void doPostDocumentToFolder(String folderId, String documentId, PostDocumentToFolderCallback callback) {
         String documentString = null;
         if (documentId != null && !documentId.isEmpty()) {
-            JsonParser parser = new JsonParser();
             try {
-                documentString = parser.jsonFromDocumentId(documentId);
+                documentString = JsonParser.jsonFromDocumentId(documentId);
             } catch (JSONException e) {
                 callback.onDocumentNotPostedToFolder(new JsonParsingException(e.getMessage()));
             }
@@ -178,8 +159,6 @@ public class FolderNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the DeleteDocumentFromFolderTask.
-     *
      * @param folderId the id of the folder
      * @param documentId the id of the document to delete
      */
@@ -196,10 +175,10 @@ public class FolderNetworkProvider {
      * @param params folder request parameters object
      * @return the url string
      */
-    String getGetFoldersUrl(FolderRequestParameters params, String requestUrl) {
+    public static String getGetFoldersUrl(FolderRequestParameters params, String requestUrl) {
         StringBuilder url = new StringBuilder();
 
-        url.append(requestUrl==null?foldersUrl:requestUrl);
+        url.append(requestUrl==null? FOLDERS_URL :requestUrl);
 
         if (params != null) {
             boolean firstParam = true;
@@ -216,7 +195,7 @@ public class FolderNetworkProvider {
         return url.toString();
     }
 
-    String getGetFoldersUrl(FolderRequestParameters params) {
+    public static String getGetFoldersUrl(FolderRequestParameters params) {
         return getGetFoldersUrl(params, null);
     }
 
@@ -226,8 +205,8 @@ public class FolderNetworkProvider {
      * @param folderId the folder id to get
      * @return the url string
      */
-    String getGetFolderUrl(String folderId) {
-        return foldersUrl+"/"+folderId;
+    public static String getGetFolderUrl(String folderId) {
+        return FOLDERS_URL + "/" + folderId;
     }
 
     /**
@@ -236,8 +215,8 @@ public class FolderNetworkProvider {
      * @param folderId the folder id to patch
      * @return the url string
      */
-    String getPatchFolderUrl(String folderId) {
-        return foldersUrl + "/"+folderId;
+    public static String getPatchFolderUrl(String folderId) {
+        return FOLDERS_URL + "/" + folderId;
     }
 
     /**
@@ -246,8 +225,8 @@ public class FolderNetworkProvider {
 	 * @param folderId the folder id
 	 * @return the url string
 	 */
-    String getDeleteFolderUrl(String folderId) {
-		return foldersUrl + "/"+folderId;
+    public static String getDeleteFolderUrl(String folderId) {
+		return FOLDERS_URL + "/" + folderId;
 	}
 
     /**
@@ -256,8 +235,8 @@ public class FolderNetworkProvider {
      * @param folderId the folder id
      * @return the url string
      */
-    String getGetFolderDocumentIdsUrl(String folderId) {
-        return foldersUrl + "/"+folderId + "/documents";
+    public static String getGetFolderDocumentIdsUrl(String folderId) {
+        return FOLDERS_URL + "/" + folderId + "/documents";
     }
 
     /**
@@ -266,8 +245,8 @@ public class FolderNetworkProvider {
      * @param folderId the folder id
      * @return the url string
      */
-    String getPostDocumentToFolderUrl(String folderId) {
-        return foldersUrl + "/"+folderId + "/documents";
+    public static String getPostDocumentToFolderUrl(String folderId) {
+        return FOLDERS_URL + "/" + folderId + "/documents";
     }
 
     /**
@@ -276,8 +255,8 @@ public class FolderNetworkProvider {
 	 * @param folderId the id of the folder
 	 * @param documentId the id of the document to delete
 	 */
-    String getDeleteDocumentFromFolderUrl(String folderId, String documentId) {
-		return foldersUrl+"/"+folderId+"/documents"+documentId;
+    public static String getDeleteDocumentFromFolderUrl(String folderId, String documentId) {
+		return FOLDERS_URL + "/" + folderId + "/documents" + documentId;
 	}
 	
     /* TASKS */
@@ -352,12 +331,6 @@ public class FolderNetworkProvider {
         }
     }
 
-    /**
-     * Executing the api call for posting a folder in the background.
-     * sending the data to the relevant callback method in the MendeleyFolderInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
     private class PostFolderTask extends PostNetworkTask {
         private final PostFolderCallback callback;
 
@@ -393,13 +366,6 @@ public class FolderNetworkProvider {
         }
     }
 
-    /**
-	 * Executing the api call for patching a folder in the background.
-	 * Calling the appropriate JsonParser method to parse the json string to objects 
-	 * and send the data to the relevant callback method in the MendeleyFolderInterface.
-	 * If the call response code is different than expected or an exception is being thrown in the process
-	 * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-	 */
     private class PatchFolderTask extends PatchNetworkTask {
         private final PatchFolderCallback callback;
 
@@ -436,12 +402,6 @@ public class FolderNetworkProvider {
 		}
 	}
 
-    /**
-     * Executing the api call for deleting a folder in the background.
-     * sending the data to the relevant callback method in the MendeleyFolderInterface.
-     * If the call response code is different than expected or an exception is being thrown in the process
-     * the exception will be added to the MendeleyResponse which is passed to the application via the callback.
-     */
     private class DeleteFolderTask extends DeleteNetworkTask {
         private final String folderId;
         private final DeleteFolderCallback callback;
@@ -560,4 +520,62 @@ public class FolderNetworkProvider {
 			callback.onFolderDocumentIdsNotReceived(exception);
 		}
 	}
+
+    /* PROCEDURES */
+
+    public static class GetFoldersProcedure extends GetNetworkProcedure<FolderList> {
+        public GetFoldersProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-folder.1+json", authenticationManager);
+        }
+
+        @Override
+        protected FolderList processJsonString(String jsonString) throws JSONException {
+            return new FolderList(JsonParser.parseFolderList(jsonString), next);
+        }
+    }
+
+    public static class GetFolderProcedure extends GetNetworkProcedure<Folder> {
+        public GetFolderProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-folder.1+json", authenticationManager);
+        }
+
+        @Override
+        protected Folder processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseFolder(jsonString);
+        }
+    }
+
+    public static class PostFolderProcedure extends PostNetworkProcedure<Folder> {
+        public PostFolderProcedure(String url, String json, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-folder.1+json", json, authenticationManager);
+        }
+
+        @Override
+        protected Folder processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseFolder(jsonString);
+        }
+    }
+
+    public static class PatchFolderProcedure extends PatchNetworkProcedure {
+        public PatchFolderProcedure(String url, String json, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-folder.1+json", json, null, authenticationManager);
+        }
+    }
+
+    public static class PostDocumentToFolderProcedure extends PostNoResponseNetworkProcedure {
+        public PostDocumentToFolderProcedure(String url, String json, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-folder-add-document.1+json", json, authenticationManager);
+        }
+    }
+
+    public static class GetFolderDocumentIdsProcedure extends GetNetworkProcedure<DocumentIdList> {
+        public GetFolderDocumentIdsProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-document.1+json", authenticationManager);
+        }
+
+        @Override
+        protected DocumentIdList processJsonString(String jsonString) throws JSONException {
+            return new DocumentIdList(JsonParser.parseDocumentIds(jsonString), next, serverDate);
+        }
+    }
 }

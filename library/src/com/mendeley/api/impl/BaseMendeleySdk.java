@@ -10,6 +10,7 @@ import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
+import com.mendeley.api.callbacks.folder.FolderList;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GroupList;
 import com.mendeley.api.callbacks.group.GroupMembersList;
@@ -26,6 +27,7 @@ import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
 import com.mendeley.api.network.procedure.PatchNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNoResponseNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.Environment;
@@ -61,6 +63,16 @@ import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDelet
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderDocumentIdsProcedure;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderProcedure;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFoldersProcedure;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.PatchFolderProcedure;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.PostDocumentToFolderProcedure;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getDeleteFolderUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderDocumentIdsUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFoldersUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getPostDocumentToFolderUrl;
 import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupMembersProcedure;
 import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupsProcedure;
 import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupMembersUrl;
@@ -211,6 +223,103 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         Procedure<Map<String, String>> proc =
                 new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
         return proc.checkedRun();
+    }
+
+    /* FOLDERS BLOCKING */
+
+    @Override
+    public FolderList getFolders(FolderRequestParameters parameters) throws MendeleyException {
+        String url = getGetFoldersUrl(parameters);
+        Procedure<FolderList> proc = new GetFoldersProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public FolderList getFolders() throws MendeleyException {
+        return getFolders((FolderRequestParameters) null);
+    }
+
+    @Override
+    public FolderList getFolders(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<FolderList> proc = new GetFoldersProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Folder getFolder(String folderId) throws MendeleyException {
+        String url = getGetFolderUrl(folderId);
+        Procedure<Folder> proc = new GetFolderProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Folder postFolder(Folder folder) throws MendeleyException {
+        try {
+            String url = FolderNetworkProvider.FOLDERS_URL;
+            String json = JsonParser.jsonFromFolder(folder);
+            Procedure<Folder> proc = new FolderNetworkProvider.PostFolderProcedure(url, json, authenticationManager);
+            return proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void patchFolder(String folderId, Folder folder) throws MendeleyException {
+        String folderString = null;
+        try {
+            String url = FolderNetworkProvider.getPatchFolderUrl(folderId);
+            folderString  = JsonParser.jsonFromFolder(folder);
+            Procedure proc = new PatchFolderProcedure(url, folderString, authenticationManager);
+            proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public DocumentIdList getFolderDocumentIds(FolderRequestParameters parameters, String folderId) throws MendeleyException {
+        String url = getGetFoldersUrl(parameters, getGetFolderDocumentIdsUrl(folderId));
+        Procedure<DocumentIdList> proc = new GetFolderDocumentIdsProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public DocumentIdList getFolderDocumentIds(Page next, String folderId) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<DocumentIdList> proc = new GetFolderDocumentIdsProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public void postDocumentToFolder(String folderId, String documentId) throws MendeleyException {
+        try {
+            String documentString = JsonParser.jsonFromDocumentId(documentId);
+            String url = getPostDocumentToFolderUrl(folderId);
+            Procedure proc = new PostDocumentToFolderProcedure(url, documentString, authenticationManager);
+            proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteFolder(String folderId) throws MendeleyException {
+        String url = getDeleteFolderUrl(folderId);
+        Procedure proc = new DeleteNetworkProcedure(url, authenticationManager);
+        proc.checkedRun();
+    }
+
+    @Override
+    public void deleteDocumentFromFolder(String folderId, String documentId) throws MendeleyException {
+        String url = FolderNetworkProvider.getDeleteDocumentFromFolderUrl(folderId, documentId);
+        Procedure proc = new DeleteNetworkProcedure(url, authenticationManager);
+        proc.checkedRun();
     }
 
     /* PROFILES BLOCKING */

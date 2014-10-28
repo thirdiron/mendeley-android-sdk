@@ -13,7 +13,6 @@ import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.document.PatchDocumentCallback;
 import com.mendeley.api.callbacks.document.PostDocumentCallback;
 import com.mendeley.api.callbacks.document.TrashDocumentCallback;
-import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
@@ -21,14 +20,12 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
-import com.mendeley.api.network.NetworkUtils;
 import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.procedure.GetNetworkProcedure;
 import com.mendeley.api.network.procedure.PatchNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNetworkProcedure;
 import com.mendeley.api.network.task.DeleteNetworkTask;
 import com.mendeley.api.network.task.GetNetworkTask;
-import com.mendeley.api.network.task.NetworkTask;
 import com.mendeley.api.network.task.PatchNetworkTask;
 import com.mendeley.api.network.task.PostNetworkTask;
 import com.mendeley.api.network.task.PostNoBodyNetworkTask;
@@ -36,13 +33,8 @@ import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -51,9 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.mendeley.api.network.NetworkUtils.API_URL;
-import static com.mendeley.api.network.NetworkUtils.HttpPatch;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
-import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
 
 /**
  * NetworkProvider class for Documents API calls
@@ -580,11 +570,7 @@ public class DocumentNetworkProvider {
 
         @Override
         protected DocumentList processJsonString(String jsonString) throws JSONException {
-            DocumentList documentList = new DocumentList();
-            documentList.documents = JsonParser.parseDocumentList(jsonString);
-            documentList.next = next;
-            documentList.serverDate = serverDate;
-            return documentList;
+            return new DocumentList(JsonParser.parseDocumentList(jsonString), next, serverDate);
         }
    }
 
@@ -595,11 +581,7 @@ public class DocumentNetworkProvider {
 
         @Override
         protected DocumentIdList processJsonString(String jsonString) throws JSONException {
-            DocumentIdList documentIdList = new DocumentIdList();
-            documentIdList.documentIds = JsonParser.parseDocumentIds(jsonString);
-            documentIdList.next = next;
-            documentIdList.serverDate = serverDate;
-            return documentIdList;
+            return new DocumentIdList(JsonParser.parseDocumentIds(jsonString), next, serverDate);
         }
     }
 

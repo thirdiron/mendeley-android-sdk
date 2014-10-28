@@ -8,6 +8,15 @@ import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.document.PatchDocumentCallback;
 import com.mendeley.api.callbacks.document.PostDocumentCallback;
 import com.mendeley.api.callbacks.document.TrashDocumentCallback;
+import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
+import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
+import com.mendeley.api.callbacks.folder.FolderList;
+import com.mendeley.api.callbacks.folder.GetFolderCallback;
+import com.mendeley.api.callbacks.folder.GetFolderDocumentIdsCallback;
+import com.mendeley.api.callbacks.folder.GetFoldersCallback;
+import com.mendeley.api.callbacks.folder.PatchFolderCallback;
+import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
+import com.mendeley.api.callbacks.folder.PostFolderCallback;
 import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
@@ -16,9 +25,11 @@ import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.params.DocumentRequestParameters;
+import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
@@ -104,6 +115,93 @@ public interface BlockingSdk {
      * Return a list of valid document types.
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
+
+    /* FOLDERS */
+
+    /**
+     * Return metadata for all the user's folders.
+     */
+    FolderList getFolders(FolderRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Return metadata for all the user's folders.
+     */
+    FolderList getFolders() throws MendeleyException;
+
+    /**
+     * Returns the next page of folder metadata entries.
+     *
+     * @param next returned from a previous getFolders() call.
+     */
+    FolderList getFolders(Page next) throws MendeleyException;
+
+    /**
+     * Returns metadata for a single folder, specified by ID.
+     *
+     * @param folderId ID of the folder to retrieve metadata for.
+     */
+    Folder getFolder(String folderId) throws MendeleyException;
+
+    /**
+     * Create a new folder.
+     *
+     * @param folder metadata for the folder to create.
+     */
+    Folder postFolder(Folder folder) throws MendeleyException;
+
+    /**
+     * Update a folder's metadata.
+     * <p>
+     * This can be used to rename the folder, and/or to move it to a new parent.
+     *
+     * @param folderId the id of the folder to modify.
+     * @param folder metadata object that provides the new name and parentId.
+     */
+    void patchFolder(String folderId, Folder folder) throws MendeleyException;
+
+    /**
+     * Return a list of IDs of the documents stored in a particular folder.
+     *
+     * @param folderId ID of the folder to inspect.
+     */
+    DocumentIdList getFolderDocumentIds(FolderRequestParameters parameters, String folderId)
+            throws MendeleyException;
+
+    /**
+     * Returns the next page of document IDs stored in a particular folder.
+     *
+     * @param next returned by a previous call to getFolderDocumentIds().
+     * @param folderId provides an ID to return in the callback (the value is not actually
+     *                 checked by this call).
+     */
+    DocumentIdList getFolderDocumentIds(Page next, String folderId) throws MendeleyException;
+
+    /**
+     * Add a document to a folder.
+     *
+     * @param folderId the ID the folder.
+     * @param documentId the ID of the document to add to the folder.
+     */
+    void postDocumentToFolder(String folderId, String documentId) throws MendeleyException;
+
+    /**
+     * Delete a folder.
+     * <p>
+     * This does not delete the documents inside the folder.
+     *
+     * @param folderId the ID of the folder to delete.
+     */
+    void deleteFolder(String folderId) throws MendeleyException;
+
+    /**
+     * Remove a document from a folder.
+     * <p>
+     * This does not delete the documents itself.
+     *
+     * @param folderId the ID of the folder.
+     * @param documentId the ID of the document to remove.
+     */
+    void deleteDocumentFromFolder(String folderId, String documentId) throws MendeleyException;
 
     /* GROUPS */
 

@@ -8,6 +8,11 @@ import java.util.Date;
 import java.util.List;
 
 public class GroupList {
-    public List<Group> groups;
-    public Page next;
+    public final List<Group> groups;
+    public final Page next;
+
+    public GroupList(List<Group> groups, Page next) {
+        this.groups = groups;
+        this.next = next;
+    }
 }
