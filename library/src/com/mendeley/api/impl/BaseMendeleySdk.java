@@ -10,12 +10,16 @@ import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
+import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
+import com.mendeley.api.callbacks.group.GroupList;
+import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
+import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NullRequest;
@@ -57,6 +61,10 @@ import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDelet
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupMembersProcedure;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupsProcedure;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupMembersUrl;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupsUrl;
 import static com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProcedure;
 import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
 
@@ -216,6 +224,47 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     @Override
     public Profile getProfile(final String profileId) throws MendeleyException {
         Procedure<Profile> proc = new GetProfileProcedure(PROFILES_URL + profileId, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    /* GROUPS BLOCKING */
+
+    @Override
+    public GroupList getGroups(GroupRequestParameters parameters) throws MendeleyException {
+        String url = getGetGroupsUrl(parameters);
+        Procedure<GroupList> proc = new GetGroupsProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public GroupList getGroups(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<GroupList> proc = new GetGroupsProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Group getGroup(String groupId) throws MendeleyException {
+        String url = GroupNetworkProvider.getGetGroupUrl(groupId);
+        Procedure<Group> proc = new GroupNetworkProvider.GetGroupProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public GroupMembersList getGroupMembers(GroupRequestParameters parameters, String groupId) throws MendeleyException {
+        String url = getGetGroupsUrl(parameters, getGetGroupMembersUrl(groupId));
+        Procedure<GroupMembersList> proc = new GetGroupMembersProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public GroupMembersList getGroupMembers(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<GroupMembersList> proc = new GetGroupMembersProcedure(next.link, authenticationManager);
         return proc.checkedRun();
     }
 

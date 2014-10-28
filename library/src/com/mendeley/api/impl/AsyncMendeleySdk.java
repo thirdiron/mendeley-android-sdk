@@ -319,17 +319,6 @@ public abstract class AsyncMendeleySdk extends BaseMendeleySdk implements Mendel
     }
 
     @Override
-    public void getFolderDocumentIds(final Page next, final String groupId, final GetGroupMembersCallback callback) {
-        run(new Command() {
-            @Override
-            public RequestHandle exec() {
-                groupNetworkProvider.doGetGroupMembers(next, groupId, callback);
-                return null;
-            }
-        });
-    }
-
-    @Override
     public void getFolder(final String folderId, final GetFolderCallback callback) {
         run(new Command() {
             @Override
@@ -430,7 +419,7 @@ public abstract class AsyncMendeleySdk extends BaseMendeleySdk implements Mendel
         });
     }
 
-    /* GROUPS */
+    /* GROUPS ASYNC */
 
     @Override
     public RequestHandle getGroups(final GroupRequestParameters parameters, final GetGroupsCallback callback) {
@@ -469,6 +458,17 @@ public abstract class AsyncMendeleySdk extends BaseMendeleySdk implements Mendel
             @Override
             public RequestHandle exec() {
                 groupNetworkProvider.doGetGroupMembers(parameters, groupId, callback);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void getGroupMembers(final Page next, final String groupId, final GetGroupMembersCallback callback) {
+        run(new Command() {
+            @Override
+            public RequestHandle exec() {
+                groupNetworkProvider.doGetGroupMembers(next, groupId, callback);
                 return null;
             }
         });

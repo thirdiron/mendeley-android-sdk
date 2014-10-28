@@ -8,11 +8,18 @@ import com.mendeley.api.callbacks.document.GetDocumentsCallback;
 import com.mendeley.api.callbacks.document.PatchDocumentCallback;
 import com.mendeley.api.callbacks.document.PostDocumentCallback;
 import com.mendeley.api.callbacks.document.TrashDocumentCallback;
+import com.mendeley.api.callbacks.group.GetGroupCallback;
+import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
+import com.mendeley.api.callbacks.group.GetGroupsCallback;
+import com.mendeley.api.callbacks.group.GroupList;
+import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.params.DocumentRequestParameters;
+import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
@@ -97,6 +104,41 @@ public interface BlockingSdk {
      * Return a list of valid document types.
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
+
+    /* GROUPS */
+
+    /**
+     * Return metadata for all the user's groups.
+     */
+    GroupList getGroups(GroupRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Returns the next page of group metadata entries.
+     *
+     * @param next returned from a previous getGroups() call.
+     */
+    GroupList getGroups(Page next) throws MendeleyException;
+
+    /**
+     * Returns metadata for a single group, specified by ID.
+     *
+     * @param groupId ID of the group to retrieve metadata for.
+     */
+    Group getGroup(String groupId) throws MendeleyException;
+
+    /**
+     * Return a list of members user roles of a particular group.
+     *
+     * @param groupId ID of the group to inspect.
+     */
+    GroupMembersList getGroupMembers(GroupRequestParameters parameters, String groupId) throws MendeleyException;
+
+    /**
+     * Return a list of members user roles of a particular group.
+     *
+     * @param next returned from a previous getGroupMembers() call.
+     */
+    GroupMembersList getGroupMembers(Page next) throws MendeleyException;
 
     /* TRASH */
 

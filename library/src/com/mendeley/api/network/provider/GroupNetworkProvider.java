@@ -1,10 +1,13 @@
 package com.mendeley.api.network.provider;
 
 import com.mendeley.api.auth.AccessTokenProvider;
+import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.group.GetGroupCallback;
 import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GetGroupsCallback;
+import com.mendeley.api.callbacks.group.GroupList;
+import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.model.Group;
@@ -12,6 +15,7 @@ import com.mendeley.api.model.UserRole;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NullRequest;
+import com.mendeley.api.network.procedure.GetNetworkProcedure;
 import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
@@ -39,8 +43,6 @@ public class GroupNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the GetGroupsTask
-     *
      * @param params group request parameters object
      * @param callback GetGroupsCallback callback object
      */
@@ -52,8 +54,6 @@ public class GroupNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the GetGroupsTask
-     *
      * @param next reference to next page
      */
     public RequestHandle doGetGroups(Page next, GetGroupsCallback callback) {
@@ -69,8 +69,6 @@ public class GroupNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the GetGroupTask
-     *
      * @param groupId the group id to get
      */
     public void doGetGroup(String groupId, GetGroupCallback callback) {
@@ -79,8 +77,6 @@ public class GroupNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the GetGroupMembersTask
-     *
      * @param groupId the group id
      */
     public void doGetGroupMembers(GroupRequestParameters params, String groupId, GetGroupMembersCallback callback) {
@@ -89,8 +85,6 @@ public class GroupNetworkProvider {
     }
 
     /**
-     * Getting the appropriate url string and executes the GetFolderDocumentIdsTask
-     *
      * @param next reference to next page
      */
     public void doGetGroupMembers(Page next, String groupId, GetGroupMembersCallback callback) {
@@ -104,17 +98,17 @@ public class GroupNetworkProvider {
 
     /* URLS */
 
-    String getGetGroupsUrl(GroupRequestParameters params) {
+    public static String getGetGroupsUrl(GroupRequestParameters params) {
         return getGetGroupsUrl(params, null);
     }
 
     /**
-     * Building the url for get groups
+     * Builds the url for get groups
      *
      * @param params group request parameters object
      * @return the url string
      */
-    String getGetGroupsUrl(GroupRequestParameters params, String requestUrl) {
+    public static String getGetGroupsUrl(GroupRequestParameters params, String requestUrl) {
         StringBuilder url = new StringBuilder();
 
         url.append(requestUrl == null ? groupsUrl : requestUrl);
@@ -135,8 +129,8 @@ public class GroupNetworkProvider {
      * @param groupId the group id to get
      * @return the url string
      */
-    String getGetGroupUrl(String groupId) {
-        return groupsUrl+"/"+groupId;
+    public static String getGetGroupUrl(String groupId) {
+        return groupsUrl + "/" + groupId;
     }
 
     /**
@@ -145,8 +139,8 @@ public class GroupNetworkProvider {
      * @param groupId the group id
      * @return the url string
      */
-    String getGetGroupMembersUrl(String groupId) {
-        return groupsUrl + "/"+groupId + "/members";
+    public static String getGetGroupMembersUrl(String groupId) {
+        return groupsUrl + "/" + groupId + "/members";
     }
 
     /* TASKS */
@@ -255,6 +249,47 @@ public class GroupNetworkProvider {
         @Override
         protected void onFailure(MendeleyException exception) {
             callback.onGroupMembersNotReceived(exception);
+        }
+    }
+
+    /* PROCEDURES */
+
+    public static class GetGroupsProcedure extends GetNetworkProcedure<GroupList> {
+        public GetGroupsProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-group.1+json", authenticationManager);
+        }
+
+        @Override
+        protected GroupList processJsonString(String jsonString) throws JSONException {
+            GroupList groupList = new GroupList();
+            groupList.groups = JsonParser.parseGroupList(jsonString);
+            groupList.next = next;
+            return groupList;
+        }
+    }
+
+    public static class GetGroupProcedure extends GetNetworkProcedure<Group> {
+        public GetGroupProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-group.1+json", authenticationManager);
+        }
+
+        @Override
+        protected Group processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseGroup(jsonString);
+        }
+    }
+
+    public static class GetGroupMembersProcedure extends GetNetworkProcedure<GroupMembersList> {
+        public GetGroupMembersProcedure(String url, AuthenticationManager authenticationManager) {
+            super(url, "application/vnd.mendeley-membership.1+json", authenticationManager);
+        }
+
+        @Override
+        protected GroupMembersList processJsonString(String jsonString) throws JSONException {
+            GroupMembersList groupMembersList = new GroupMembersList();
+            groupMembersList.userRoles = JsonParser.parseUserRoleList(jsonString);
+            groupMembersList.next = next;
+            return groupMembersList;
         }
     }
 }

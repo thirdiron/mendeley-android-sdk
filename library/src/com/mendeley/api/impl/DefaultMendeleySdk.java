@@ -5,6 +5,12 @@ import android.app.Activity;
 import com.mendeley.api.ClientCredentials;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
+import com.mendeley.api.callbacks.group.GroupList;
+import com.mendeley.api.callbacks.group.GroupMembersList;
+import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.model.Group;
+import com.mendeley.api.params.GroupRequestParameters;
+import com.mendeley.api.params.Page;
 
 public class DefaultMendeleySdk extends AsyncMendeleySdk {
     private static DefaultMendeleySdk instance;

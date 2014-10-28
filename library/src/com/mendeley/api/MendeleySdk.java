@@ -275,15 +275,6 @@ public interface MendeleySdk {
     RequestHandle getFolders(Page next, GetFoldersCallback callback);
 
     /**
-     * Returns the next page of members user roles of a group.
-     *
-     * @param next returned by a previous call to getGroupMembers().
-     * @param groupId provides an ID to return in the callback (the value is not actually
-     *                 checked by this call).
-     */
-    void getFolderDocumentIds(Page next, String groupId, GetGroupMembersCallback callback);
-
-    /**
      * Returns metadata for a single folder, specified by ID.
      *
      * @param folderId ID of the folder to retrieve metadata for.
@@ -384,6 +375,15 @@ public interface MendeleySdk {
      * @param groupId ID of the group to inspect.
      */
     void getGroupMembers(GroupRequestParameters parameters, String groupId, GetGroupMembersCallback callback);
+
+    /**
+     * Returns the next page of members user roles of a group.
+     *
+     * @param next returned by a previous call to getGroupMembers().
+     * @param groupId provides an ID to return in the callback (the value is not actually
+     *                 checked by this call).
+     */
+    void getGroupMembers(Page next, String groupId, GetGroupMembersCallback callback);
 
     /* TRASH */
 
