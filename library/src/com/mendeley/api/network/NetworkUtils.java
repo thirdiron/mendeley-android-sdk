@@ -21,6 +21,11 @@ import javax.net.ssl.HttpsURLConnection;
 public class NetworkUtils {
     public static final String API_URL = "https://api.mendeley.com/";
 
+    static {
+        final TLSOnlySocketFactory tlsOnlySocketFactory = new TLSOnlySocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
+        HttpsURLConnection.setDefaultSSLSocketFactory(tlsOnlySocketFactory);
+    }
+
     /**
      * Extends HttpEntityEnclosingRequestBase to provide PATCH request method.
      */
@@ -154,7 +159,6 @@ public class NetworkUtils {
         con.setConnectTimeout(3000);
         con.setRequestMethod(method);
 
-        con.setSSLSocketFactory(new TSLOnlySocketFactory(con.getSSLSocketFactory()));
         return con;
     }
 

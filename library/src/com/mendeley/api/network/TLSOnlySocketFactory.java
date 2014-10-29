@@ -15,11 +15,11 @@ import javax.net.ssl.SSLSocketFactory;
  * SSLSocketFactory that wraps one existing SSLSocketFactory and delegetes into it adding
  * a new cipher suite
  */
-public class TSLOnlySocketFactory extends SSLSocketFactory {
+public class TLSOnlySocketFactory extends SSLSocketFactory {
 
     private final SSLSocketFactory delegate;
 
-    public TSLOnlySocketFactory(SSLSocketFactory delegate) {
+    public TLSOnlySocketFactory(SSLSocketFactory delegate) {
         this.delegate = delegate;
     }
 
@@ -101,7 +101,7 @@ public class TSLOnlySocketFactory extends SSLSocketFactory {
         final Iterator<String> iterator = suitesList.iterator();
         while (iterator.hasNext()) {
             final String cipherSuite = iterator.next();
-            if (!cipherSuite.contains("SSL")) {
+            if (cipherSuite.contains("SSL")) {
                 iterator.remove();
             }
         }
