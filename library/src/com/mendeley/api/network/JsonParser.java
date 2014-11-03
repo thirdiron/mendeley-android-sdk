@@ -39,6 +39,8 @@ public class JsonParser {
 	 * @return the json string
 	 * @throws JSONException
 	 */
+    static final String TAG = JsonParser.class.getCanonicalName();
+
 	public static String jsonFromDocument(Document document) throws JSONException {
 
         JSONArray websites = new JSONArray();
@@ -596,7 +598,10 @@ public class JsonParser {
     public static Document parseDocument(String jsonString) throws JSONException {
         JSONObject documentObject = new JSONObject(jsonString);
 
-        String title = documentObject.getString("title");
+        String title = "";
+        if (documentObject.has("title")) {
+            title = documentObject.getString("title");
+        }
 
         String type = documentObject.getString("type");
 		Document.Builder mendeleyDocument = new Document.Builder(title, type);

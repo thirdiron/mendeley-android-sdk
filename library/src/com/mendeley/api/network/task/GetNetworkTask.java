@@ -39,6 +39,7 @@ public abstract class GetNetworkTask extends NetworkTask {
     }
 
     private void executeRequest(final String url, final int currentRetry) throws MendeleyException {
+        String responseBody = null;
         try {
             con = getConnection(url, "GET", getAccessTokenProvider());
             con.addRequestProperty("Content-type", getContentType());
@@ -56,8 +57,8 @@ public abstract class GetNetworkTask extends NetworkTask {
             }
 
             is = con.getInputStream();
-            String jsonString = getJsonString(is);
-            processJsonString(jsonString);
+            responseBody = getJsonString(is);
+            processJsonString(responseBody);
         } catch (MendeleyException me) {
             throw me;
         } catch (IOException ioe) {
@@ -70,7 +71,7 @@ public abstract class GetNetworkTask extends NetworkTask {
                 throw new MendeleyException("Error reading server response: " + ioe.toString(), ioe);
             }
         } catch (JSONException e) {
-            throw new JsonParsingException("Error parsing server response: " + e.toString(), e);
+            throw new JsonParsingException("Error parsing server response: " + e.toString() + ". Response was: " + responseBody, e);
         } catch (Exception e) {
             throw new MendeleyException("Error reading server response: " + e.toString(), e);
         } finally {
