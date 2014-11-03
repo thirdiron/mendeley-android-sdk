@@ -21,7 +21,7 @@ import static com.mendeley.api.network.NetworkUtils.getJsonString;
 public abstract class GetNetworkTask extends NetworkTask {
     private static final String TAG = GetNetworkTask.class.getSimpleName();
 
-    private static final Integer MAX_RETRIES = 3;
+    private static final Integer MAX_RETRIES = 2;
 
     @Override
     protected int getExpectedResponse() {
@@ -30,10 +30,8 @@ public abstract class GetNetworkTask extends NetworkTask {
 
     @Override
     protected MendeleyException doInBackground(String... params) {
-        final String url = params[0];
-        final int currentRetry = (params.length > 1) ? Integer.parseInt(params[1]) : 0;
         try {
-            executeRequest(url, currentRetry);
+            executeRequest(params[0], 0);
             return null;
         } catch (MendeleyException me) {
             return me;
