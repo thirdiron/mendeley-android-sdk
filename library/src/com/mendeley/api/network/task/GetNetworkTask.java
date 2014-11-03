@@ -1,21 +1,28 @@
 package com.mendeley.api.network.task;
 
+import android.util.Log;
+
 import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.UserCancelledException;
-import com.mendeley.api.network.task.NetworkTask;
 
 import org.json.JSONException;
 
 import java.io.IOException;
 
-import static com.mendeley.api.network.NetworkUtils.*;
+import static com.mendeley.api.network.NetworkUtils.getConnection;
+import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 /**
  * A NetworkTask specialised for making HTTP GET requests.
  */
 public abstract class GetNetworkTask extends NetworkTask {
+    private static final String TAG = GetNetworkTask.class.getSimpleName();
+
+    private static final Integer MAX_RETRIES = 2;
+
     @Override
     protected int getExpectedResponse() {
         return 200;
@@ -23,8 +30,15 @@ public abstract class GetNetworkTask extends NetworkTask {
 
     @Override
     protected MendeleyException doInBackground(String... params) {
-        String url = params[0];
+        try {
+            executeRequest(params[0], 0);
+            return null;
+        } catch (MendeleyException me) {
+            return me;
+        }
+    }
 
+    private void executeRequest(final String url, final int currentRetry) throws MendeleyException {
         try {
             con = getConnection(url, "GET", getAccessTokenProvider());
             con.addRequestProperty("Content-type", getContentType());
@@ -34,22 +48,31 @@ public abstract class GetNetworkTask extends NetworkTask {
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                return new HttpResponseException(responseCode, getErrorMessage(con));
+                throw  new HttpResponseException(responseCode, getErrorMessage(con));
             }
 
             if (isCancelled()) {
-                return new UserCancelledException();
+                throw new UserCancelledException();
             }
 
             is = con.getInputStream();
             String jsonString = getJsonString(is);
             processJsonString(jsonString);
-            return null;
-
+        } catch (MendeleyException me) {
+            throw me;
+        } catch (IOException ioe) {
+            // If the issue is due to IOException, retry up to MAX_RETRIES times
+            // TODO: move this logic to the blocking version and delegate into it
+            if (currentRetry <  MAX_RETRIES) {
+                Log.w(TAG, "Problem connecting to " + url + ": " + ioe.getMessage() + ". Retrying (" + (currentRetry + 1) + "/" + MAX_RETRIES + ")");
+                executeRequest(url, currentRetry + 1);
+            } else {
+                throw new MendeleyException("Error reading server response: " + ioe.toString(), ioe);
+            }
         } catch (JSONException e) {
-            return new JsonParsingException("Error parsing server response: " + e.toString(), e);
+            throw new JsonParsingException("Error parsing server response: " + e.toString(), e);
         } catch (Exception e) {
-            return new MendeleyException("Error reading server response: " + e.toString() , e);
+            throw new MendeleyException("Error reading server response: " + e.toString(), e);
         } finally {
             closeConnection();
         }
