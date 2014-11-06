@@ -13,6 +13,7 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
+import com.mendeley.api.exceptions.UserCancelledException;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
@@ -342,18 +343,21 @@ public class FileNetworkProvider {
 						byte data[] = new byte[1024];
 			            long total = 0;
 			            int count;
-			            while ((count = is.read(data)) != -1 && !isCancelled()) {
+
+			            while (!isCancelled() && (count = is.read(data)) != -1) {
 			                total += count;
 			                if (fileLength > 0) 
 			                    publishProgress((int) (total * 100 / fileLength));
 			                fileOutputStream.write(data, 0, count);
 			            }
 					    fileOutputStream.close();
-                        if (!isCancelled()) {
-                            boolean renamedOk = renameFile();
-                            if (!renamedOk) {
-                                return new FileDownloadException("Cannot rename downloaded file", fileId);
-                            }
+
+                        if (isCancelled()) {
+                            return new UserCancelledException();
+                        }
+
+                        if (!renameFile()) {
+                            return new FileDownloadException("Cannot rename downloaded file", fileId);
                         }
 
 						return null;
@@ -366,8 +370,7 @@ public class FileNetworkProvider {
 				if (fileOutputStream != null) {
 					try {
 						fileOutputStream.close();
-					} catch (IOException e) {
-						return new FileDownloadException("Error closing HTTP channel: " + e.getMessage(), e, fileId);
+					} catch (IOException ignored) {
 					}
 				}
 			}
