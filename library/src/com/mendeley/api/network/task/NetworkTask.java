@@ -103,14 +103,16 @@ public abstract class NetworkTask extends AsyncTask<String, Integer, MendeleyExc
 
     @Override
     protected void onCancelled(MendeleyException e) {
-        super.onCancelled(e);
-        // NOTE: this assumes that subclasses return an UserCancelledException in case of cancellation
+        if (e == null || !(e instanceof UserCancelledException)) {
+            // This is not very neat, but we need to ensure that this reports a UserCancelledException,
+            // otherwise the onFailure will be interpreted as an error.
+            e = new UserCancelledException();
+        }
         onFailure(e);
     }
 
     @Override
     protected final void onCancelled() {
-        super.onCancelled();
         onFailure(new UserCancelledException());
     }
 
