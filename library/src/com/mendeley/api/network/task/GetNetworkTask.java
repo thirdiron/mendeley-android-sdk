@@ -21,7 +21,7 @@ import static com.mendeley.api.network.NetworkUtils.getJsonString;
 public abstract class GetNetworkTask extends NetworkTask {
     private static final String TAG = GetNetworkTask.class.getSimpleName();
 
-    private static final Integer MAX_RETRIES = 2;
+    private static final Integer MAX_RETRIES = 3;
 
     @Override
     protected int getExpectedResponse() {
