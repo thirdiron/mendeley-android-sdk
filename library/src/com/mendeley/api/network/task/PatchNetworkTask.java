@@ -34,7 +34,7 @@ public abstract class PatchNetworkTask extends NetworkTask {
 
             final int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode != getExpectedResponse()) {
-                return new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(response));
+                return new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(response));
             } else {
                 return null;
             }

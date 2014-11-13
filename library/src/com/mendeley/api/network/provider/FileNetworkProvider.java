@@ -316,7 +316,7 @@ public class FileNetworkProvider {
 				getResponseHeaders();
 
 				if (con.getResponseCode() != getExpectedResponse()) {
-					return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(con.getResponseCode(), "Server did NOT redirect to final file URL"), fileId);
+					return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(url, con.getResponseCode(), "Server did NOT redirect to final file URL"), fileId);
 				} else {		
 					con.disconnect();
 					
@@ -326,7 +326,7 @@ public class FileNetworkProvider {
 					int responseCode = con.getResponseCode();
 					
 					if (responseCode != 200) {
-						return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(responseCode, getErrorMessage(con)), fileId);
+						return new FileDownloadException("HTTP status error downloading file.", new HttpResponseException(url, responseCode, getErrorMessage(con)), fileId);
 					} else {
                         if (fileName == null) {
                             String content = con.getHeaderFields().get("Content-Disposition").get(0);
@@ -486,7 +486,7 @@ public class FileNetworkProvider {
 
                 final int responseCode = con.getResponseCode();
                 if (responseCode != getExpectedResponse()) {
-                    return new HttpResponseException(responseCode, getErrorMessage(con));
+                    return new HttpResponseException(filesUrl, responseCode, getErrorMessage(con));
                 } else {
 
                     is = con.getInputStream();

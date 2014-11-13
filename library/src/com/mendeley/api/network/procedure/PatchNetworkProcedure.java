@@ -47,7 +47,7 @@ public class PatchNetworkProcedure extends NetworkProcedure<Void> {
 
             final int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode != getExpectedResponse()) {
-                throw new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(response));
+                throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(response));
             }
         } catch (IOException e) {
             throw new JsonParsingException(e.getMessage());

@@ -53,7 +53,7 @@ public abstract class PostNetworkProcedure<ResultType> extends NetworkProcedure<
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                throw new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(con));
+                throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(con));
             } else {
                 is = con.getInputStream();
                 String responseString = getJsonString(is);

@@ -49,7 +49,7 @@ public abstract class GetNetworkTask extends NetworkTask {
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                throw  new HttpResponseException(responseCode, getErrorMessage(con));
+                throw  new HttpResponseException(url, responseCode, getErrorMessage(con));
             }
 
             if (isCancelled()) {
@@ -68,12 +68,12 @@ public abstract class GetNetworkTask extends NetworkTask {
                 Log.w(TAG, "Problem connecting to " + url + ": " + ioe.getMessage() + ". Retrying (" + (currentRetry + 1) + "/" + MAX_RETRIES + ")");
                 executeRequest(url, currentRetry + 1);
             } else {
-                throw new MendeleyException("Error reading server response: " + ioe.toString(), ioe);
+                throw new MendeleyException("IO error in GET request " + url + ": " + ioe.toString(), ioe);
             }
         } catch (JSONException e) {
-            throw new JsonParsingException("Error parsing server response: " + e.toString() + ". Response was: " + responseBody, e);
+            throw new JsonParsingException("Pasing error in GET request " + url + ": " + e.toString() + ". Response was: " + responseBody, e);
         } catch (Exception e) {
-            throw new MendeleyException("Error reading server response: " + e.toString(), e);
+            throw new MendeleyException("Error in GET request " + url + ": " + e.toString(), e);
         } finally {
             closeConnection();
         }

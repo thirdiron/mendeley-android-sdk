@@ -7,10 +7,18 @@ package com.mendeley.api.exceptions;
  * but could also be an internal error (httpReturnCode 5xx).
  */
 public class HttpResponseException extends MendeleyException {
+
+    public final String url;
     public final int httpReturnCode;
 
-	public HttpResponseException(int httpReturnCode, String message) {
+	public HttpResponseException(String url, int httpReturnCode, String message) {
 		super(message);
+        this.url = url;
         this.httpReturnCode = httpReturnCode;
 	}
+
+    @Override
+    public String getMessage() {
+        return String.format("%s (%s)", super.getMessage(), url);
+    }
 }

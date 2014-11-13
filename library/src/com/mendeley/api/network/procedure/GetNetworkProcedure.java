@@ -43,7 +43,7 @@ public abstract class GetNetworkProcedure<ResultType> extends NetworkProcedure<R
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                throw new HttpResponseException(responseCode, getErrorMessage(con));
+                throw new HttpResponseException(url, responseCode, getErrorMessage(con));
             }
 
             is = con.getInputStream();

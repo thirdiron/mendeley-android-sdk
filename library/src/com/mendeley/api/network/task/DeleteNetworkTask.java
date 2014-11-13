@@ -31,7 +31,7 @@ public abstract class DeleteNetworkTask extends NetworkTask {
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                return new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(con));
+                return new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(con));
             } else {
                 return null;
             }

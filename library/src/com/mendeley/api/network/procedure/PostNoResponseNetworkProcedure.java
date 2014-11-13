@@ -52,7 +52,7 @@ public abstract class PostNoResponseNetworkProcedure extends NetworkProcedure<Vo
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
-                throw new HttpResponseException(responseCode, NetworkUtils.getErrorMessage(con));
+                throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(con));
             }
         }	catch (IOException e) {
             throw new JsonParsingException(e.getMessage());
