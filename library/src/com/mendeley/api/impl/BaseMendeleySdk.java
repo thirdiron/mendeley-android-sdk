@@ -8,6 +8,7 @@ import com.mendeley.api.auth.AuthenticationInterface;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.annotations.AnnotationList;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
 import com.mendeley.api.callbacks.file.FileList;
@@ -19,6 +20,7 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.NotSignedInException;
+import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
@@ -30,6 +32,7 @@ import com.mendeley.api.network.procedure.PatchNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoResponseNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
+import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.provider.FileNetworkProvider;
@@ -38,6 +41,7 @@ import com.mendeley.api.network.provider.GroupNetworkProvider;
 import com.mendeley.api.network.provider.ProfileNetworkProvider;
 import com.mendeley.api.network.provider.TrashNetworkProvider;
 import com.mendeley.api.network.provider.UtilsNetworkProvider;
+import com.mendeley.api.params.AnnotationRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -53,6 +57,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.PatchAnnotationProcedure;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.deleteAnnotationUrl;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationUrl;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENTS_BASE_URL;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
@@ -98,6 +108,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     protected GroupNetworkProvider groupNetworkProvider;
     protected UtilsNetworkProvider utilsNetworkProvider;
     protected TrashNetworkProvider trashNetworkProvider;
+    protected AnnotationsNetworkProvider annotationsNetworkProvider;
 
     protected void initProviders() {
         documentNetworkProvider = new DocumentNetworkProvider(this, authenticationManager);
@@ -107,6 +118,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         groupNetworkProvider = new GroupNetworkProvider(this, authenticationManager);
         utilsNetworkProvider = new UtilsNetworkProvider(this, authenticationManager);
         trashNetworkProvider = new TrashNetworkProvider(this, authenticationManager);
+        annotationsNetworkProvider = new AnnotationsNetworkProvider(this, authenticationManager);
     }
 
     protected AuthenticationInterface createAuthenticationInterface() {
@@ -225,6 +237,68 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         Procedure<Map<String, String>> proc =
                 new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
         return proc.checkedRun();
+    }
+
+    /* ANNOTATIONS BLOCKING */
+
+    @Override
+    public AnnotationList getAnnotations(AnnotationRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = getAnnotationsUrl(parameters);
+            Procedure<AnnotationList> proc = new GetAnnotationsProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        } catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public AnnotationList getAnnotations() throws MendeleyException {
+        return getAnnotations((AnnotationRequestParameters) null);
+    }
+
+    @Override
+    public AnnotationList getAnnotations(Page next) throws MendeleyException {
+        if (!Page.isValidPage(next)) {
+            throw new NoMorePagesException();
+        }
+        Procedure<AnnotationList> proc = new GetAnnotationsProcedure(next.link, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Annotation getAnnotation(String annotationId) throws MendeleyException {
+        String url = getAnnotationUrl(annotationId);
+        Procedure<Annotation> proc = new GetAnnotationProcedure(url, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Annotation postAnnotation(Annotation annotation) throws MendeleyException {
+        try {
+            Procedure<Annotation> proc
+                    = new AnnotationsNetworkProvider.PostAnnotationProcedure(annotation, authenticationManager);
+            return proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException {
+        try {
+            String json = JsonParser.jsonFromAnnotation(annotation);
+            Procedure proc = new PatchAnnotationProcedure(annotationId, json, authenticationManager);
+            proc.checkedRun();
+        } catch (JSONException e) {
+            throw new JsonParsingException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteAnnotation(String annotationId) throws MendeleyException {
+        Procedure proc = new DeleteNetworkProcedure(deleteAnnotationUrl(annotationId), authenticationManager);
+        proc.checkedRun();
     }
 
     /* FILES BLOCKING */

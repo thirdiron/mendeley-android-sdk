@@ -1,5 +1,10 @@
 package com.mendeley.api.network;
 
+import android.graphics.Color;
+import android.util.Log;
+
+import com.mendeley.api.model.Annotation;
+import com.mendeley.api.model.Box;
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
@@ -10,6 +15,7 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
+import com.mendeley.api.model.Point;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.model.UserRole;
 
@@ -27,34 +33,84 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.mendeley.api.model.Annotation.PrivacyLevel;
+
 /**
  * This class hold methods to parse json strings to model objects 
  * as well as create json strings from objects that are used by the NetwrokProvider classes.
- *
  */
 public class JsonParser {
-	/**
-	 * Creating a json string from a Document object
-	 * @param document the Document object
-	 * @return the json string
-	 * @throws JSONException
-	 */
-    static final String TAG = JsonParser.class.getCanonicalName();
+    private static final String TAG = JsonParser.class.getCanonicalName();
 
+    public static String jsonFromAnnotation(Annotation annotation) throws JSONException {
+        JSONArray positions = new JSONArray();
+        for (int i = 0; i < annotation.positions.size(); i++) {
+            Box box = annotation.positions.get(i);
+
+            JSONObject topLeft = null;
+            JSONObject bottomRight = null;
+
+            if (box.topLeft != null) {
+                topLeft = new JSONObject();
+                topLeft.put("x", box.topLeft.x);
+                topLeft.put("y", box.topLeft.y);
+            }
+            if (box.bottomRight != null) {
+                bottomRight = new JSONObject();
+                bottomRight.put("x", box.bottomRight.x);
+                bottomRight.put("y", box.bottomRight.y);
+            }
+
+            JSONObject bbox = new JSONObject();
+            bbox.put("top_left", topLeft);
+            bbox.put("bottom_right", bottomRight);
+            bbox.put("page", box.page);
+
+            positions.put(i, bbox);
+        }
+
+        JSONObject color = new JSONObject();
+        color.put("r", Color.red(annotation.color));
+        color.put("g", Color.green(annotation.color));
+        color.put("b", Color.blue(annotation.color));
+
+        JSONObject jAnnotation = new JSONObject();
+
+        jAnnotation.put("id", annotation.id);
+        jAnnotation.put("type", annotation.type.name);
+        jAnnotation.put("previous_id", annotation.previousId);
+        jAnnotation.put("color", color);
+        jAnnotation.put("text", annotation.text);
+        jAnnotation.put("profile_id", annotation.profileId);
+        jAnnotation.put("positions", positions);
+        jAnnotation.put("created", annotation.created);
+        jAnnotation.put("last_modified", annotation.lastModified);
+        jAnnotation.put("privacy_level", annotation.privacyLevel.name);
+        jAnnotation.put("filehash", annotation.fileHash);
+        jAnnotation.put("document_id", annotation.documentId);
+
+        return jAnnotation.toString();
+    }
+
+    /**
+     * Create a json string from a Document object
+     * @param document the Document object
+     * @return the json string
+     * @throws JSONException
+     */
 	public static String jsonFromDocument(Document document) throws JSONException {
-
         JSONArray websites = new JSONArray();
-        for (int i = 0; i < document.websites.size(); i++) {;
+        for (int i = 0; i < document.websites.size(); i++) {
             websites.put(i, document.websites.get(i));
         }
 
         JSONArray keywords = new JSONArray();
-        for (int i = 0; i < document.keywords.size(); i++) {;
+        for (int i = 0; i < document.keywords.size(); i++) {
             keywords.put(i, document.keywords.get(i));
         }
 
         JSONArray tags = new JSONArray();
-        for (int i = 0; i < document.tags.size(); i++) {;
+        for (int i = 0; i < document.tags.size(); i++) {
             tags.put(i, document.tags.get(i));
         }
 
@@ -330,8 +386,89 @@ public class JsonParser {
 
         return mendeleyUserRole.build();
     }
-	
-	/**
+
+    public static Annotation parseAnnotation(String jsonString) throws JSONException {
+        Annotation.Builder builder = new Annotation.Builder();
+
+        JSONObject jAnnotation = new JSONObject(jsonString);
+
+        for (Iterator<String> keysIter = jAnnotation.keys(); keysIter.hasNext(); ) {
+            String key = keysIter.next();
+            switch (key) {
+                case "id":
+                    builder.setId(jAnnotation.getString(key));
+                    break;
+                case "type":
+                    builder.setType(Annotation.Type.fromName(jAnnotation.getString(key)));
+                    break;
+                case "previous_id":
+                    builder.setPreviousId(jAnnotation.getString(key));
+                    break;
+                case "color":
+                    JSONObject jColor = jAnnotation.getJSONObject(key);
+                    int r = jColor.getInt("r");
+                    int g = jColor.getInt("g");
+                    int b = jColor.getInt("b");
+                    builder.setColor(Color.rgb(r, g, b));
+                    break;
+                case "text":
+                    builder.setText(jAnnotation.getString(key));
+                    break;
+                case "profile_id":
+                    builder.setProfileId(jAnnotation.getString(key));
+                    break;
+                case "positions":
+                    JSONArray jPositions = jAnnotation.getJSONArray(key);
+                    builder.setPositions(parseBoundingBoxes(jPositions));
+                    break;
+                case "created":
+                    builder.setCreated(jAnnotation.getString(key));
+                    break;
+                case "last_modified":
+                    builder.setLastModified(jAnnotation.getString(key));
+                    break;
+                case "privacy_level":
+                    builder.setPrivacyLevel(PrivacyLevel.fromName(jAnnotation.getString(key)));
+                    break;
+                case "filehash":
+                    builder.setFileHash(jAnnotation.getString(key));
+                    break;
+                case "document_id":
+                    builder.setDocumentId(jAnnotation.getString(key));
+                    break;
+            }
+        }
+        return builder.build();
+    }
+
+    private static List<Box> parseBoundingBoxes(JSONArray jPositions) throws JSONException {
+        List<Box> boxes = new ArrayList<Box>();
+        for (int i = 0; i < jPositions.length(); i++) {
+            JSONObject jBox = jPositions.getJSONObject(i);
+
+            Point topLeft = null;
+            Point bottomRight = null;
+            Integer page = null;
+
+            if (jBox.has("page")) {
+                page = jBox.getInt("page");
+            }
+            if (jBox.has("top_left")) {
+                JSONObject jTopLeft = jBox.getJSONObject("top_left");
+                topLeft = new Point(jTopLeft.getDouble("x"), jTopLeft.getDouble("y"));
+            }
+            if (jBox.has("bottom_right")) {
+                JSONObject jBottomRight = jBox.getJSONObject("bottom_right");
+                bottomRight = new Point(jBottomRight.getDouble("x"), jBottomRight.getDouble("y"));
+            }
+
+            Box box = new Box(topLeft, bottomRight, page);
+            boxes.add(box);
+        }
+        return boxes;
+    }
+
+    /**
 	 * Creating a Profile object from a json string
 	 * 
 	 * @param jsonString the json string
@@ -339,7 +476,6 @@ public class JsonParser {
 	 * @throws JSONException
 	 */
     public static Profile parseProfile(String jsonString) throws JSONException {
-		
 		Profile.Builder mendeleyProfile = new Profile.Builder();
 		
 		JSONObject profileObject = new JSONObject(jsonString);
@@ -813,6 +949,16 @@ public class JsonParser {
         return documents;
     }
 
+    public static List<Annotation> parseAnnotationList(String jsonString) throws JSONException {
+        List<Annotation> annotations = new ArrayList<Annotation>();
+        JSONArray jsonarray = new JSONArray(jsonString);
+
+        for (int i = 0; i < jsonarray.length(); i++) {
+            annotations.add(parseAnnotation(jsonarray.getString(i)));
+        }
+        return annotations;
+    }
+
     /**
      *  Creating a list of UserRole objects from a json string
      *
@@ -854,7 +1000,7 @@ public class JsonParser {
     }
 	
 	/**
-     * Helper method for getting jeson string from an InputStream object
+     * Helper method for getting json string from an InputStream object
      * 
      * @param stream the InputStream object
      * @return the json String object

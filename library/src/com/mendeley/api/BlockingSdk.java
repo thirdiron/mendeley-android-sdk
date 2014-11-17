@@ -1,6 +1,7 @@
 package com.mendeley.api;
 
 import com.mendeley.api.callbacks.RequestHandle;
+import com.mendeley.api.callbacks.annotations.AnnotationList;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
@@ -29,10 +30,12 @@ import com.mendeley.api.callbacks.group.GroupList;
 import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.params.AnnotationRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -303,4 +306,20 @@ public interface BlockingSdk {
      * @param  profileId ID of the profile to be fetched.
      */
     Profile getProfile(String profileId) throws MendeleyException;
+
+    /* ANNOTATIONS */
+
+    AnnotationList getAnnotations() throws MendeleyException;
+
+    AnnotationList getAnnotations(AnnotationRequestParameters parameters) throws MendeleyException;
+
+    AnnotationList getAnnotations(Page next) throws MendeleyException;
+
+    Annotation getAnnotation(String annotationId) throws MendeleyException;
+
+    Annotation postAnnotation(Annotation annotation) throws MendeleyException;
+
+    void patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
+
+    void deleteAnnotation(String annotationId) throws MendeleyException;
 }
