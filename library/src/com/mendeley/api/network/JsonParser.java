@@ -46,40 +46,15 @@ public class JsonParser {
         JSONArray positions = new JSONArray();
         for (int i = 0; i < annotation.positions.size(); i++) {
             Box box = annotation.positions.get(i);
-
-            JSONObject topLeft = null;
-            JSONObject bottomRight = null;
-
-            if (box.topLeft != null) {
-                topLeft = new JSONObject();
-                topLeft.put("x", box.topLeft.x);
-                topLeft.put("y", box.topLeft.y);
-            }
-            if (box.bottomRight != null) {
-                bottomRight = new JSONObject();
-                bottomRight.put("x", box.bottomRight.x);
-                bottomRight.put("y", box.bottomRight.y);
-            }
-
-            JSONObject bbox = new JSONObject();
-            bbox.put("top_left", topLeft);
-            bbox.put("bottom_right", bottomRight);
-            bbox.put("page", box.page);
-
-            positions.put(i, bbox);
+            positions.put(i, serializeBox(box));
         }
-
-        JSONObject color = new JSONObject();
-        color.put("r", Color.red(annotation.color));
-        color.put("g", Color.green(annotation.color));
-        color.put("b", Color.blue(annotation.color));
 
         JSONObject jAnnotation = new JSONObject();
 
         jAnnotation.put("id", annotation.id);
         jAnnotation.put("type", annotation.type.name);
         jAnnotation.put("previous_id", annotation.previousId);
-        jAnnotation.put("color", color);
+        jAnnotation.put("color", serializeColor(annotation.color));
         jAnnotation.put("text", annotation.text);
         jAnnotation.put("profile_id", annotation.profileId);
         jAnnotation.put("positions", positions);
@@ -90,6 +65,36 @@ public class JsonParser {
         jAnnotation.put("document_id", annotation.documentId);
 
         return jAnnotation.toString();
+    }
+
+    private static JSONObject serializeColor(int color) throws JSONException {
+        JSONObject jColor = new JSONObject();
+        jColor.put("r", Color.red(color));
+        jColor.put("g", Color.green(color));
+        jColor.put("b", Color.blue(color));
+        return jColor;
+    }
+
+    private static JSONObject serializeBox(Box box) throws JSONException {
+        JSONObject topLeft = null;
+        JSONObject bottomRight = null;
+
+        if (box.topLeft != null) {
+            topLeft = new JSONObject();
+            topLeft.put("x", box.topLeft.x);
+            topLeft.put("y", box.topLeft.y);
+        }
+        if (box.bottomRight != null) {
+            bottomRight = new JSONObject();
+            bottomRight.put("x", box.bottomRight.x);
+            bottomRight.put("y", box.bottomRight.y);
+        }
+
+        JSONObject bbox = new JSONObject();
+        bbox.put("top_left", topLeft);
+        bbox.put("bottom_right", bottomRight);
+        bbox.put("page", box.page);
+        return bbox;
     }
 
     /**
@@ -405,11 +410,7 @@ public class JsonParser {
                     builder.setPreviousId(jAnnotation.getString(key));
                     break;
                 case "color":
-                    JSONObject jColor = jAnnotation.getJSONObject(key);
-                    int r = jColor.getInt("r");
-                    int g = jColor.getInt("g");
-                    int b = jColor.getInt("b");
-                    builder.setColor(Color.rgb(r, g, b));
+                    builder.setColor(parseColor(jAnnotation.getJSONObject(key)));
                     break;
                 case "text":
                     builder.setText(jAnnotation.getString(key));
@@ -439,6 +440,13 @@ public class JsonParser {
             }
         }
         return builder.build();
+    }
+
+    private static int parseColor(JSONObject jColor) throws JSONException {
+        int r = jColor.getInt("r");
+        int g = jColor.getInt("g");
+        int b = jColor.getInt("b");
+        return Color.rgb(r, g, b);
     }
 
     private static List<Box> parseBoundingBoxes(JSONArray jPositions) throws JSONException {

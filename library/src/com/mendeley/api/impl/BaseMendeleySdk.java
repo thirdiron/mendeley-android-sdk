@@ -248,7 +248,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
             Procedure<AnnotationList> proc = new GetAnnotationsProcedure(url, authenticationManager);
             return proc.checkedRun();
         } catch (UnsupportedEncodingException e) {
-            throw new MendeleyException(e.getMessage());
+            throw new MendeleyException("Could not encode the URL for getting annotations", e);
         }
     }
 
@@ -280,7 +280,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
                     = new AnnotationsNetworkProvider.PostAnnotationProcedure(annotation, authenticationManager);
             return proc.checkedRun();
         } catch (JSONException e) {
-            throw new JsonParsingException(e.getMessage());
+            throw new JsonParsingException("Error parsing annotation", e);
         }
     }
 
@@ -291,7 +291,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
             Procedure proc = new PatchAnnotationProcedure(annotationId, json, authenticationManager);
             proc.checkedRun();
         } catch (JSONException e) {
-            throw new JsonParsingException(e.getMessage());
+            throw new JsonParsingException("Error parsing annotation", e);
         }
     }
 
