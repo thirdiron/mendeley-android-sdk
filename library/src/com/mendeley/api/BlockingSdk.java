@@ -1,5 +1,7 @@
 package com.mendeley.api;
 
+import android.content.ContentValues;
+
 import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.annotations.AnnotationList;
 import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
@@ -322,4 +324,6 @@ public interface BlockingSdk {
     void patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
 
     void deleteAnnotation(String annotationId) throws MendeleyException;
+
+
 }

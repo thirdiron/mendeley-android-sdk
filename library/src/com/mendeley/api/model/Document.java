@@ -2,6 +2,7 @@ package com.mendeley.api.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ public class Document {
 	public final String created;
 	public final Map<String, String> identifiers;
 	public final String abstractString;
-	public final ArrayList<Person> authors;
+	public final List<Person> authors;
 	public final String pages;
 	public final String volume;
 	public final String issue;
@@ -39,12 +40,12 @@ public class Document {
 	public final String institution;
 	public final String series;
 	public final String chapter;
-	public final ArrayList<Person> editors;
-    public final ArrayList<String> tags;
+	public final List<Person> editors;
+    public final List<String> tags;
     public final String accessed;
     public final Boolean fileAttached;
-    public final ArrayList<String> keywords;
-    public final ArrayList<String> websites;
+    public final List<String> keywords;
+    public final List<String> websites;
     public final String clientData;
     public final String uniqueId;
 	
@@ -70,7 +71,7 @@ public class Document {
 			String created,
 			Map<String, String> identifiers,
 			String abstractString,
-			ArrayList<Person> authors,
+            List<Person> authors,
 			String pages,
 			String volume,
 			String issue,
@@ -81,12 +82,12 @@ public class Document {
 			String institution,
 			String series,
 			String chapter,
-			ArrayList<Person> editors,
-            ArrayList<String> tags,
+            List<Person> editors,
+            List<String> tags,
             String accessed,
             Boolean fileAttached,
-            ArrayList<String> keywords,
-            ArrayList<String> websites,
+            List<String> keywords,
+            List<String> websites,
             String clientData,
             String uniqueId) {
 		this.lastModified = lastModified;
@@ -149,7 +150,7 @@ public class Document {
 		private String created;
 		private Map<String, String> identifiers;
 		private String abstractString;
-		private ArrayList<Person> authors;
+		private List<Person> authors;
 		private String pages;
 		private String volume;
 		private String issue;
@@ -160,12 +161,12 @@ public class Document {
 		private String institution;
 		private String series;
 		private String chapter;
-		private ArrayList<Person> editors;
-        private ArrayList<String> tags;
+		private List<Person> editors;
+        private List<String> tags;
         private String accessed;
         private Boolean fileAttached;
-        private ArrayList<String> keywords;
-        private ArrayList<String> websites;
+        private List<String> keywords;
+        private List<String> websites;
         private String clientData;
         private String uniqueId;
 		
@@ -294,7 +295,7 @@ public class Document {
 			return this;
 		}
 
-		public Builder setAuthors(ArrayList<Person> authors) {
+		public Builder setAuthors(List<Person> authors) {
 			this.authors = authors;
 			return this;
 		}
