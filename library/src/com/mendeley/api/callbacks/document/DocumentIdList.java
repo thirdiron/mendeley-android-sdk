@@ -1,6 +1,5 @@
 package com.mendeley.api.callbacks.document;
 
-import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
 import com.mendeley.api.params.Page;
 
