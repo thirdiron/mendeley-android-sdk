@@ -198,6 +198,7 @@ public class FileNetworkProvider {
             }
             if (params.deletedSince != null) {
                 url.append(firstParam?"?":"&").append("deleted_since="+URLEncoder.encode(params.deletedSince, "ISO-8859-1"));
+                firstParam = false;
             }
             if (params.limit != null) {
                 url.append(firstParam?"?":"&").append("limit="+params.limit);
