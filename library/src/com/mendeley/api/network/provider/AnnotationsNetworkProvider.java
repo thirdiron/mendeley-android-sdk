@@ -102,7 +102,7 @@ public class AnnotationsNetworkProvider {
 
         @Override
         protected AnnotationList processJsonString(String jsonString) throws JSONException {
-            return new AnnotationList(JsonParser.parseAnnotationList(jsonString), next);
+            return new AnnotationList(JsonParser.parseAnnotationList(jsonString), next, serverDate);
         }
    }
 
