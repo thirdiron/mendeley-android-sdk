@@ -130,8 +130,8 @@ public class Document {
 	}
 
 	public static class Builder {
-        private final String title;
-        private final String type;
+        private String title;
+        private String type;
 
 		private String lastModified;
 		private String groupId;
@@ -214,7 +214,12 @@ public class Document {
             this.clientData = from.clientData;
             this.uniqueId = from.uniqueId;
 		}
-		
+
+        public Builder setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
 		public Builder setLastModified(String lastModified) {
 			this.lastModified = lastModified;
 			return this;
