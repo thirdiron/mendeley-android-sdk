@@ -1,36 +1,12 @@
 package com.mendeley.api;
 
-import android.content.ContentValues;
-
-import com.mendeley.api.callbacks.RequestHandle;
 import com.mendeley.api.callbacks.annotations.AnnotationList;
-import com.mendeley.api.callbacks.document.DeleteDocumentCallback;
 import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
-import com.mendeley.api.callbacks.document.GetDocumentsCallback;
-import com.mendeley.api.callbacks.document.PatchDocumentCallback;
-import com.mendeley.api.callbacks.document.PostDocumentCallback;
-import com.mendeley.api.callbacks.document.TrashDocumentCallback;
-import com.mendeley.api.callbacks.file.DeleteFileCallback;
 import com.mendeley.api.callbacks.file.FileList;
-import com.mendeley.api.callbacks.file.GetFileCallback;
-import com.mendeley.api.callbacks.file.GetFilesCallback;
-import com.mendeley.api.callbacks.file.PostFileCallback;
-import com.mendeley.api.callbacks.folder.DeleteFolderCallback;
-import com.mendeley.api.callbacks.folder.DeleteFolderDocumentCallback;
 import com.mendeley.api.callbacks.folder.FolderList;
-import com.mendeley.api.callbacks.folder.GetFolderCallback;
-import com.mendeley.api.callbacks.folder.GetFolderDocumentIdsCallback;
-import com.mendeley.api.callbacks.folder.GetFoldersCallback;
-import com.mendeley.api.callbacks.folder.PatchFolderCallback;
-import com.mendeley.api.callbacks.folder.PostDocumentToFolderCallback;
-import com.mendeley.api.callbacks.folder.PostFolderCallback;
-import com.mendeley.api.callbacks.group.GetGroupCallback;
-import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
-import com.mendeley.api.callbacks.group.GetGroupsCallback;
 import com.mendeley.api.callbacks.group.GroupList;
 import com.mendeley.api.callbacks.group.GroupMembersList;
-import com.mendeley.api.callbacks.trash.RestoreDocumentCallback;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
@@ -45,7 +21,6 @@ import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -266,6 +241,14 @@ public interface BlockingSdk {
      * @param next returned from a previous getGroupMembers() call.
      */
     GroupMembersList getGroupMembers(Page next) throws MendeleyException;
+
+    /**
+     * Return group image
+     * @param url image url
+     * @return bytes array of the image
+     * @throws MendeleyException
+     */
+    byte[] getGroupImage(String url) throws MendeleyException;
 
     /* TRASH */
 

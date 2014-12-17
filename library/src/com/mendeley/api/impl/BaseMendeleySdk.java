@@ -477,6 +477,11 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         return proc.checkedRun();
     }
 
+    @Override
+    public byte[] getGroupImage(String url) throws MendeleyException {
+        return utilsNetworkProvider.getImage(url);
+    }
+
     /* TRASH BLOCKING */
 
     @Override

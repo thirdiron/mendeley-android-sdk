@@ -11,6 +11,7 @@ import com.mendeley.api.network.task.NetworkTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 
 public class UtilsNetworkProvider {
@@ -54,7 +55,7 @@ public class UtilsNetworkProvider {
 
             String url = params[0];
 
-            ByteArrayOutputStream bais = null;
+            ByteArrayOutputStream baos = null;
 
             try {
                 con = NetworkUtils.getHttpDownloadConnection(url, "GET");
@@ -70,7 +71,7 @@ public class UtilsNetworkProvider {
 
                     int fileLength = con.getContentLength();
                     is = con.getInputStream();
-                    bais = new ByteArrayOutputStream();
+                    baos = new ByteArrayOutputStream();
 
                     byte data[] = new byte[256];
                     long total = 0;
@@ -79,11 +80,11 @@ public class UtilsNetworkProvider {
                         total += count;
                         if (fileLength > 0)
                             publishProgress((int) (total * 100 / fileLength));
-                        bais.write(data, 0, count);
+                        baos.write(data, 0, count);
                     }
 
-                    fileData = bais.toByteArray();
-                    bais.close();
+                    fileData = baos.toByteArray();
+                    baos.close();
 
                     return null;
                 }
@@ -91,9 +92,9 @@ public class UtilsNetworkProvider {
                 return new MendeleyException(e.getMessage());
             } finally {
                 closeConnection();
-                if (bais != null) {
+                if (baos != null) {
                     try {
-                        bais.close();
+                        baos.close();
                     } catch (IOException e) {
                         return new MendeleyException(e.getMessage());
                     }
@@ -115,6 +116,53 @@ public class UtilsNetworkProvider {
         @Override
         protected void onFailure(MendeleyException exception) {
             callback.onImageNotReceived(exception);
+        }
+    }
+
+    public byte[] getImage(String url) throws MendeleyException {
+        ByteArrayOutputStream os = null;
+        InputStream is = null;
+        byte[] fileData;
+        HttpURLConnection con = null;
+
+        try {
+            con = NetworkUtils.getHttpDownloadConnection(url, "GET");
+            con.connect();
+
+            int responseCode = con.getResponseCode();
+            if (responseCode != 200) {
+                throw new MendeleyException(con.getResponseMessage());
+            } else {
+
+                is = con.getInputStream();
+                os = new ByteArrayOutputStream();
+
+                byte data[] = new byte[256];
+                int count;
+                while ((count = is.read(data)) != -1) {
+                    os.write(data, 0, count);
+                }
+
+                fileData = os.toByteArray();
+
+                return fileData;
+            }
+        } catch (IOException e) {
+            throw new MendeleyException("Error downloading group image", e);
+        } finally {
+            if (con != null) {
+                con.disconnect();
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                    if (is != null) {
+                        is.close();
+                    }
+                } catch (IOException e) {
+                   Log.e("", "Error downloading group image", e);
+                }
+            }
         }
     }
 }
