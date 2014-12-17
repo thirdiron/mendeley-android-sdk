@@ -10,9 +10,11 @@ import java.util.List;
 public class AnnotationList {
     public final List<Annotation> annotations;
     public final Page next;
+    public final Date serverDate;
 
-    public AnnotationList(List<Annotation> annotations, Page next) {
+    public AnnotationList(List<Annotation> annotations, Page next, Date serverDate) {
         this.annotations = annotations;
         this.next = next;
+        this.serverDate = serverDate;
     }
 }
