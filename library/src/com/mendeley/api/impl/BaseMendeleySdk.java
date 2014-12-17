@@ -388,7 +388,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     }
 
     @Override
-    public DocumentIdList getFolderDocumentIds(Page next, String folderId) throws MendeleyException {
+    public DocumentIdList getFolderDocumentIds(Page next) throws MendeleyException {
         if (!Page.isValidPage(next)) {
             throw new NoMorePagesException();
         }

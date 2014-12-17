@@ -200,12 +200,10 @@ public interface BlockingSdk {
 
     /**
      * Returns the next page of document IDs stored in a particular folder.
-     *
      * @param next returned by a previous call to getFolderDocumentIds().
-     * @param folderId provides an ID to return in the callback (the value is not actually
-     *                 checked by this call).
+     *
      */
-    DocumentIdList getFolderDocumentIds(Page next, String folderId) throws MendeleyException;
+    DocumentIdList getFolderDocumentIds(Page next) throws MendeleyException;
 
     /**
      * Add a document to a folder.
