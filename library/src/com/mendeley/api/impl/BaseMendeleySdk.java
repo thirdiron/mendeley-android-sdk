@@ -1,7 +1,5 @@
 package com.mendeley.api.impl;
 
-import android.os.AsyncTask;
-
 import com.mendeley.api.BlockingSdk;
 import com.mendeley.api.MendeleySdk;
 import com.mendeley.api.auth.AuthenticationInterface;
@@ -13,7 +11,6 @@ import com.mendeley.api.callbacks.document.DocumentIdList;
 import com.mendeley.api.callbacks.document.DocumentList;
 import com.mendeley.api.callbacks.file.FileList;
 import com.mendeley.api.callbacks.folder.FolderList;
-import com.mendeley.api.callbacks.group.GetGroupMembersCallback;
 import com.mendeley.api.callbacks.group.GroupList;
 import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.exceptions.JsonParsingException;
@@ -25,16 +22,13 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
+import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
-import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
-import com.mendeley.api.network.procedure.PatchNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
-import com.mendeley.api.network.procedure.PostNoResponseNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
-import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.provider.FileNetworkProvider;
 import com.mendeley.api.network.provider.FolderNetworkProvider;
 import com.mendeley.api.network.provider.GroupNetworkProvider;
@@ -51,11 +45,9 @@ import com.mendeley.api.params.View;
 
 import org.json.JSONException;
 
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
@@ -96,7 +88,11 @@ import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_
  * Implementation of the blocking API calls.
  */
 public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
-    private static final String TAG = MendeleySdk.class.getSimpleName();
+
+    public static final String TAG = BaseMendeleySdk.class.getSimpleName();
+
+    // Number of times to retry failed HTTP requests due to IOExceptions.
+    public static final int MAX_HTTP_RETRIES = 3;
 
     protected AuthenticationManager authenticationManager;
     protected MendeleySignInInterface mendeleySignInInterface;
