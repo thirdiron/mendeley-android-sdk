@@ -6,6 +6,7 @@ import com.mendeley.api.exceptions.HttpResponseException;
 import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.UserCancelledException;
+import com.mendeley.api.impl.BaseMendeleySdk;
 
 import org.json.JSONException;
 
@@ -19,9 +20,7 @@ import static com.mendeley.api.network.NetworkUtils.getJsonString;
  * A NetworkTask specialised for making HTTP GET requests.
  */
 public abstract class GetNetworkTask extends NetworkTask {
-    private static final String TAG = GetNetworkTask.class.getSimpleName();
-
-    private static final Integer MAX_RETRIES = 3;
+    private static final String TAG = BaseMendeleySdk.TAG;
 
     @Override
     protected int getExpectedResponse() {
@@ -62,10 +61,10 @@ public abstract class GetNetworkTask extends NetworkTask {
         } catch (MendeleyException me) {
             throw me;
         } catch (IOException ioe) {
-            // If the issue is due to IOException, retry up to MAX_RETRIES times
+            // If the issue is due to IOException, retry up to MAX_HTTP_RETRIES times
             // TODO: move this logic to the blocking version and delegate into it
-            if (currentRetry <  MAX_RETRIES) {
-                Log.w(TAG, "Problem connecting to " + url + ": " + ioe.getMessage() + ". Retrying (" + (currentRetry + 1) + "/" + MAX_RETRIES + ")");
+            if (currentRetry <  BaseMendeleySdk.MAX_HTTP_RETRIES) {
+                Log.w(TAG, "Problem connecting to " + url + ": " + ioe.getMessage() + ". Retrying (" + (currentRetry + 1) + "/" + BaseMendeleySdk.MAX_HTTP_RETRIES + ")");
                 executeRequest(url, currentRetry + 1);
             } else {
                 throw new MendeleyException("IO error in GET request " + url + ": " + ioe.toString(), ioe);
