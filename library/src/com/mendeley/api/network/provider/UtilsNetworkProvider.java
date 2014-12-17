@@ -55,50 +55,12 @@ public class UtilsNetworkProvider {
 
             String url = params[0];
 
-            ByteArrayOutputStream baos = null;
-
             try {
-                con = NetworkUtils.getHttpDownloadConnection(url, "GET");
-                con.connect();
+                fileData = getImage(url);
+                return null;
 
-                int responseCode = con.getResponseCode();
-
-                if (responseCode != getExpectedResponse()) {
-                    Log.e("", "responseCode: " + responseCode);
-
-                    return new MendeleyException(con.getResponseMessage());
-                } else {
-
-                    int fileLength = con.getContentLength();
-                    is = con.getInputStream();
-                    baos = new ByteArrayOutputStream();
-
-                    byte data[] = new byte[256];
-                    long total = 0;
-                    int count;
-                    while ((count = is.read(data)) != -1 && !isCancelled()) {
-                        total += count;
-                        if (fileLength > 0)
-                            publishProgress((int) (total * 100 / fileLength));
-                        baos.write(data, 0, count);
-                    }
-
-                    fileData = baos.toByteArray();
-                    baos.close();
-
-                    return null;
-                }
-            } catch (IOException e) {
+            } catch (MendeleyException e) {
                 return new MendeleyException(e.getMessage());
-            } finally {
-                closeConnection();
-                if (baos != null) {
-                    try {
-                        baos.close();
-                    } catch (IOException e) {
-                        return new MendeleyException(e.getMessage());
-                    }
-                }
             }
         }
 
