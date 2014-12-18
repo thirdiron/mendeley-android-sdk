@@ -11,6 +11,7 @@ import com.mendeley.api.network.task.NetworkTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 
 public class UtilsNetworkProvider {
@@ -54,50 +55,12 @@ public class UtilsNetworkProvider {
 
             String url = params[0];
 
-            ByteArrayOutputStream bais = null;
-
             try {
-                con = NetworkUtils.getHttpDownloadConnection(url, "GET");
-                con.connect();
+                fileData = getImage(url);
+                return null;
 
-                int responseCode = con.getResponseCode();
-
-                if (responseCode != getExpectedResponse()) {
-                    Log.e("", "responseCode: " + responseCode);
-
-                    return new MendeleyException(con.getResponseMessage());
-                } else {
-
-                    int fileLength = con.getContentLength();
-                    is = con.getInputStream();
-                    bais = new ByteArrayOutputStream();
-
-                    byte data[] = new byte[256];
-                    long total = 0;
-                    int count;
-                    while ((count = is.read(data)) != -1 && !isCancelled()) {
-                        total += count;
-                        if (fileLength > 0)
-                            publishProgress((int) (total * 100 / fileLength));
-                        bais.write(data, 0, count);
-                    }
-
-                    fileData = bais.toByteArray();
-                    bais.close();
-
-                    return null;
-                }
-            } catch (IOException e) {
+            } catch (MendeleyException e) {
                 return new MendeleyException(e.getMessage());
-            } finally {
-                closeConnection();
-                if (bais != null) {
-                    try {
-                        bais.close();
-                    } catch (IOException e) {
-                        return new MendeleyException(e.getMessage());
-                    }
-                }
             }
         }
 
@@ -115,6 +78,53 @@ public class UtilsNetworkProvider {
         @Override
         protected void onFailure(MendeleyException exception) {
             callback.onImageNotReceived(exception);
+        }
+    }
+
+    public byte[] getImage(String url) throws MendeleyException {
+        ByteArrayOutputStream os = null;
+        InputStream is = null;
+        byte[] fileData;
+        HttpURLConnection con = null;
+
+        try {
+            con = NetworkUtils.getHttpDownloadConnection(url, "GET");
+            con.connect();
+
+            int responseCode = con.getResponseCode();
+            if (responseCode != 200) {
+                throw new MendeleyException(con.getResponseMessage());
+            } else {
+
+                is = con.getInputStream();
+                os = new ByteArrayOutputStream();
+
+                byte data[] = new byte[256];
+                int count;
+                while ((count = is.read(data)) != -1) {
+                    os.write(data, 0, count);
+                }
+
+                fileData = os.toByteArray();
+
+                return fileData;
+            }
+        } catch (IOException e) {
+            throw new MendeleyException("Error downloading group image", e);
+        } finally {
+            if (con != null) {
+                con.disconnect();
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                    if (is != null) {
+                        is.close();
+                    }
+                } catch (IOException e) {
+                   Log.e("", "Error downloading group image", e);
+                }
+            }
         }
     }
 }
