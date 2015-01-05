@@ -3,6 +3,7 @@ package com.mendeley.api.network.procedure;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.params.Page;
+import com.mendeley.api.util.DateUtils;
 import com.mendeley.api.util.Utils;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -48,8 +50,8 @@ public abstract class NetworkProcedure<ResultType> extends Procedure<ResultType>
             if (key != null) {
                 switch (key) {
                     case "Date":
-                        SimpleDateFormat simpledateformat = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss 'GMT'");
-                        serverDate = simpledateformat.parse(headersMap.get(key).get(0));
+                        final String dateHeader = headersMap.get(key).get(0);
+                        serverDate = DateUtils.parseDateInHeader(dateHeader);
                         break;
                     case "Vary":
                     case "Content-Type":
