@@ -639,7 +639,7 @@ public class JsonParser {
 			        				employment.isMainEmployment = employmentObject.getBoolean(employmentKey);
 			    					break;
 			        			case "classes":
-			        				JSONArray classesArray = employmentObject.getJSONArray(key);
+			        				JSONArray classesArray = employmentObject.getJSONArray(employmentKey);
 			        				for (int j= 0; j < classesArray.length(); j++) {
 			        					employment.classes.add(classesArray.getString(j));
 			        				}
