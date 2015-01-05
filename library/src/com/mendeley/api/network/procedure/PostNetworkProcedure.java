@@ -12,6 +12,7 @@ import org.json.JSONException;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
 
 import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getJsonString;
@@ -49,7 +50,11 @@ public abstract class PostNetworkProcedure<ResultType> extends NetworkProcedure<
             writer.close();
             os.close();
 
-            getResponseHeaders();
+            try {
+                getResponseHeaders();
+            } catch (ParseException pe) {
+                throw new MendeleyException("Cannot parse web API server response headers for " + url, pe);
+            }
 
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
