@@ -37,7 +37,7 @@ public abstract class NetworkProcedure<ResultType> extends Procedure<ResultType>
     /**
      * Extracts the headers from the given HttpsURLConnection object.
      */
-    protected void getResponseHeaders() throws IOException {
+    protected void getResponseHeaders() throws IOException, ParseException {
         Map<String, List<String>> headersMap = con.getHeaderFields();
         if (headersMap == null) {
             // No headers implies an error, which should be handled based on the HTTP status code;
@@ -49,11 +49,7 @@ public abstract class NetworkProcedure<ResultType> extends Procedure<ResultType>
                 switch (key) {
                     case "Date":
                         SimpleDateFormat simpledateformat = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss 'GMT'");
-                        try {
-                            serverDate = simpledateformat.parse(headersMap.get(key).get(0));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+                        serverDate = simpledateformat.parse(headersMap.get(key).get(0));
                         break;
                     case "Vary":
                     case "Content-Type":

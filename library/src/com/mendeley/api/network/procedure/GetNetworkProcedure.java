@@ -11,6 +11,7 @@ import com.mendeley.api.impl.BaseMendeleySdk;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
@@ -61,6 +62,8 @@ public abstract class GetNetworkProcedure<ResultType> extends NetworkProcedure<R
             return processJsonString(responseString);
         } catch (MendeleyException me) {
             throw me;
+        } catch (ParseException pe) {
+            throw new MendeleyException("Could not parse web API headers for " + url);
         } catch (IOException ioe) {
             // If the issue is due to IOException, retry up to MAX_HTTP_RETRIES times
             if (currentRetry <  BaseMendeleySdk.MAX_HTTP_RETRIES) {

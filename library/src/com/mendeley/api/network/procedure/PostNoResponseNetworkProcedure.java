@@ -11,6 +11,7 @@ import org.json.JSONException;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
 
 import static com.mendeley.api.network.NetworkUtils.getConnection;
 import static com.mendeley.api.network.NetworkUtils.getJsonString;
@@ -54,7 +55,9 @@ public abstract class PostNoResponseNetworkProcedure extends NetworkProcedure<Vo
             if (responseCode != getExpectedResponse()) {
                 throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(con));
             }
-        }	catch (IOException e) {
+        } catch (ParseException pe) {
+            throw new MendeleyException("Could not parse web API headers for " + url);
+        } catch (IOException e) {
             throw new JsonParsingException(e.getMessage());
         } finally {
             closeConnection();

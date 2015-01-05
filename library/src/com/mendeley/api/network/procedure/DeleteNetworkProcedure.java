@@ -8,6 +8,7 @@ import com.mendeley.api.network.NetworkUtils;
 import com.mendeley.api.network.task.NetworkTask;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import static com.mendeley.api.network.NetworkUtils.getConnection;
 
@@ -39,8 +40,10 @@ public class DeleteNetworkProcedure extends NetworkProcedure<Void> {
             if (responseCode != getExpectedResponse()) {
                 throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(con));
             }
-        }	catch (IOException e) {
-            throw new JsonParsingException(e.getMessage());
+        } catch (ParseException pe) {
+            throw new MendeleyException("Could not parse web API headers for " + url);
+        } catch (IOException e) {
+            throw new MendeleyException(e.getMessage());
         } finally {
             closeConnection();
         }
