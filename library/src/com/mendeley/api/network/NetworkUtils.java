@@ -21,6 +21,10 @@ import javax.net.ssl.HttpsURLConnection;
 public class NetworkUtils {
     public static final String API_URL = "https://api.mendeley.com/";
 
+    static {
+        HttpsURLConnection.setDefaultSSLSocketFactory(new NoSSLv3Factory());
+    }
+
     /**
      * Extends HttpEntityEnclosingRequestBase to provide PATCH request method.
      */
