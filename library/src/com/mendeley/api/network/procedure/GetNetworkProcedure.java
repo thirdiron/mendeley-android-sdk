@@ -50,13 +50,12 @@ public abstract class GetNetworkProcedure<ResultType> extends NetworkProcedure<R
             con.addRequestProperty("Content-type", contentType);
             con.connect();
 
-            getResponseHeaders();
-
             final int responseCode = con.getResponseCode();
             if (responseCode != getExpectedResponse()) {
                 throw new HttpResponseException(url, responseCode, getErrorMessage(con));
             }
 
+            getResponseHeaders();
             is = con.getInputStream();
             responseString = getJsonString(is);
             return processJsonString(responseString);
