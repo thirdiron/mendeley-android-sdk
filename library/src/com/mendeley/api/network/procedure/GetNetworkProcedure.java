@@ -63,7 +63,7 @@ public abstract class GetNetworkProcedure<ResultType> extends NetworkProcedure<R
         } catch (MendeleyException me) {
             throw me;
         } catch (ParseException pe) {
-            throw new MendeleyException("Could not parse web API headers for " + url);
+            throw new MendeleyException("Could not parse web API headers for " + url, pe);
         } catch (IOException ioe) {
             // If the issue is due to IOException, retry up to MAX_HTTP_RETRIES times
             if (currentRetry <  BaseMendeleySdk.MAX_HTTP_RETRIES) {
