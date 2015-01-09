@@ -3,6 +3,7 @@ package com.mendeley.api.util;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 // TODO: encapsulate the parsing/formatting of the dates in the classes that perform it
@@ -10,10 +11,15 @@ import java.util.TimeZone;
 public class DateUtils {
     // ISO 8601 format, used by the Mendeley web API for timestamps.
     public final static SimpleDateFormat mendeleyApiDateFormat;
+    // RFC 7231 format, used for Dates in HTTP headers.
+    public final static SimpleDateFormat httpHeaderDateFormat;
+
 
     static {
         mendeleyApiDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         mendeleyApiDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        httpHeaderDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss 'GMT'", Locale.US);
     }
 
     /**
@@ -40,8 +46,7 @@ public class DateUtils {
      * @throws java.text.ParseException
      */
     public static Date parseDateInHeader(String dateHeader) throws ParseException {
-        SimpleDateFormat simpledateformat = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss 'GMT'");
-        simpledateformat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return simpledateformat.parse(dateHeader);
+        httpHeaderDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return httpHeaderDateFormat.parse(dateHeader);
     }
 }
