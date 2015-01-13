@@ -107,7 +107,7 @@ public interface MendeleySdk {
     /**
      * Retrieve subsequent pages of documents in the user's library.
      *
-     * @next reference to next page returned by a previous onDocumentsReceived() callback.
+     * @param next reference to next page returned by a previous onDocumentsReceived() callback.
      */
     RequestHandle getDocuments(Page next, GetDocumentsCallback callback);
 
@@ -130,7 +130,7 @@ public interface MendeleySdk {
     /**
      * Retrieve subsequent pages of deleted documents in the user's library.
      *
-     * @next reference to next page returned by a previous onDeletedDocumentsReceived() callback.
+     * @param next reference to next page returned by a previous onDeletedDocumentsReceived() callback.
      */
     RequestHandle getDeletedDocuments(Page next, GetDeletedDocumentsCallback callback);
 
@@ -400,7 +400,7 @@ public interface MendeleySdk {
     /**
      * Retrieve subsequent pages of documents from the user's trash.
      *
-     * @next reference to next page returned by a previous onDocumentsReceived() callback from getTrashedDocuments().
+     * @param next reference to next page returned by a previous onDocumentsReceived() callback from getTrashedDocuments().
      */
     RequestHandle getTrashedDocuments(Page next, GetDocumentsCallback callback);
 

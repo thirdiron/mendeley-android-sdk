@@ -40,7 +40,7 @@ public interface BlockingSdk {
     /**
      * Retrieve subsequent pages of documents in the user's library.
      *
-     * @next reference to next page returned in a previous DocumentList.
+     * @param next reference to next page returned in a previous DocumentList.
      */
     DocumentList getDocuments(Page next) throws MendeleyException;
 
@@ -63,7 +63,7 @@ public interface BlockingSdk {
     /**
      * Retrieve subsequent pages of deleted documents in the user's library.
      *
-     * @next reference to next page returned in a previous DocumentIdList.
+     * @param next reference to next page returned in a previous DocumentIdList.
      */
     DocumentIdList getDeletedDocuments(Page next) throws MendeleyException;
 
@@ -265,7 +265,7 @@ public interface BlockingSdk {
     /**
      * Retrieve subsequent pages of documents from the user's trash.
      *
-     * @next reference to next page returned by a previous DocumentList from getTrashedDocuments().
+     * @param next reference to next page returned by a previous DocumentList from getTrashedDocuments().
      */
     DocumentList getTrashedDocuments(Page next) throws MendeleyException;
 
