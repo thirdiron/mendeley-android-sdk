@@ -1,11 +1,16 @@
 com.mendeley.api
 com.mendeley.api.callbacks
+com.mendeley.api.callbacks.annotations
 com.mendeley.api.callbacks.document
 com.mendeley.api.callbacks.file
 com.mendeley.api.callbacks.folder
 com.mendeley.api.callbacks.group
 com.mendeley.api.callbacks.profile
+com.mendeley.api.callbacks.trash
 com.mendeley.api.callbacks.utils
 com.mendeley.api.exceptions
 com.mendeley.api.model
+com.mendeley.api.network.procedure
+com.mendeley.api.network.provider
+com.mendeley.api.network.task
 com.mendeley.api.params
