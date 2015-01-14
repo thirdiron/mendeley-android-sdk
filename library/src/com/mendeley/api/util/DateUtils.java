@@ -1,5 +1,7 @@
 package com.mendeley.api.util;
 
+import android.util.Log;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,11 +32,15 @@ public class DateUtils {
      * @throws java.text.ParseException
      */
     public static Date parseMendeleyApiTimestamp(String date) throws ParseException {
-        return mendeleyApiDateFormat.parse(date);
+        synchronized (mendeleyApiDateFormat) {
+            return mendeleyApiDateFormat.parse(date);
+        }
     }
 
     public static String formatMendeleyApiTimestamp(Date date) {
-        return mendeleyApiDateFormat.format(date);
+        synchronized (mendeleyApiDateFormat) {
+            return mendeleyApiDateFormat.format(date);
+        }
     }
 
     /**
@@ -46,7 +52,9 @@ public class DateUtils {
      * @throws java.text.ParseException
      */
     public static Date parseDateInHeader(String dateHeader) throws ParseException {
-        httpHeaderDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return httpHeaderDateFormat.parse(dateHeader);
+        synchronized (httpHeaderDateFormat) {
+            httpHeaderDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            return httpHeaderDateFormat.parse(dateHeader);
+        }
     }
 }
