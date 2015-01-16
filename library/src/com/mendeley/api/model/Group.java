@@ -8,12 +8,38 @@ import java.util.ArrayList;
  */
 public class Group {
 
+    /** Different access levels for a group */
+    public static enum AccessLevel {
+        PUBLIC("public"),
+        PRIVATE("private"),
+        INVITE_ONLY("invite_only");
+
+        private final String stringValue;
+
+        private AccessLevel(String stringValue) {
+            this.stringValue = stringValue;
+        }
+
+        public static AccessLevel fromValue(String accessLevelStr) {
+            for(AccessLevel level : AccessLevel.values()) {
+                if (level.toValue().equals(accessLevelStr)) {
+                    return level;
+                }
+            }
+            throw new IllegalArgumentException("Invalid access level: " + accessLevelStr);
+        }
+
+        public String toValue() {
+            return stringValue;
+        }
+    }
+
     public final String id;
     public final String created;
     public final String owningProfileId;
     public final String link;
     public final String role;
-    public final String accessLevel;
+    public final AccessLevel accessLevel;
     public final String name;
     public final String description;
     public final ArrayList<String> tags;
@@ -27,7 +53,7 @@ public class Group {
             String owningProfileId,
             String link,
             String role,
-            String accessLevel,
+            AccessLevel accessLevel,
             String name,
             String description,
             ArrayList<String> tags,
@@ -54,7 +80,7 @@ public class Group {
             private String owningProfileId;
             private String link;
             private String role;
-            private String accessLevel;
+            private AccessLevel accessLevel;
             private String name;
             private String description;
             private ArrayList<String> tags;
@@ -104,7 +130,7 @@ public class Group {
             return this;
         }
 
-        public Builder setAccessLevel(String accessLevel) {
+        public Builder setAccessLevel(AccessLevel accessLevel) {
             this.accessLevel = accessLevel;
             return this;
         }
