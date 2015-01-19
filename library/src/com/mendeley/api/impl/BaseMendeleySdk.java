@@ -1,7 +1,29 @@
 package com.mendeley.api.impl;
 
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.deleteAnnotationUrl;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationUrl;
+import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getDeleteFolderUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderDocumentIdsUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFoldersUrl;
+import static com.mendeley.api.network.provider.FolderNetworkProvider.getPostDocumentToFolderUrl;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupMembersUrl;
+import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupsUrl;
+import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.Map;
+
+import org.json.JSONException;
+
 import com.mendeley.api.BlockingSdk;
-import com.mendeley.api.MendeleySdk;
 import com.mendeley.api.auth.AuthenticationInterface;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
@@ -28,11 +50,28 @@ import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
+import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
+import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
+import com.mendeley.api.network.provider.AnnotationsNetworkProvider.PatchAnnotationProcedure;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
+import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
+import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentProcedure;
+import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentTypesProcedure;
+import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentsProcedure;
+import com.mendeley.api.network.provider.DocumentNetworkProvider.PatchDocumentProcedure;
 import com.mendeley.api.network.provider.FileNetworkProvider;
+import com.mendeley.api.network.provider.FileNetworkProvider.GetFilesProcedure;
 import com.mendeley.api.network.provider.FolderNetworkProvider;
+import com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderDocumentIdsProcedure;
+import com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderProcedure;
+import com.mendeley.api.network.provider.FolderNetworkProvider.GetFoldersProcedure;
+import com.mendeley.api.network.provider.FolderNetworkProvider.PatchFolderProcedure;
+import com.mendeley.api.network.provider.FolderNetworkProvider.PostDocumentToFolderProcedure;
 import com.mendeley.api.network.provider.GroupNetworkProvider;
+import com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupMembersProcedure;
+import com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupsProcedure;
 import com.mendeley.api.network.provider.ProfileNetworkProvider;
+import com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProcedure;
 import com.mendeley.api.network.provider.TrashNetworkProvider;
 import com.mendeley.api.network.provider.UtilsNetworkProvider;
 import com.mendeley.api.params.AnnotationRequestParameters;
@@ -42,47 +81,6 @@ import com.mendeley.api.params.FolderRequestParameters;
 import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
-
-import org.json.JSONException;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.Map;
-
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.PatchAnnotationProcedure;
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.deleteAnnotationUrl;
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationUrl;
-import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENTS_BASE_URL;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentProcedure;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentTypesProcedure;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentsProcedure;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.PatchDocumentProcedure;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
-import static com.mendeley.api.network.provider.FileNetworkProvider.GetFilesProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderDocumentIdsProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFolderProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.GetFoldersProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.PatchFolderProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.PostDocumentToFolderProcedure;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.getDeleteFolderUrl;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderDocumentIdsUrl;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFolderUrl;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.getGetFoldersUrl;
-import static com.mendeley.api.network.provider.FolderNetworkProvider.getPostDocumentToFolderUrl;
-import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupMembersProcedure;
-import static com.mendeley.api.network.provider.GroupNetworkProvider.GetGroupsProcedure;
-import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupMembersUrl;
-import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupsUrl;
-import static com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProcedure;
-import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
 
 /**
  * Implementation of the blocking API calls.
@@ -144,7 +142,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     @Override
     public DocumentList getDocuments(DocumentRequestParameters parameters) throws MendeleyException {
         try {
-            String url = getGetDocumentsUrl(DOCUMENTS_BASE_URL, parameters, null);
+            String url = getGetDocumentsUrl(parameters, null);
             Procedure<DocumentList> proc = new GetDocumentsProcedure(url, authenticationManager);
             return proc.checkedRun();
         } catch (UnsupportedEncodingException e) {
@@ -176,7 +174,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     @Override
     public DocumentIdList getDeletedDocuments(String deletedSince, DocumentRequestParameters parameters) throws MendeleyException {
         try {
-            String url = getGetDocumentsUrl(DOCUMENTS_BASE_URL, parameters, deletedSince);
+            String url = getGetDocumentsUrl(parameters, deletedSince);
             Procedure<DocumentIdList> proc = new GetDeletedDocumentsProcedure(url, authenticationManager);
             return proc.checkedRun();
         } catch (UnsupportedEncodingException e) {
@@ -487,7 +485,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     @Override
     public DocumentList getTrashedDocuments(DocumentRequestParameters parameters) throws MendeleyException {
         try {
-            String url = getGetDocumentsUrl(TrashNetworkProvider.BASE_URL, parameters, null);
+            String url = DocumentNetworkProvider.getTrashDocumentsUrl(parameters, null);
             Procedure<DocumentList> proc = new GetDocumentsProcedure(url, authenticationManager);
             return proc.checkedRun();
         } catch (UnsupportedEncodingException e) {

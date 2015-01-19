@@ -33,7 +33,7 @@ public class TrashNetworkProvider {
 
     public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(BASE_URL, params, null) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
