@@ -64,7 +64,7 @@ public class DocumentNetworkProvider {
 
     public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, null) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
@@ -78,7 +78,7 @@ public class DocumentNetworkProvider {
     public RequestHandle doGetDeletedDocuments(String deletedSince, DocumentRequestParameters params,
                                                GetDeletedDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, deletedSince) };
+            String[] paramsArray = new String[] { getGetDocumentsUrl(params, deletedSince) };
             GetDeletedDocumentsTask getDocumentsTask = new GetDeletedDocumentsTask(callback);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
@@ -210,11 +210,24 @@ public class DocumentNetworkProvider {
     /**
 	 * Building the url for get documents
 	 * 
-	 * @param params the document request parameters
 	 * @return the url string
 	 * @throws UnsupportedEncodingException 
 	 */
-	public static String getGetDocumentsUrl(String baseUrl, DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
+    public static String getGetDocumentsUrl(DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
+    	return getGetDocumentsUrl(DOCUMENTS_BASE_URL, params, deletedSince);
+    }
+    
+    /**
+	 * Building the url for get trashed documents
+	 * 
+	 * @return the url string
+	 * @throws UnsupportedEncodingException 
+	 */
+    public static String getTrashDocumentsUrl(DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
+    	return getGetDocumentsUrl(TrashNetworkProvider.BASE_URL, params, deletedSince);
+    }
+    
+	private static String getGetDocumentsUrl(String baseUrl, DocumentRequestParameters params, String deletedSince) throws UnsupportedEncodingException {
 		StringBuilder url = new StringBuilder();
 		url.append(baseUrl);
 		StringBuilder paramsString = new StringBuilder();
