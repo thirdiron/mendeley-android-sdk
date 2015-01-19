@@ -795,6 +795,7 @@ public class JsonParser {
 					break;
 				case "revision":
 					mendeleyDocument.setRevision(documentObject.getString(key));
+                    break;
 				case "created":
 					mendeleyDocument.setCreated(documentObject.getString(key));
 					break;
