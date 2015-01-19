@@ -1,7 +1,6 @@
 package com.mendeley.api.network;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Box;
@@ -690,7 +689,7 @@ public class JsonParser {
                     mendeleyGroup.setRole(groupObject.getString(key));
                     break;
                 case "access_level":
-                    mendeleyGroup.setAccessLevel(groupObject.getString(key));
+                    mendeleyGroup.setAccessLevel(Group.AccessLevel.fromValue(groupObject.getString(key)));
                     break;
                 case "name":
                     mendeleyGroup.setName(groupObject.getString(key));
