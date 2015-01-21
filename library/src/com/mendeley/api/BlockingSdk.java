@@ -248,7 +248,7 @@ public interface BlockingSdk {
      * @return bytes array of the image
      * @throws MendeleyException
      */
-    byte[] getGroupImage(String url) throws MendeleyException;
+    byte[] getImage(String url) throws MendeleyException;
 
     /* TRASH */
 

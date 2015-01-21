@@ -476,7 +476,7 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     }
 
     @Override
-    public byte[] getGroupImage(String url) throws MendeleyException {
+    public byte[] getImage(String url) throws MendeleyException {
         return utilsNetworkProvider.getImage(url);
     }
 
