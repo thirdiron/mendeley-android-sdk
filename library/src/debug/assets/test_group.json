@@ -1,0 +1,19 @@
+{
+  "name": "test-group-name",
+  "description": "test-group-description",
+  "disciplines": [
+    "Computer and Information Science"
+  ],
+  "tags": [],
+  "photo": {
+    "standard": "test-standard-photo.png",
+    "square": "test-square-photo.png"
+  },
+  "webpage": "test-group-webpage",
+  "id": "test-group-id",
+  "created": "2014-07-29T11:22:55.000Z",
+  "owning_profile_id": "test-group-owing-profile-id",
+  "link": "test-group-link",
+  "access_level": "public",
+  "role": "owner"
+}
