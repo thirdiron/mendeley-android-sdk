@@ -34,8 +34,6 @@ public class UtilsNetworkProvider {
         private final GetImageCallback callback;
 
         byte[] fileData;
-        HttpURLConnection con = null;
-
         private GetImageTask(GetImageCallback callback) {
             this.callback = callback;
         }
