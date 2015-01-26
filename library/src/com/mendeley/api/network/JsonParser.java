@@ -494,7 +494,7 @@ public class JsonParser {
 			switch (key) {
 			  
 				case "location":
-					mendeleyProfile.setLastName(profileObject.getString(key));
+					mendeleyProfile.setLocation(profileObject.getString(key));
 					break;
 				case "id":
 					mendeleyProfile.setId(profileObject.getString(key));
