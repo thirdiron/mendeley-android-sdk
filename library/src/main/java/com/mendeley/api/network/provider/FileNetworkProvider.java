@@ -498,7 +498,9 @@ public class FileNetworkProvider {
 
                     return null;
                 }
-            } catch (IOException | JSONException e) {
+            } catch (IOException e) {
+                return new MendeleyException(e.getMessage());
+            } catch (JSONException e) {
                 return new JsonParsingException(e.getMessage());
             } catch (NullPointerException e) {
                 return new MendeleyException(e.getMessage());
