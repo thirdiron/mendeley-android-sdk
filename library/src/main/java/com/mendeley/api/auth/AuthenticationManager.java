@@ -211,8 +211,8 @@ public class AuthenticationManager implements AccessTokenProvider {
                 String jsonTokenString = JsonParser.getJsonString(response.getEntity().getContent());
                 setTokenDetails(jsonTokenString);
                 result = true;
-            }
-            catch (JSONException | IOException ignored) {
+            } catch (IOException ignored) {
+            } catch (JSONException ignored) {
             }
             return result;
 		}
@@ -263,8 +263,9 @@ public class AuthenticationManager implements AccessTokenProvider {
                 String jsonTokenString = JsonParser.getJsonString(response.getEntity().getContent());
                 setTokenDetails(jsonTokenString);
                 result = "ok";
-            }
-            catch (JSONException | IOException e) {
+            } catch (IOException e) {
+                Log.e(TAG, "", e);
+            } catch (JSONException e) {
                 Log.e(TAG, "", e);
             }
 

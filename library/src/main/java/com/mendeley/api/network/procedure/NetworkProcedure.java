@@ -48,35 +48,42 @@ public abstract class NetworkProcedure<ResultType> extends Procedure<ResultType>
         }
         for (String key : headersMap.keySet()) {
             if (key != null) {
-                switch (key) {
-                    case "Date":
-                        final String dateHeader = headersMap.get(key).get(0);
-                        serverDate = DateUtils.parseDateInHeader(dateHeader);
-                        break;
-                    case "Vary":
-                    case "Content-Type":
-                    case "X-Mendeley-Trace-Id":
-                    case "Connection":
-                    case "Content-Length":
-                    case "Content-Encoding":
-                    case "Mendeley-Count":
-                        // Unused
-                        break;
-                    case "Location":
-                        location = headersMap.get(key).get(0);
-                    case "Link":
-                        List<String> links = headersMap.get(key);
-                        String linkString = null;
-                        for (String link : links) {
-                            try {
-                                linkString = link.substring(link.indexOf("<")+1, link.indexOf(">"));
-                            } catch (IndexOutOfBoundsException e) {}
-                            if (link.indexOf("next") != -1) {
-                                next = new Page(linkString);
-                            }
-                            // "last" and "prev" links are not used
+                if (key.equals("Date")) {
+                    final String dateHeader = headersMap.get(key).get(0);
+                    serverDate = DateUtils.parseDateInHeader(dateHeader);
+
+                } else if (key.equals("Vary") || key.equals("Content-Type") || key.equals("X-Mendeley-Trace-Id") || key.equals("Connection") || key.equals("Content-Length") || key.equals("Content-Encoding") || key.equals("Mendeley-Count")) {// Unused
+
+                } else if (key.equals("Location")) {
+                    location = headersMap.get(key).get(0);
+
+                    List<String> links = headersMap.get(key);
+                    String linkString = null;
+                    for (String link : links) {
+                        try {
+                            linkString = link.substring(link.indexOf("<") + 1, link.indexOf(">"));
+                        } catch (IndexOutOfBoundsException e) {
                         }
-                        break;
+                        if (link.indexOf("next") != -1) {
+                            next = new Page(linkString);
+                        }
+                        // "last" and "prev" links are not used
+                    }
+
+                } else if (key.equals("Link")) {
+                    List<String> links = headersMap.get(key);
+                    String linkString = null;
+                    for (String link : links) {
+                        try {
+                            linkString = link.substring(link.indexOf("<") + 1, link.indexOf(">"));
+                        } catch (IndexOutOfBoundsException e) {
+                        }
+                        if (link.indexOf("next") != -1) {
+                            next = new Page(linkString);
+                        }
+                        // "last" and "prev" links are not used
+                    }
+
                 }
             }
         }

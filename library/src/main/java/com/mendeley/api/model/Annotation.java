@@ -98,7 +98,7 @@ public class Annotation {
         public Builder() {
             // Reasonable defaults:
             this.privacyLevel = PrivacyLevel.PRIVATE;
-            this.positions = new ArrayList<>();
+            this.positions = new ArrayList<Box>();
             this.color = Color.BLACK;
         }
 
