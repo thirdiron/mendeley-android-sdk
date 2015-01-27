@@ -1,0 +1,7 @@
+# This values are used by the example app for to authenticate against the web API
+# Rename this to config.properties and paste here your configuration
+
+example_app_project_id=PASTE_VALUE_HERE
+example_app_client_secret=PASTE_VALUE_HERE
+example_app_client_redirect_url=PASTE_VALUE_HERE
+

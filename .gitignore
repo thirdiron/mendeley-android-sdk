@@ -2,6 +2,10 @@
 *.iml
 .idea/
 
+# Credentials files
+example/src/main/assets/config.properties
+library/src/debug/assets/config.properties
+
 # Files for the Dalvik VM
 *.dex
 
