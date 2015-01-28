@@ -1,5 +1,9 @@
 package com.mendeley.api.model;
 
+import com.mendeley.api.util.Nullable;
+import com.mendeley.api.util.NullableList;
+import com.mendeley.api.util.NullableMap;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +32,9 @@ public class Document {
 	public final String title;
 	public final String revision;
 	public final String created;
-	public final Map<String, String> identifiers;
+	public final NullableMap<String, String> identifiers;
 	public final String abstractString;
-	public final List<Person> authors;
+	public final NullableList<Person> authors;
 	public final String pages;
 	public final String volume;
 	public final String issue;
@@ -40,12 +44,12 @@ public class Document {
 	public final String institution;
 	public final String series;
 	public final String chapter;
-	public final List<Person> editors;
-    public final List<String> tags;
+	public final NullableList<Person> editors;
+    public final NullableList<String> tags;
     public final String accessed;
     public final Boolean fileAttached;
-    public final List<String> keywords;
-    public final List<String> websites;
+    public final NullableList<String> keywords;
+    public final NullableList<String> websites;
     public final String clientData;
     public final String uniqueId;
 	
@@ -107,9 +111,9 @@ public class Document {
 		this.title = title;
 		this.revision = revision;
 		this.created = created;
-		this.identifiers = identifiers==null?new HashMap<String, String>():identifiers;;
+		this.identifiers = new NullableMap<String, String>(identifiers);
 		this.abstractString = abstractString;
-		this.authors = authors==null?new ArrayList<Person>():authors;
+		this.authors = new NullableList<Person>(authors);
 		this.pages = pages;
 		this.volume = volume;
 		this.issue = issue;
@@ -119,12 +123,12 @@ public class Document {
 		this.institution = institution;
 		this.series = series;
 		this.chapter = chapter;
-		this.editors = editors==null?new ArrayList<Person>():editors;
-        this.tags = tags==null?new ArrayList<String>():tags;
+		this.editors = new NullableList<Person>(editors);
+        this.tags = new NullableList<String>(tags);
         this.accessed = accessed;
         this.fileAttached = fileAttached;
-        this.keywords = keywords==null?new ArrayList<String>():keywords;
-        this.websites = websites==null?new ArrayList<String>():websites;
+        this.keywords = new NullableList<String>(keywords);
+        this.websites = new NullableList<String>(websites);
         this.clientData = clientData;
         this.uniqueId = uniqueId;
 	}
