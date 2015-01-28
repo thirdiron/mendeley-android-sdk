@@ -294,7 +294,7 @@ public class Document {
 			return this;
 		}
 
-		public Builder setIdentifiers(HashMap<String, String> identifiers) {
+		public Builder setIdentifiers(Map<String, String> identifiers) {
 			this.identifiers = identifiers;
 			return this;
 		}
@@ -359,12 +359,12 @@ public class Document {
 			return this;
 		}
 
-		public Builder setEditors(ArrayList<Person> editors) {
+		public Builder setEditors(List<Person> editors) {
             this.editors = editors;
             return this;
         }
 
-        public Builder setTags(ArrayList<String> tags) {
+        public Builder setTags(List<String> tags) {
             this.tags = tags;
             return this;
         }
@@ -379,12 +379,12 @@ public class Document {
             return this;
         }
 
-        public Builder setKeywords(ArrayList<String> keywords) {
+        public Builder setKeywords(List<String> keywords) {
             this.keywords = keywords;
             return this;
         }
 
-        public Builder setWebsites(ArrayList<String> websites) {
+        public Builder setWebsites(List<String> websites) {
             this.websites = websites;
             return this;
         }
