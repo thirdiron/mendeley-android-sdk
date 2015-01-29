@@ -12,8 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import javax.net.ssl.HttpsURLConnection;
 
-import junit.framework.TestCase;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
@@ -64,17 +62,17 @@ public class NetworkConnectionTest extends AndroidTestCase {
             }
         };
 
-        getConnection = getHttpsURLConnection(getTestUrl, "GET");
-		postConnection = getHttpsURLConnection(postTestUrl, "POST");
-		deleteConnection = getHttpsURLConnection(deleteTestUrl, "DELETE");		
+        getConnection = getHttpsURLConnection(getTestUrl, "GET", false);
+		postConnection = getHttpsURLConnection(postTestUrl, "POST", true);
+		deleteConnection = getHttpsURLConnection(deleteTestUrl, "DELETE", true);
 		httpPatch = getHttpPatch(patchTestUrl, date);
 
 	}
 	
-	private HttpsURLConnection getHttpsURLConnection(String testUrl, String endPoint)
+	private HttpsURLConnection getHttpsURLConnection(String testUrl, String endPoint, boolean doOutput)
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
 		HttpsURLConnection con = getConnection(testUrl, endPoint, accessTokenProvider);
-		con.setDoOutput(true);
+		con.setDoOutput(doOutput);
 		con.addRequestProperty("Content-type", "application/vnd.mendeley-document.1+json");
 		
 		return con;
