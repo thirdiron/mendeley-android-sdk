@@ -3,7 +3,6 @@ package com.mendeley.api.network;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
-
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
@@ -18,22 +17,20 @@ import com.mendeley.api.model.Profile;
 import com.mendeley.api.model.UserRole;
 import com.mendeley.integration.TestUtils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.skyscreamer.jsonassert.JSONAssert;
 
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class JsonParserTest extends InstrumentationTestCase {
 
-	final String documentFile = "test_document.json";
+	final String documentWithNotNullCollectionsFile = "test_document_not_null_collections.json";
+    final String documentWithNullCollectionsFile = "test_document_null_collections.json";
     final String folderFile =  "test_folder.json";
     final String fileFile =  "test_file.json";
     final String profileFile =  "test_profile.json";
@@ -41,11 +38,40 @@ public class JsonParserTest extends InstrumentationTestCase {
     final String groupFile =  "test_group.json";
     final String userRoleFile =  "test_user_role.json";
 
-	public Document getTestDocument() {
-	    Person author = new Person("test-first_name", "test-last_name");
+	public Document getTestDocumentWithNonNotNullCollections() {
+        HashMap<String,String> identifiers = new HashMap<String, String>();
+
+        Person author = new Person("test-first_name", "test-last_name");
+        ArrayList<Person> authorsList = new ArrayList<Person>();
+        authorsList.add(author);
+
         Person editor = new Person("test-first_name", "test-last_name");
-	    
-	    Document.Builder testDocument = new Document.Builder("test-title", "book");
+        ArrayList<Person>editorsList = new ArrayList<Person>();
+        editorsList.add(editor);
+
+        ArrayList<String> keywords = new ArrayList<String>();
+        keywords.add("test-keyword");
+
+        ArrayList<String> tags = new ArrayList<String>();
+        tags.add("test-tag");
+
+        ArrayList<String> websites = new ArrayList<String>();
+        websites.add("test-website1");
+        websites.add("test-website2");
+
+	    return getTestDocument(authorsList, editorsList, keywords, tags, websites, identifiers);
+	}
+
+    public Document getTestDocument(ArrayList<Person> authorsList, ArrayList<Person> editorsList, ArrayList<String> keywords, ArrayList<String> tags, ArrayList<String> websites, HashMap<String, String> identifiers) {
+        Document.Builder testDocument = new Document.Builder("test-title", "book");
+
+        testDocument.setAuthors(authorsList);
+        testDocument.setEditors(editorsList);
+        testDocument.setKeywords(keywords);
+        testDocument.setTags(tags);
+        testDocument.setWebsites(websites);
+        testDocument.setIdentifiers(identifiers);
+
         testDocument.setLastModified("2014-02-28T11:52:30.000Z");
         testDocument.setGroupId("test-group_id");
         testDocument.setProfileId("test-profile_id");
@@ -60,12 +86,8 @@ public class JsonParserTest extends InstrumentationTestCase {
         testDocument.setDay(0);
         testDocument.setSource("test-source");
         testDocument.setRevision("test-revision");
-	    testDocument.setCreated("2014-02-20T16:53:25.000Z");
-        testDocument.setIdentifiers(null);
+        testDocument.setCreated("2014-02-20T16:53:25.000Z");
         testDocument.setAbstractString("test-abstract");
-	    ArrayList<Person> authorsList = new ArrayList<Person>();
-	    authorsList.add(author);
-	    testDocument.setAuthors(authorsList);
         testDocument.setPages("1-9");
         testDocument.setVolume("1");
         testDocument.setIssue("1");
@@ -75,35 +97,14 @@ public class JsonParserTest extends InstrumentationTestCase {
         testDocument.setInstitution("test-institution");
         testDocument.setSeries("1");
         testDocument.setChapter("1");
-        ArrayList<Person>editorsList = new ArrayList<Person>();
-        authorsList.add(editor);
-        testDocument.setEditors(authorsList);
         testDocument.setAccessed("2014-02-28");
         testDocument.setFileAttached(false);
         testDocument.setFileAttached(false);
         testDocument.setClientData("test-client_data");
         testDocument.setUniqueId("test-unique_id");
 
-
-        ArrayList<String> keywords = new ArrayList<String>();
-        keywords.add("test-keyword");
-        testDocument.setKeywords(keywords);
-
-        ArrayList<String> tags = new ArrayList<String>();
-        tags.add("test-tag");
-        testDocument.setTags(tags);
-
-        ArrayList<String> websites = new ArrayList<String>();
-        websites.add("test-website1");
-        websites.add("test-website2");
-        testDocument.setWebsites(websites);
-
-
-        //"client_data": "test-client_data",
-        //"unique_id": "test-unique_id"
-
-	    return testDocument.build();
-	}
+        return testDocument.build();
+    }
 
     public Group getTestGroup() {
 
@@ -199,70 +200,77 @@ public class JsonParserTest extends InstrumentationTestCase {
 	}
 	
 	@SmallTest
-	public void test_parseDocument()
-			throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-    	JsonParser parser = new JsonParser();
-		Document testDocument = getTestDocument();
-		String jsonString = getJsonStringFromAssetsFile(documentFile);
-		
-		Document parsedDocument = parser.parseDocument(jsonString);
+    public void test_parseDocument_withNotNullCollections()
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
 
-        assertEquals("title", testDocument.title, parsedDocument.title);
-        assertEquals("year", testDocument.year, parsedDocument.year);
-        assertEquals("type", testDocument.type, parsedDocument.type);
-        assertEquals("lastModified", testDocument.lastModified, parsedDocument.lastModified);
-        assertEquals("groupId", testDocument.groupId, parsedDocument.groupId);
-        assertEquals("profileId", testDocument.profileId, parsedDocument.profileId);
-        assertEquals("read", testDocument.read, parsedDocument.read);
-        assertEquals("starred", testDocument.starred, parsedDocument.starred);
-        assertEquals("authored", testDocument.authored, parsedDocument.authored);
-        assertEquals("confirmed", testDocument.confirmed, parsedDocument.confirmed);
-        assertEquals("hidden", testDocument.hidden, parsedDocument.hidden);
-		assertEquals("id", testDocument.id, parsedDocument.id);
-        assertEquals("month", testDocument.month, parsedDocument.month);
-        assertEquals("year", testDocument.year, parsedDocument.year);
-        assertEquals("day", testDocument.day, parsedDocument.day);
-        assertEquals("source", testDocument.source, parsedDocument.source);
-        assertEquals("revision", testDocument.revision, parsedDocument.revision);
-        assertEquals("created", testDocument.created, parsedDocument.created);
-        assertEquals("identifiers", testDocument.identifiers, parsedDocument.identifiers);
-        assertEquals("abstract", testDocument.abstractString, parsedDocument.abstractString);
-        assertEquals("pages", testDocument.pages, parsedDocument.pages);
-        assertEquals("volume", testDocument.volume, parsedDocument.volume);
-        assertEquals("issue", testDocument.issue, parsedDocument.issue);
-        assertEquals("publisher", testDocument.publisher, parsedDocument.publisher);
-        assertEquals("city", testDocument.city, parsedDocument.city);
-        assertEquals("edition", testDocument.edition, parsedDocument.edition);
-        assertEquals("institution", testDocument.institution, parsedDocument.institution);
-        assertEquals("series", testDocument.series, parsedDocument.series);
-        assertEquals("chapter", testDocument.chapter, parsedDocument.chapter);
-        assertEquals("accessed", testDocument.accessed, parsedDocument.accessed);
-        assertEquals("fileAttached", testDocument.fileAttached, parsedDocument.fileAttached);
-        assertEquals("keywords", testDocument.keywords.get(0), parsedDocument.keywords.get(0));
-        assertEquals("tags", testDocument.tags.get(0), parsedDocument.tags.get(0));
+        // GIVEN the JSON representation of a document where its collections (authors, editors...) are NOT null
+        Document expectedDocument = getTestDocumentWithNonNotNullCollections();
+        String parsingString = getJsonStringFromAssetsFile(documentWithNotNullCollectionsFile);
 
-        assertEquals("websites1", testDocument.websites.get(0), parsedDocument.websites.get(0));
-        assertEquals("websites2", testDocument.websites.get(1), parsedDocument.websites.get(1));
+        // WHEN we parse the JSON
+        Document actualDocument = JsonParser.parseDocument(parsingString);
 
-		assertEquals("author firstName", testDocument.authors.get(0).firstName, parsedDocument.authors.get(0).firstName);
-		assertEquals("author lastName", testDocument.authors.get(0).lastName, parsedDocument.authors.get(0).lastName);
-        assertEquals("editor firstName", testDocument.editors.get(0).firstName, parsedDocument.editors.get(0).firstName);
-        assertEquals("editor lastName", testDocument.editors.get(0).lastName, parsedDocument.editors.get(0).lastName);
-	}
-	
+        // THEN the parsed document matches the expected one
+        assertDocumentsAreEqual(expectedDocument, actualDocument);
+
+        // ...AND the collections are NOT null
+        assertFalse(actualDocument.authors.isNull());
+        assertFalse(actualDocument.editors.isNull());
+        assertFalse(actualDocument.websites.isNull());
+        assertFalse(actualDocument.tags.isNull());
+        assertFalse(actualDocument.keywords.isNull());
+        assertFalse(actualDocument.identifiers.isNull());
+    }
+
+
+
+    @SmallTest
+    public void test_parseDocument_withNullCollections()
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
+
+        // GIVEN the JSON representation of a document where its collections (authors, editors...) ARE null
+        Document expectedDocument = getTestDocument(null, null, null, null, null, null);
+        String parsingString = getJsonStringFromAssetsFile(documentWithNullCollectionsFile);
+
+        // WHEN we parse the JSON
+        Document actualDocument = JsonParser.parseDocument(parsingString);
+
+        // THEN the parsed document matches the expected one
+        assertDocumentsAreEqual(expectedDocument, actualDocument);
+
+        // ...AND the collections are null
+        assertTrue(actualDocument.authors.isEmpty());
+        assertTrue(actualDocument.authors.isNull());
+
+        assertTrue(actualDocument.editors.isEmpty());
+        assertTrue(actualDocument.editors.isNull());
+
+        assertTrue(actualDocument.websites.isEmpty());
+        assertTrue(actualDocument.websites.isNull());
+
+        assertTrue(actualDocument.tags.isEmpty());
+        assertTrue(actualDocument.tags.isNull());
+
+        assertTrue(actualDocument.keywords.isEmpty());
+        assertTrue(actualDocument.keywords.isNull());
+
+        assertTrue(actualDocument.identifiers.isEmpty());
+        assertTrue(actualDocument.identifiers.isNull());
+
+    }
+
 	@SmallTest
 	public void test_parseFolder()
 			throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-    	JsonParser parser = new JsonParser();
-		Folder testFolder = getTestFolder();
-		String jsonString = getJsonStringFromAssetsFile(folderFile);
-		
-		Folder parsedFolder = parser.parseFolder(jsonString);
+		Folder expectedFolder = getTestFolder();
+		String parsingString = getJsonStringFromAssetsFile(folderFile);
 
-		boolean equal = 
-				testFolder.id.equals(parsedFolder.id) &&
-				testFolder.name.equals(parsedFolder.name) &&
-				testFolder.added.equals(parsedFolder.added);
+		Folder actualFolder = JsonParser.parseFolder(parsingString);
+
+		boolean equal =
+				expectedFolder.id.equals(actualFolder.id) &&
+                        expectedFolder.name.equals(actualFolder.name) &&
+                        expectedFolder.added.equals(actualFolder.added);
 
 		assertTrue("Parsed folder with wrong or missing data", equal);
 	}
@@ -270,19 +278,18 @@ public class JsonParserTest extends InstrumentationTestCase {
 	@SmallTest
 	public void test_parseFile()
 			throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-    	JsonParser parser = new JsonParser();
-		File testFile = getTestFile();
-		String jsonString = getJsonStringFromAssetsFile(fileFile);
+		File expectedFile = getTestFile();
+		String parsingString = getJsonStringFromAssetsFile(fileFile);
 		
-		File parsedFile = parser.parseFile(jsonString);
+		File actualFile = JsonParser.parseFile(parsingString);
 
 		boolean equal = 
-				testFile.id.equals(parsedFile.id) &&
-				testFile.documentId.equals(parsedFile.documentId) &&
-				testFile.mimeType.equals(parsedFile.mimeType) &&
-				testFile.fileName.equals(parsedFile.fileName) &&
-				testFile.fileHash.equals(parsedFile.fileHash) &&
-                testFile.fileSize == parsedFile.fileSize;
+				expectedFile.id.equals(actualFile.id) &&
+				expectedFile.documentId.equals(actualFile.documentId) &&
+				expectedFile.mimeType.equals(actualFile.mimeType) &&
+				expectedFile.fileName.equals(actualFile.fileName) &&
+				expectedFile.fileHash.equals(actualFile.fileHash) &&
+                expectedFile.fileSize == actualFile.fileSize;
 
 		assertTrue("Parsed folder with wrong or missing data", equal);
 	}
@@ -290,187 +297,222 @@ public class JsonParserTest extends InstrumentationTestCase {
 	@SmallTest
 	public void test_parseProfile()
 			throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-    	JsonParser parser = new JsonParser();
-		Profile testProfile = getTestProfile();
-		String jsonString = getJsonStringFromAssetsFile(profileFile);
+		Profile expectedProfile = getTestProfile();
+		String parsingString = getJsonStringFromAssetsFile(profileFile);
 		
-		Profile parsedProfile = parser.parseProfile(jsonString);
+		Profile actualProfile = JsonParser.parseProfile(parsingString);
 
 		boolean equal = 
-				testProfile.id.equals(parsedProfile.id) &&
-				testProfile.firstName.equals(parsedProfile.firstName) &&
-				testProfile.lastName.equals(parsedProfile.lastName) &&
-				testProfile.displayName.equals(parsedProfile.displayName) &&
-				testProfile.email.equals(parsedProfile.email) &&
-				testProfile.link.equals(parsedProfile.link) &&
-				testProfile.academicStatus.equals(parsedProfile.academicStatus) &&
-				testProfile.verified.equals(parsedProfile.verified) &&
-				testProfile.userType.equals(parsedProfile.userType) &&
-				testProfile.createdAt.equals(parsedProfile.createdAt) &&
-				testProfile.discipline.name.equals(parsedProfile.discipline.name) &&
-				testProfile.photo.photoUrl.equals(parsedProfile.photo.photoUrl) &&
-				testProfile.education.get(0).institution.equals(parsedProfile.education.get(0).institution) &&
-				testProfile.education.get(0).startDate.equals(parsedProfile.education.get(0).startDate) &&
-				testProfile.education.get(0).endDate.equals(parsedProfile.education.get(0).endDate) &&
-				testProfile.employment.get(0).institution.equals(parsedProfile.employment.get(0).institution) &&
-				testProfile.employment.get(0).position.equals(parsedProfile.employment.get(0).position) &&
-				testProfile.employment.get(0).startDate.equals(parsedProfile.employment.get(0).startDate) &&
-				testProfile.employment.get(0).isMainEmployment == parsedProfile.employment.get(0).isMainEmployment;
+				expectedProfile.id.equals(actualProfile.id) &&
+				expectedProfile.firstName.equals(actualProfile.firstName) &&
+				expectedProfile.lastName.equals(actualProfile.lastName) &&
+				expectedProfile.displayName.equals(actualProfile.displayName) &&
+				expectedProfile.email.equals(actualProfile.email) &&
+				expectedProfile.link.equals(actualProfile.link) &&
+				expectedProfile.academicStatus.equals(actualProfile.academicStatus) &&
+				expectedProfile.verified.equals(actualProfile.verified) &&
+				expectedProfile.userType.equals(actualProfile.userType) &&
+				expectedProfile.createdAt.equals(actualProfile.createdAt) &&
+				expectedProfile.discipline.name.equals(actualProfile.discipline.name) &&
+				expectedProfile.photo.photoUrl.equals(actualProfile.photo.photoUrl) &&
+				expectedProfile.education.get(0).institution.equals(actualProfile.education.get(0).institution) &&
+				expectedProfile.education.get(0).startDate.equals(actualProfile.education.get(0).startDate) &&
+				expectedProfile.education.get(0).endDate.equals(actualProfile.education.get(0).endDate) &&
+				expectedProfile.employment.get(0).institution.equals(actualProfile.employment.get(0).institution) &&
+				expectedProfile.employment.get(0).position.equals(actualProfile.employment.get(0).position) &&
+				expectedProfile.employment.get(0).startDate.equals(actualProfile.employment.get(0).startDate) &&
+				expectedProfile.employment.get(0).isMainEmployment == actualProfile.employment.get(0).isMainEmployment;
 				
 		assertTrue("Parsed profile with wrong or missing data", equal);
 	}
 
 
 	@SmallTest
-	public void test_jsonFromDocument()
+	public void test_jsonFromDocument_withNotNullCollections()
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
-        JsonParser parser = new JsonParser();
-        Document testDocument = getTestDocument();
 
-        String jsonFromDocument = parser.jsonFromDocument(testDocument);
-        String jsonStringFromFile = getJsonStringFromAssetsFile(documentFile);
-        JSONObject jDocument = new JSONObject(jsonFromDocument);
-        JSONObject fDocument = new JSONObject(jsonStringFromFile);
+        // GIVEN a document where its collections (authors, editors...) are NOT null
+        String expectedJson = getJsonStringFromAssetsFile(documentWithNotNullCollectionsFile);
+        Document formattingDocument = getTestDocumentWithNonNotNullCollections();
 
-        assertEquals("title", jDocument.getString("title"), fDocument.getString("title"));
-        assertEquals("year", jDocument.getInt("year"), fDocument.getInt("year"));
-        assertEquals("type", jDocument.getString("type"), fDocument.getString("type"));
-        assertEquals("last_modified", jDocument.getString("last_modified"), fDocument.getString("last_modified"));
-        assertEquals("group_id", jDocument.getString("group_id"), fDocument.getString("group_id"));
-        assertEquals("profile_id", jDocument.getString("profile_id"), fDocument.getString("profile_id"));
-        assertEquals("read", jDocument.getBoolean("read"), fDocument.getBoolean("read"));
-        assertEquals("starred", jDocument.getBoolean("starred"), fDocument.getBoolean("starred"));
-        assertEquals("authored", jDocument.getBoolean("authored"), fDocument.getBoolean("authored"));
-        assertEquals("confirmed", jDocument.getBoolean("confirmed"), fDocument.getBoolean("confirmed"));
-        assertEquals("hidden", jDocument.getBoolean("hidden"), fDocument.getBoolean("hidden"));
-        assertEquals("id", jDocument.getString("id"), fDocument.getString("id"));
-        assertEquals("month", jDocument.getInt("month"), fDocument.getInt("month"));
-        assertEquals("year", jDocument.getInt("year"), fDocument.getInt("year"));
-        assertEquals("day", jDocument.getInt("day"), fDocument.getInt("day"));
-        assertEquals("source", jDocument.getString("source"), fDocument.getString("source"));
-        assertEquals("revision", jDocument.getString("revision"), fDocument.getString("revision"));
-        assertEquals("created", jDocument.getString("created"), fDocument.getString("created"));
-        assertEquals("abstract", jDocument.getString("abstract"), fDocument.getString("abstract"));
-        assertEquals("pages", jDocument.getString("pages"), fDocument.getString("pages"));
-        assertEquals("volume", jDocument.getString("volume"), fDocument.getString("volume"));
-        assertEquals("issue", jDocument.getString("issue"), fDocument.getString("issue"));
-        assertEquals("publisher", jDocument.getString("publisher"), fDocument.getString("publisher"));
-        assertEquals("city", jDocument.getString("city"), fDocument.getString("city"));
-        assertEquals("edition", jDocument.getString("edition"), fDocument.getString("edition"));
-        assertEquals("institution", jDocument.getString("institution"), fDocument.getString("institution"));
-        assertEquals("series", jDocument.getString("series"), fDocument.getString("series"));
-        assertEquals("chapter", jDocument.getString("chapter"), fDocument.getString("chapter"));
-        assertEquals("accessed", jDocument.getString("accessed"), fDocument.getString("accessed"));
-        assertEquals("client_data", jDocument.getString("client_data"), fDocument.getString("client_data"));
-        assertEquals("unique_id", jDocument.getString("unique_id"), fDocument.getString("unique_id"));
-        assertEquals("file_attached", jDocument.getBoolean("file_attached"), fDocument.getBoolean("file_attached"));
+        // WHEN we format it
+        String actualJson = JsonParser.jsonFromDocument(formattingDocument);
 
-        JSONArray jKeywords = jDocument.getJSONArray("keywords");
-        JSONArray fKeywords = fDocument.getJSONArray("keywords");
-        assertEquals("keywords", jKeywords.get(0), fKeywords.get(0));
-
-        JSONArray jTags = jDocument.getJSONArray("tags");
-        JSONArray fTags = fDocument.getJSONArray("tags");
-        assertEquals("tags", jTags.get(0), fTags.get(0));
-
-        JSONArray jWebsites = jDocument.getJSONArray("websites");
-        JSONArray fWebsites = fDocument.getJSONArray("websites");
-        assertEquals("websites 1", jWebsites.get(0), fWebsites.get(0));
-        assertEquals("websites 2", jWebsites.get(1), fWebsites.get(1));
-
-        JSONArray jAuthors = jDocument.getJSONArray("authors");
-        JSONArray fAuthors = jDocument.getJSONArray("authors");
-        assertEquals("authors", jAuthors.get(0), fAuthors.get(0));
-
-        JSONArray jEditors = jDocument.getJSONArray("authors");
-        JSONArray fEditors = jDocument.getJSONArray("authors");
-        assertEquals("editors", jEditors.get(0), fEditors.get(0));
+        // THEN the obtained JSON matches the expected one
+        JSONAssert.assertEquals(expectedJson, actualJson, false);
     }
+
+    @SmallTest
+    public void test_jsonFromDocument_withNullCollections()
+            throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
+
+        // GIVEN a document where its collections (authors, editors...) ARE null
+        String expectedJson = getJsonStringFromAssetsFile(documentWithNullCollectionsFile);
+        Document formattingDocument = getTestDocument(null, null, null, null, null, null);
+
+        // WHEN we format it
+        String actualJson = JsonParser.jsonFromDocument(formattingDocument);
+
+        // THEN the obtained JSON matches the expected one
+        JSONAssert.assertEquals(expectedJson, actualJson, false);
+
+        // ...AND the collections are empty, non-null objects
+        JSONObject jsonObject = new JSONObject(actualJson);
+        assertFalse(jsonObject.has("authors"));
+
+        assertFalse(jsonObject.has("editors"));
+
+        assertFalse(jsonObject.has("websites"));
+
+        assertFalse(jsonObject.has("identifiers"));
+
+        assertFalse(jsonObject.has("tags"));
+
+        assertFalse(jsonObject.has("keywords"));
+    }
+
 
 	@SmallTest
 	public void test_jsonFromFolder()
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
-    	JsonParser parser = new JsonParser();
-		Folder testFolder = getTestFolder();
+		Folder parsingFolder = getTestFolder();
 		
-		String jsonFromFolder = parser.jsonFromFolder(testFolder);
-		String jsonStringFromFile = getJsonStringFromAssetsFile(folderFile);
-		
-		boolean equal = jsonFromFolder.equals(jsonStringFromFile);
+		String actualJson = JsonParser.jsonFromFolder(parsingFolder);
+		String expectedJson = getJsonStringFromAssetsFile(folderFile);
 
-		assertTrue("Json string from folder with wrong or missing data", equal);
-	}
+        JSONAssert.assertEquals(expectedJson, actualJson, false);
+    }
 	
 	@SmallTest
 	public void test_jsonFromDocumentId()
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
-    	JsonParser parser = new JsonParser();
     	String documentId = "test-document_id";
     	String expectedString = "{\"id\":\"test-document_id\"}";
 		
-		String jsonString = parser.jsonFromDocumentId(documentId);
+		String actualString = JsonParser.jsonFromDocumentId(documentId);
 
-		assertEquals(expectedString, jsonString);
-	}
+        JSONAssert.assertEquals(expectedString, actualString, false);
+    }
 	
 	@SmallTest
 	public void test_parseDocumentIds()
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
-    	JsonParser parser = new JsonParser();
-		String jsonString = getJsonStringFromAssetsFile(documentIdsFile);
+
+        String jsonString = getJsonStringFromAssetsFile(documentIdsFile);
 		List<String> expectedList = new ArrayList<String>();
 		expectedList.add("test-document_id_1");
 		expectedList.add("test-document_id_2");
 		expectedList.add("test-document_id_3");
 		
-		List<DocumentId> list = parser.parseDocumentIds(jsonString);
+		List<DocumentId> actualList = JsonParser.parseDocumentIds(jsonString);
 
-		boolean equal = true;
-		
-		for (int i = 0; i < list.size(); i++) {
-			equal = list.get(i).id.equals(expectedList.get(i));
-			if (!equal) {
-				break;
-			}
+
+        assertEquals("Wrong list size", expectedList.size(), actualList.size());
+		for (int i = 0; i < actualList.size(); i++) {
+			assertEquals("Wrong list item ", actualList.get(i).id, (expectedList.get(i)));
 		}
-		
-		assertTrue("Json document ids list with wrong or missing data", equal);
 	}
 
     @SmallTest
     public void test_parseGroup()
             throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-        JsonParser parser = new JsonParser();
-        Group testGroup = getTestGroup();
-        String jsonString = getJsonStringFromAssetsFile(groupFile);
 
-        Group parsedGroup = parser.parseGroup(jsonString);
+        Group expectedGroup = getTestGroup();
+        String parsingString = getJsonStringFromAssetsFile(groupFile);
 
-        assertEquals("id", testGroup.id, parsedGroup.id);
-        assertEquals("name", testGroup.name, parsedGroup.name);
-        assertEquals("description", testGroup.description, parsedGroup.description);
-        assertEquals("created", testGroup.created, parsedGroup.created);
-        assertEquals("owing_profile_id", testGroup.owningProfileId, parsedGroup.owningProfileId);
-        assertEquals("access_level", testGroup.accessLevel, parsedGroup.accessLevel);
-        assertEquals("role", testGroup.role, parsedGroup.role);
-        assertEquals("webpage", testGroup.webpage, parsedGroup.webpage);
-        assertEquals("link", testGroup.link, parsedGroup.link);
-        assertEquals("photo_square", testGroup.photo.photoUrl, parsedGroup.photo.photoUrl);
-        assertEquals("disciplines", testGroup.disciplines.get(0), parsedGroup.disciplines.get(0));
+        Group actualGroup = JsonParser.parseGroup(parsingString);
+
+        assertEquals("id", expectedGroup.id, actualGroup.id);
+        assertEquals("name", expectedGroup.name, actualGroup.name);
+        assertEquals("description", expectedGroup.description, actualGroup.description);
+        assertEquals("created", expectedGroup.created, actualGroup.created);
+        assertEquals("owing_profile_id", expectedGroup.owningProfileId, actualGroup.owningProfileId);
+        assertEquals("access_level", expectedGroup.accessLevel, actualGroup.accessLevel);
+        assertEquals("role", expectedGroup.role, actualGroup.role);
+        assertEquals("webpage", expectedGroup.webpage, actualGroup.webpage);
+        assertEquals("link", expectedGroup.link, actualGroup.link);
+        assertEquals("photo_square", expectedGroup.photo.photoUrl, actualGroup.photo.photoUrl);
+        assertEquals("disciplines", expectedGroup.disciplines.get(0), actualGroup.disciplines.get(0));
     }
 
     @SmallTest
     public void test_parseUserRole()
             throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
-        JsonParser parser = new JsonParser();
-        UserRole userRole = getTestUserRole();
-        String jsonString = getJsonStringFromAssetsFile(userRoleFile);
+        UserRole expectedUserRole = getTestUserRole();
+        String parsingJsonString = getJsonStringFromAssetsFile(userRoleFile);
 
-        UserRole parsedUserRole = parser.parseUserRole(jsonString);
+        UserRole actualUserRole = JsonParser.parseUserRole(parsingJsonString);
 
-        assertEquals("profile_id", userRole.profileId, parsedUserRole.profileId);
-        assertEquals("joined", userRole.joined, parsedUserRole.joined);
-        assertEquals("role", userRole.role, parsedUserRole.role);
+        assertEquals("profile_id", expectedUserRole.profileId, actualUserRole.profileId);
+        assertEquals("joined", expectedUserRole.joined, actualUserRole.joined);
+        assertEquals("role", expectedUserRole.role, actualUserRole.role);
     }
-	
+
+
+    private void assertDocumentsAreEqual(Document doc1, Document doc2)
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
+
+        assertEquals("title", doc1.title, doc2.title);
+        assertEquals("year", doc1.year, doc2.year);
+        assertEquals("type", doc1.type, doc2.type);
+        assertEquals("lastModified", doc1.lastModified, doc2.lastModified);
+        assertEquals("groupId", doc1.groupId, doc2.groupId);
+        assertEquals("profileId", doc1.profileId, doc2.profileId);
+        assertEquals("read", doc1.read, doc2.read);
+        assertEquals("starred", doc1.starred, doc2.starred);
+        assertEquals("authored", doc1.authored, doc2.authored);
+        assertEquals("confirmed", doc1.confirmed, doc2.confirmed);
+        assertEquals("hidden", doc1.hidden, doc2.hidden);
+        assertEquals("id", doc1.id, doc2.id);
+        assertEquals("month", doc1.month, doc2.month);
+        assertEquals("year", doc1.year, doc2.year);
+        assertEquals("day", doc1.day, doc2.day);
+        assertEquals("source", doc1.source, doc2.source);
+        assertEquals("revision", doc1.revision, doc2.revision);
+        assertEquals("created", doc1.created, doc2.created);
+
+        assertEquals("abstract", doc1.abstractString, doc2.abstractString);
+        assertEquals("pages", doc1.pages, doc2.pages);
+        assertEquals("volume", doc1.volume, doc2.volume);
+        assertEquals("issue", doc1.issue, doc2.issue);
+        assertEquals("publisher", doc1.publisher, doc2.publisher);
+        assertEquals("city", doc1.city, doc2.city);
+        assertEquals("edition", doc1.edition, doc2.edition);
+        assertEquals("institution", doc1.institution, doc2.institution);
+        assertEquals("series", doc1.series, doc2.series);
+        assertEquals("chapter", doc1.chapter, doc2.chapter);
+        assertEquals("accessed", doc1.accessed, doc2.accessed);
+        assertEquals("fileAttached", doc1.fileAttached, doc2.fileAttached);
+
+        assertEquals("identifiers size", doc1.identifiers.size(), doc2.identifiers.size());
+        for (String key : doc1.identifiers.keySet()) {
+            assertEquals("identifier " + key, doc1.identifiers.get(key), doc1.identifiers.get(key));
+        }
+
+        assertEquals("keywords size", doc1.keywords.size(), doc2.keywords.size());
+        for (int i = 0; i < doc1.identifiers.size(); i++) {
+            assertEquals("keyword " + i, doc1.keywords.get(i), doc2.keywords.get(i));
+        }
+
+        assertEquals("tags size", doc1.tags.size(), doc2.tags.size());
+        for (int i = 0; i < doc1.tags.size(); i++) {
+            assertEquals("tag " + i, doc1.tags.get(i), doc2.tags.get(i));
+        }
+
+        assertEquals("websites size", doc1.websites.size(), doc2.websites.size());
+        for (int i = 0; i < doc1.websites.size(); i++) {
+            assertEquals("website " + i, doc1.websites.get(i), doc2.websites.get(i));
+        }
+
+        assertEquals("author size", doc1.authors.size(), doc2.authors.size());
+        for (int i = 0; i < doc1.authors.size(); i++) {
+            assertEquals("author " + i, doc1.authors.get(i), doc2.authors.get(i));
+        }
+
+        assertEquals("editors size", doc1.editors.size(), doc2.editors.size());
+        for (int i = 0; i < doc1.editors.size(); i++) {
+            assertEquals("editor " + i, doc1.editors.get(i), doc2.editors.get(i));
+        }
+    }
+
 }

@@ -12,8 +12,8 @@ public class NullableMap<K, V> implements Map<K, V>, Nullable {
     private final boolean isNull;
 
     public NullableMap(Map<K, V> delegate) {
-        this.delegate = delegate == null ? new HashMap<K, V>(0) : delegate;
         isNull = delegate == null;
+        this.delegate = delegate == null ? new HashMap<K, V>(0) : delegate;
     }
 
     @Override
