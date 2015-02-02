@@ -35,7 +35,7 @@ public class TestUtils {
     private static final String KEY_CLIENT_SECRET = "integration_test_client_secret";
     private static final String KEY_CLIENT_REDIRECT_URI = "integration_test_client_redirect_url";
 
-    private static final int SIGN_IN_TIMEOUT_MS = 3000;
+    private static final int SIGN_IN_TIMEOUT_MS = 10 * 1000;
 
 
     public static InternalMendeleySdk signIn(String username, String password, String clientId, String clientSecret, String redirectUri) throws InterruptedException, SignInException {

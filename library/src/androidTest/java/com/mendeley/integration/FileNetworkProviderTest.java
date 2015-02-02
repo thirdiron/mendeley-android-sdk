@@ -57,7 +57,7 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
 
             @Override
             public void onFilesNotReceived(MendeleyException mendeleyException) {
-                fail("files not received");
+                fail("files not received: " + mendeleyException);
             }
         };
         postFileCallback = new PostFileCallback() {
@@ -67,7 +67,7 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
             }
 
             @Override public void onFileNotPosted(MendeleyException mendeleyException) {
-                fail("file not posted");
+                fail("file not posted: " + mendeleyException);
             }
         };
         deleteFileCallback = new DeleteFileCallback() {
@@ -78,7 +78,7 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
 
             @Override
             public void onFileNotDeleted(MendeleyException mendeleyException) {
-                fail("file not deleted");
+                fail("file not deleted: " + mendeleyException);
             }
         };
 
@@ -90,8 +90,8 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
             }
 
             @Override
-            public void onDocumentsNotReceived(MendeleyException e) {
-                fail("documents not received: " + e);
+            public void onDocumentsNotReceived(MendeleyException mendeleyException) {
+                fail("documents not received: " + mendeleyException);
             }
         };
 

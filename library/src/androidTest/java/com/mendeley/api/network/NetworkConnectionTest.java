@@ -64,7 +64,7 @@ public class NetworkConnectionTest extends AndroidTestCase {
 
         getConnection = getHttpsURLConnection(getTestUrl, "GET", false);
 		postConnection = getHttpsURLConnection(postTestUrl, "POST", true);
-		deleteConnection = getHttpsURLConnection(deleteTestUrl, "DELETE", true);
+		deleteConnection = getHttpsURLConnection(deleteTestUrl, "DELETE", false);
 		httpPatch = getHttpPatch(patchTestUrl, date);
 
 	}
