@@ -7,16 +7,19 @@ import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.network.NetworkUtils;
 import com.mendeley.api.network.task.NetworkTask;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
 
 import java.io.IOException;
 
 import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
-public class PatchNetworkProcedure extends NetworkProcedure<Void> {
+public abstract class PatchNetworkProcedure<ResultType> extends NetworkProcedure<ResultType> {
     private final String url;
     private final String contentType;
     private final String json;
@@ -37,7 +40,7 @@ public class PatchNetworkProcedure extends NetworkProcedure<Void> {
     }
 
     @Override
-    protected Void run() throws MendeleyException {
+    protected ResultType run() throws MendeleyException {
         HttpClient httpclient = new DefaultHttpClient();
         NetworkUtils.HttpPatch httpPatch = getHttpPatch(url, date, contentType, authenticationManager);
 
@@ -48,12 +51,20 @@ public class PatchNetworkProcedure extends NetworkProcedure<Void> {
             final int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode != getExpectedResponse()) {
                 throw new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(response));
+            } else {
+                HttpEntity responseEntity = response.getEntity();
+                is = responseEntity.getContent();
+                String responseString = getJsonString(is);
+                return processJsonString(responseString);
             }
         } catch (IOException e) {
             throw new JsonParsingException(e.getMessage());
+        } catch (JSONException e) {
+            throw new MendeleyException(e.getMessage());
         } finally {
             closeConnection();
         }
-        return null;
     }
+
+    protected abstract ResultType processJsonString(String jsonString) throws JSONException;
 }

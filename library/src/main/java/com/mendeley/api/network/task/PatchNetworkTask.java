@@ -5,14 +5,17 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.network.NetworkUtils;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
 
 import java.io.IOException;
 
 import static com.mendeley.api.network.NetworkUtils.getHttpPatch;
+import static com.mendeley.api.network.NetworkUtils.getJsonString;
 
 public abstract class PatchNetworkTask extends NetworkTask {
     @Override
@@ -36,14 +39,22 @@ public abstract class PatchNetworkTask extends NetworkTask {
             if (responseCode != getExpectedResponse()) {
                 return new HttpResponseException(url, responseCode, NetworkUtils.getErrorMessage(response));
             } else {
+                HttpEntity responseEntity = response.getEntity();
+                is = responseEntity.getContent();
+                String responseString = getJsonString(is);
+                processJsonString(responseString);
                 return null;
             }
         } catch (IOException e) {
+            return new JsonParsingException(e.getMessage());
+        } catch (JSONException e) {
             return new JsonParsingException(e.getMessage());
         } finally {
             closeConnection();
         }
     }
+
+    protected abstract void processJsonString(String jsonString) throws JSONException;
 
     protected abstract String getDate();
 

@@ -130,14 +130,12 @@ public abstract class AsyncMendeleySdk extends BaseMendeleySdk implements Mendel
         });
     }
 
-
     @Override
-    public void patchDocument(final String documentId, final Date date, final Document document, final PatchDocumentCallback callback) {
-        run(new Command() {
+    public RequestHandle patchDocument(final String documentId, final Date date, final Document document, final PatchDocumentCallback callback) {
+        return run(new Command() {
             @Override
             public RequestHandle exec() {
-                documentNetworkProvider.doPatchDocument(documentId, date, document, callback);
-                return null;
+                return documentNetworkProvider.doPatchDocument(documentId, date, document, callback);
             }
         });
     }
@@ -341,12 +339,11 @@ public abstract class AsyncMendeleySdk extends BaseMendeleySdk implements Mendel
     }
 
     @Override
-    public void patchFolder(final String folderId, final Folder folder, final PatchFolderCallback callback) {
-        run(new Command() {
+    public RequestHandle patchFolder(final String folderId, final Folder folder, final PatchFolderCallback callback) {
+        return run(new Command() {
             @Override
             public RequestHandle exec() {
-                folderNetworkProvider.doPatchFolder(folderId, folder, callback);
-                return null;
+                return folderNetworkProvider.doPatchFolder(folderId, folder, callback);
             }
         });
     }

@@ -107,31 +107,31 @@ public class AnnotationsNetworkBlockingTest extends AndroidTestCase {
         assertEquals("Sticky", annotation.text);
 
         Annotation modified = new Annotation.Builder(annotation).setText("Tacky").build();
-        sdk.patchAnnotation(id, modified);
+        Annotation patched = sdk.patchAnnotation(id, modified);
+        assertEquals(patched.id, id);
+        assertEquals(patched.text, "Tacky");
 
         modified = sdk.getAnnotation(id);
         assertEquals("Tacky", modified.text);
 
         modified = new Annotation.Builder(annotation).setText("Sticky").build();
-        sdk.patchAnnotation(id, modified);
+        patched = sdk.patchAnnotation(id, modified);
+        assertEquals(patched.id, id);
+        assertEquals(patched.text, "Sticky");
     }
 
     private void ensureCorrectAnnotationsExist() throws MendeleyException {
         AnnotationList annotationList = sdk.getAnnotations();
         String firstDocumentId = getFirstDocumentId();
 
-        // Delete any incorrect annotations:
+        // Delete existing annotations:
         for (Annotation annotation: annotationList.annotations) {
-            if (!isInFixture(annotation)) {
-                sdk.deleteAnnotation(annotation.id);
-            }
+            sdk.deleteAnnotation(annotation.id);
         }
 
-        // Post any missing annotations:
+        // Post clean annotations:
         for (Annotation templateAnnotation : ANNOTATIONS) {
-            if (!wasReceived(templateAnnotation, annotationList)) {
-                sdk.postAnnotation(attachToDocument(templateAnnotation, firstDocumentId));
-            }
+            sdk.postAnnotation(attachToDocument(templateAnnotation, firstDocumentId));
         }
     }
 

@@ -32,6 +32,7 @@ public class FolderNetworkProviderTest extends BaseNetworkProviderTest {
 
     private List<Folder> foldersRcvd;
     private Folder postedFolderRcvd;
+    private Folder patchedFolderRcvd;
 
     private GetFoldersCallback getFoldersCallback;
     private PostFolderCallback postFolderCallback;
@@ -77,7 +78,8 @@ public class FolderNetworkProviderTest extends BaseNetworkProviderTest {
         };
         patchFolderCallback = new PatchFolderCallback() {
             @Override
-            public void onFolderPatched(String folderId) {
+            public void onFolderPatched(Folder folder) {
+                setPatchedFolder(folder);
                 reportSuccess();
             }
 
@@ -121,14 +123,16 @@ public class FolderNetworkProviderTest extends BaseNetworkProviderTest {
                 .setName("Zero gravity croquet").build();
 
         patchFolder(folder);
-        getFolders();
+        assertEquals("folder name incorrect", patchedFolderRcvd.name, "Zero gravity croquet");
 
+        getFolders();
         assertEquals("folder name incorrect", "Zero gravity croquet", foldersRcvd.get(2).name);
 
         folder = new Folder.Builder(foldersRcvd.get(2))
                 .setName(originalName).build();
 
         patchFolder(folder);
+        assertEquals("folder name incorrect", patchedFolderRcvd.name, "Chocolate");
     }
 
     private void patchFolder(Folder folder) {
@@ -176,6 +180,10 @@ public class FolderNetworkProviderTest extends BaseNetworkProviderTest {
 
     private void setPostedFolder(Folder folder) {
         this.postedFolderRcvd = folder;
+    }
+
+    private void setPatchedFolder(Folder folder) {
+        this.patchedFolderRcvd = folder;
     }
 
     private void setFolders(List<Folder> folders) {

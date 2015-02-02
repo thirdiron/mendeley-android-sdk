@@ -118,13 +118,18 @@ public class AnnotationsNetworkProvider {
         }
     }
 
-    public static class PatchAnnotationProcedure extends PatchNetworkProcedure {
+    public static class PatchAnnotationProcedure extends PatchNetworkProcedure<Annotation> {
         public PatchAnnotationProcedure(String annotationId, String json, AuthenticationManager authenticationManager) {
             super(getUrl(annotationId), CONTENT_TYPE, json, null, authenticationManager);
         }
 
         private static String getUrl(String annotationId) {
             return ANNOTATIONS_BASE_URL + "/" + annotationId;
+        }
+
+        @Override
+        protected Annotation processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseAnnotation(jsonString);
         }
     }
 }

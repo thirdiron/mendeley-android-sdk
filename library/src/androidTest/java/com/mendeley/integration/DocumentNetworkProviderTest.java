@@ -51,6 +51,7 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
     private List<Document> documentsRcvd;
     private Page pageRcvd;
     private Document documentRcvd;
+    private Document patchedDocumentRcvd;
     private Document postedDocumentRcvd;
     private Map<String, String> typesRcvd;
     private List<DocumentId> documentIdsRcvd;
@@ -112,7 +113,8 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
         };
         patchDocumentCallback = new PatchDocumentCallback() {
             @Override
-            public void onDocumentPatched(String documentId) {
+            public void onDocumentPatched(Document document) {
+                setPatched(document);
                 reportSuccess();
             }
 
@@ -185,15 +187,19 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
         Document doc = new Document.Builder(documentsRcvd.get(0)).setYear(1066).build();
 
         patchDocument(doc);
-        getDocumentById(doc.id);
+        assertEquals("incorrect title", patchedDocumentRcvd.title, doc.title);
+        assertEquals("incorrect year", patchedDocumentRcvd.year.intValue(), 1066);
 
+        getDocumentById(doc.id);
         assertEquals("incorrect year", documentRcvd.year.intValue(), 1066);
 
         doc = new Document.Builder(documentsRcvd.get(0)).setYear(2003).build();
 
         patchDocument(doc);
-        getDocumentById(doc.id);
+        assertEquals("incorrect title", patchedDocumentRcvd.title, doc.title);
+        assertEquals("incorrect year", patchedDocumentRcvd.year.intValue(), 2003);
 
+        getDocumentById(doc.id);
         assertEquals("incorrect year", documentsRcvd.get(0).year.intValue(), 2003);
     }
 
@@ -255,6 +261,10 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
 
     private void setTypes(Map<String, String> types) {
         typesRcvd = types;
+    }
+
+    private void setPatched(Document document) {
+        patchedDocumentRcvd = document;
     }
 
     private void setDeletedDocuments(List<DocumentId> documentIds, Page page) {

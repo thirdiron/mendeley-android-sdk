@@ -204,11 +204,11 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     }
 
     @Override
-    public void patchDocument(String documentId, Date date, Document document) throws MendeleyException {
+    public Document patchDocument(String documentId, Date date, Document document) throws MendeleyException {
         try {
             String json = JsonParser.jsonFromDocument(document);
-            Procedure proc = new PatchDocumentProcedure(documentId, json, date, authenticationManager);
-            proc.checkedRun();
+            Procedure<Document> proc = new PatchDocumentProcedure(documentId, json, date, authenticationManager);
+            return proc.checkedRun();
         } catch (JSONException e) {
             throw new JsonParsingException(e.getMessage());
         }
@@ -279,11 +279,11 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     }
 
     @Override
-    public void patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException {
+    public Annotation patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException {
         try {
             String json = JsonParser.jsonFromAnnotation(annotation);
-            Procedure proc = new PatchAnnotationProcedure(annotationId, json, authenticationManager);
-            proc.checkedRun();
+            Procedure<Annotation> proc = new PatchAnnotationProcedure(annotationId, json, authenticationManager);
+            return proc.checkedRun();
         } catch (JSONException e) {
             throw new JsonParsingException("Error parsing annotation", e);
         }
@@ -366,13 +366,13 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     }
 
     @Override
-    public void patchFolder(String folderId, Folder folder) throws MendeleyException {
+    public Folder patchFolder(String folderId, Folder folder) throws MendeleyException {
         String folderString = null;
         try {
             String url = FolderNetworkProvider.getPatchFolderUrl(folderId);
             folderString  = JsonParser.jsonFromFolder(folder);
-            Procedure proc = new PatchFolderProcedure(url, folderString, authenticationManager);
-            proc.checkedRun();
+            Procedure<Folder> proc = new PatchFolderProcedure(url, folderString, authenticationManager);
+            return proc.checkedRun();
         } catch (JSONException e) {
             throw new JsonParsingException(e.getMessage());
         }

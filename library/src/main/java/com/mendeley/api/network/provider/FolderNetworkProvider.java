@@ -122,15 +122,18 @@ public class FolderNetworkProvider {
      * @param folderId the folder id to patch
      * @param folder the Folder object
      */
-    public void doPatchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
+    public RequestHandle doPatchFolder(String folderId, Folder folder, PatchFolderCallback callback) {
         String folderString = null;
         try {
             folderString  = JsonParser.jsonFromFolder(folder);
+            String[] paramsArray = new String[] { getPatchFolderUrl(folderId), folderString };
+            PatchFolderTask patchFolderTask = new PatchFolderTask(callback, folderId);
+            patchFolderTask.executeOnExecutor(environment.getExecutor(), paramsArray);
+            return patchFolderTask;
         } catch (JSONException e) {
             callback.onFolderNotPatched(new JsonParsingException(e.getMessage()));
+            return NullRequest.get();
         }
-        String[] paramsArray = new String[] { getPatchFolderUrl(folderId), folderString };
-        new PatchFolderTask(callback, folderId).executeOnExecutor(environment.getExecutor(), paramsArray);
     }
 
     /**
@@ -371,6 +374,8 @@ public class FolderNetworkProvider {
 
 		private final String folderId;
 
+        private Folder folder;
+
         private PatchFolderTask(PatchFolderCallback callback, String folderId) {
             this.callback = callback;
             this.folderId = folderId;
@@ -379,6 +384,11 @@ public class FolderNetworkProvider {
         @Override
         protected AccessTokenProvider getAccessTokenProvider() {
             return accessTokenProvider;
+        }
+
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            folder = JsonParser.parseFolder(jsonString);
         }
 
         @Override
@@ -393,7 +403,7 @@ public class FolderNetworkProvider {
 
         @Override
 		protected void onSuccess() {
-			callback.onFolderPatched(folderId);
+			callback.onFolderPatched(folder);
 		}
 
 		@Override
@@ -556,9 +566,14 @@ public class FolderNetworkProvider {
         }
     }
 
-    public static class PatchFolderProcedure extends PatchNetworkProcedure {
+    public static class PatchFolderProcedure extends PatchNetworkProcedure<Folder> {
         public PatchFolderProcedure(String url, String json, AuthenticationManager authenticationManager) {
             super(url, "application/vnd.mendeley-folder.1+json", json, null, authenticationManager);
+        }
+
+        @Override
+        protected Folder processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseFolder(jsonString);
         }
     }
 

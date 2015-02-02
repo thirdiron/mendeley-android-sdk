@@ -136,14 +136,17 @@ public class DocumentNetworkProvider {
      * @param date the date object
      * @param document the Document to patch
      */
-    public void doPatchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
+    public RequestHandle doPatchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback) {
         String dateString = formatDate(date);
 
         try {
             String[] paramsArray = new String[] { getPatchDocumentUrl(documentId), JsonParser.jsonFromDocument(document) };
-            new PatchDocumentTask(callback, documentId, dateString).executeOnExecutor(environment.getExecutor(), paramsArray);
+            PatchDocumentTask patchDocumentTask = new PatchDocumentTask(callback, documentId, dateString);
+            patchDocumentTask.executeOnExecutor(environment.getExecutor(), paramsArray);
+            return patchDocumentTask;
         } catch (JSONException e) {
             callback.onDocumentNotPatched(new JsonParsingException(e.getMessage()));
+            return NullRequest.get();
         }
     }
 
@@ -451,6 +454,8 @@ public class DocumentNetworkProvider {
 		private final String documentId;
         private final String date;
 
+        Document document;
+
         private PatchDocumentTask(PatchDocumentCallback callback, String documentId, String date) {
             this.callback = callback;
             this.documentId = documentId;
@@ -464,13 +469,18 @@ public class DocumentNetworkProvider {
 
 		@Override
 		protected void onSuccess() {
-			callback.onDocumentPatched(documentId);
+			callback.onDocumentPatched(document);
 		}
 
 		@Override
 		protected void onFailure(MendeleyException exception) {
 			callback.onDocumentNotPatched(exception);
 		}
+
+        @Override
+        protected void processJsonString(String jsonString) throws JSONException {
+            document = JsonParser.parseDocument(jsonString);
+        }
 
         @Override
         protected String getDate() {
@@ -631,13 +641,18 @@ public class DocumentNetworkProvider {
         }
     }
 
-    public static class PatchDocumentProcedure extends PatchNetworkProcedure {
+    public static class PatchDocumentProcedure extends PatchNetworkProcedure<Document> {
         public PatchDocumentProcedure(String documentId, String json, Date date,
                                       AuthenticationManager authenticationManager) {
             super(getPatchDocumentUrl(documentId), "application/vnd.mendeley-document.1+json",
                     json,
                     formatDate(date),
                     authenticationManager);
+        }
+
+        @Override
+        protected Document processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseDocument(jsonString);
         }
     }
 }
