@@ -6,7 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class BaseNetworkProviderTest extends AndroidTestCase {
-    private static final int API_CALL_TIMEOUT_MS = 3000;
+    private static final int API_CALL_TIMEOUT_MS = 10 * 1000;
 
     private CountDownLatch apiCallLatch;
 

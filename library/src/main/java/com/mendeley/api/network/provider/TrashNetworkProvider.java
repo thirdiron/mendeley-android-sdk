@@ -19,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentsTask;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.NetworkUtils.API_URL;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentsUrl;
 
 public class TrashNetworkProvider {
     public static String BASE_URL = API_URL + "trash";
@@ -33,7 +34,7 @@ public class TrashNetworkProvider {
 
     public RequestHandle doGetDocuments(DocumentRequestParameters params, GetDocumentsCallback callback) {
         try {
-            String[] paramsArray = new String[] { getGetDocumentsUrl(params, null) };
+            String[] paramsArray = new String[] { getTrashDocumentsUrl(params, null) };
             GetDocumentsTask getDocumentsTask = new GetDocumentsTask(callback, accessTokenProvider);
             getDocumentsTask.executeOnExecutor(environment.getExecutor(), paramsArray);
             return getDocumentsTask;
