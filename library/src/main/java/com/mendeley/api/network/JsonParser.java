@@ -103,49 +103,63 @@ public class JsonParser {
      * @throws JSONException
      */
 	public static String jsonFromDocument(Document document) throws JSONException {
-        JSONArray websites = new JSONArray();
-        for (int i = 0; i < document.websites.size(); i++) {
-            websites.put(i, document.websites.get(i));
+        final JSONObject jDocument = new JSONObject();
+
+        if (!document.websites.isNull()) {
+            JSONArray websites = new JSONArray();
+            for (int i = 0; i < document.websites.size(); i++) {
+                websites.put(i, document.websites.get(i));
+            }
+            jDocument.put("websites", websites);
         }
 
-        JSONArray keywords = new JSONArray();
-        for (int i = 0; i < document.keywords.size(); i++) {
-            keywords.put(i, document.keywords.get(i));
+        if (!document.keywords.isNull()) {
+            JSONArray keywords = new JSONArray();
+            for (int i = 0; i < document.keywords.size(); i++) {
+                keywords.put(i, document.keywords.get(i));
+            }
+            jDocument.put("keywords", keywords);
         }
 
-        JSONArray tags = new JSONArray();
-        for (int i = 0; i < document.tags.size(); i++) {
-            tags.put(i, document.tags.get(i));
+        if (!document.tags.isNull()) {
+            JSONArray tags = new JSONArray();
+            for (int i = 0; i < document.tags.size(); i++) {
+                tags.put(i, document.tags.get(i));
+            }
+            jDocument.put("tags", tags);
         }
 
-		JSONArray authors = new JSONArray();
-		for (int i = 0; i < document.authors.size(); i++) {
-			JSONObject author = new JSONObject();
-			author.put("first_name", document.authors.get(i).firstName);
-			author.put("last_name", document.authors.get(i).lastName);
-			authors.put(i, author);
-		}
-		
-		JSONArray editors = new JSONArray();
-		for (int i = 0; i < document.editors.size(); i++) {
-			JSONObject editor = new JSONObject();
-			editor.put("first_name", document.editors.get(i).firstName);
-			editor.put("last_name", document.editors.get(i).lastName);
-			editors.put(i, editor);
-		}
-		
-		JSONObject identifiers = new JSONObject();
-		for (String key : document.identifiers.keySet()) {
-			identifiers.put(key, document.identifiers.get(key));
-		}
+        if (!document.authors.isNull()) {
+            JSONArray authors = new JSONArray();
+            for (int i = 0; i < document.authors.size(); i++) {
+                JSONObject author = new JSONObject();
+                author.put("first_name", document.authors.get(i).firstName);
+                author.put("last_name", document.authors.get(i).lastName);
+                authors.put(i, author);
+            }
+            jDocument.put("authors", authors);
+        }
 
-		JSONObject jDocument = new JSONObject();
-		
+        if (!document.editors.isNull()) {
+            JSONArray editors = new JSONArray();
+            for (int i = 0; i < document.editors.size(); i++) {
+                JSONObject editor = new JSONObject();
+                editor.put("first_name", document.editors.get(i).firstName);
+                editor.put("last_name", document.editors.get(i).lastName);
+                editors.put(i, editor);
+            }
+            jDocument.put("editors", editors);
+        }
+
+        if (!document.identifiers.isNull()) {
+            JSONObject identifiers = new JSONObject();
+            for (String key : document.identifiers.keySet()) {
+                identifiers.put(key, document.identifiers.get(key));
+            }
+            jDocument.put("identifiers", identifiers);
+        }
+
 		jDocument.put("title", document.title);
-		jDocument.put("authors", authors);
-        jDocument.put("keywords", keywords);
-        jDocument.put("tags", tags);
-        jDocument.put("websites", websites);
 		jDocument.put("type", document.type);
 		jDocument.put("id", document.id);
 		
@@ -173,8 +187,6 @@ public class JsonParser {
 		jDocument.put("institution", document.institution);
 		jDocument.put("series", document.series);
 		jDocument.put("chapter", document.chapter);
-		jDocument.put("identifiers", identifiers);
-		jDocument.put("editors", editors);
         jDocument.put("accessed", document.accessed);
         jDocument.put("file_attached", document.fileAttached);
         jDocument.put("client_data", document.clientData);
