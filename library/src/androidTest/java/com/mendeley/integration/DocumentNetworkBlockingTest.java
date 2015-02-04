@@ -84,16 +84,20 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
 
         Document doc = new Document.Builder(docList.documents.get(0)).setYear(1066).build();
 
-        patchDocument(doc);
-        Document docRcvd = sdk.getDocument(doc.id, null);
+        Document patchedDoc = patchDocument(doc);
+        assertEquals("incorrect title", patchedDoc.title, doc.title);
+        assertEquals("incorrect year", patchedDoc.year.intValue(), 1066);
 
+        Document docRcvd = sdk.getDocument(doc.id, null);
         assertEquals("incorrect year", docRcvd.year.intValue(), 1066);
 
         doc = new Document.Builder(docList.documents.get(0)).setYear(2003).build();
 
-        patchDocument(doc);
-        docRcvd = getDocumentById(doc.id);
+        patchedDoc = patchDocument(doc);
+        assertEquals("incorrect title", patchedDoc.title, doc.title);
+        assertEquals("incorrect year", patchedDoc.year.intValue(), 2003);
 
+        docRcvd = getDocumentById(doc.id);
         assertEquals("incorrect year", docRcvd.year.intValue(), 2003);
     }
 
@@ -167,8 +171,8 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
         return sdk.getDocuments(params);
     }
 
-    private void patchDocument(Document doc) throws MendeleyException {
-        sdk.patchDocument(doc.id, null, doc);
+    private Document patchDocument(Document doc) throws MendeleyException {
+        return sdk.patchDocument(doc.id, null, doc);
     }
 
     private Document getDocumentById(String id) throws MendeleyException {

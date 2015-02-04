@@ -82,7 +82,7 @@ public interface BlockingSdk {
      * @param document a document object containing the fields to be updated.
      *                 Missing fields are left unchanged (not cleared).
      */
-    void patchDocument(String documentId, Date date, Document document) throws MendeleyException;
+    Document patchDocument(String documentId, Date date, Document document) throws MendeleyException;
 
     /**
      * Move an existing document into the user's trash collection.
@@ -163,7 +163,7 @@ public interface BlockingSdk {
      * @param folderId the id of the folder to modify.
      * @param folder metadata object that provides the new name and parentId.
      */
-    void patchFolder(String folderId, Folder folder) throws MendeleyException;
+    Folder patchFolder(String folderId, Folder folder) throws MendeleyException;
 
     /**
      * Return a list of IDs of the documents stored in a particular folder.
@@ -302,7 +302,7 @@ public interface BlockingSdk {
 
     Annotation postAnnotation(Annotation annotation) throws MendeleyException;
 
-    void patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
+    Annotation patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
 
     void deleteAnnotation(String annotationId) throws MendeleyException;
 

@@ -62,15 +62,17 @@ public class FolderNetworkBlockingTest extends AndroidTestCase {
         Folder folder = new Folder.Builder(folderList.folders.get(0))
                 .setName("Zero gravity croquet").build();
 
-        sdk.patchFolder(folder.id, folder);
-        folderList = getFolders();
+        Folder patched = sdk.patchFolder(folder.id, folder);
+        assertEquals("folder name incorrect", patched.name, "Zero gravity croquet");
 
+        folderList = getFolders();
         assertEquals("folder name incorrect", "Zero gravity croquet", folderList.folders.get(2).name);
 
         folder = new Folder.Builder(folderList.folders.get(2))
                 .setName(originalName).build();
 
-        sdk.patchFolder(folder.id, folder);
+        patched = sdk.patchFolder(folder.id, folder);
+        assertEquals("folder name incorrect", patched.name, "Chocolate");
     }
 
     private void ensureCorrectFoldersExist() throws MendeleyException {

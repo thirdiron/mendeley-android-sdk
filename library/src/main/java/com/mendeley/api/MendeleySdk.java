@@ -149,7 +149,7 @@ public interface MendeleySdk {
      * @param document a document object containing the fields to be updated.
      *                 Missing fields are left unchanged (not cleared).
      */
-    void patchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback);
+    RequestHandle patchDocument(String documentId, Date date, Document document, PatchDocumentCallback callback);
 
     /**
      * Move an existing document into the user's trash collection.
@@ -296,7 +296,7 @@ public interface MendeleySdk {
      * @param folderId the id of the folder to modify.
      * @param folder metadata object that provides the new name and parentId.
      */
-    void patchFolder(String folderId, Folder folder, PatchFolderCallback callback);
+    RequestHandle patchFolder(String folderId, Folder folder, PatchFolderCallback callback);
 
     /**
      * Return a list of IDs of the documents stored in a particular folder.
