@@ -26,16 +26,31 @@ import java.util.TimeZone;
 
 public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
     private static final Document[] DOCUMENTS = {
-            new Document.Builder("How to avoid huge ships", "book")
-                    .setYear(1993).build(),
-            new Document.Builder("Cheese problems solved", "book")
-                    .setYear(2007).build(),
-            new Document.Builder("Across Europe by Kangaroo", "book")
-                    .setYear(2003).build(),
-            new Document.Builder("How to Be Pope: What to Do and Where to Go Once You're in the Vatican", "book")
-                    .setYear(2005).build(),
-            new Document.Builder("Be Bold with Bananas", "book")
-                    .setYear(1972).build()
+            new Document.Builder()
+                    .setTitle("How to avoid huge ships")
+                    .setType("book")
+                    .setYear(1993)
+                    .build(),
+            new Document.Builder()
+                    .setTitle("Cheese problems solved")
+                    .setType("book")
+                    .setYear(2007)
+                    .build(),
+            new Document.Builder()
+                    .setTitle("Across Europe by Kangaroo")
+                    .setType("book")
+                    .setYear(2003)
+                    .build(),
+            new Document.Builder()
+                    .setTitle("How to Be Pope: What to Do and Where to Go Once You're in the Vatican")
+                    .setType("book")
+                    .setYear(2005)
+                    .build(),
+            new Document.Builder()
+                    .setTitle("Be Bold with Bananas")
+                    .setType("book")
+                    .setYear(1972)
+                    .build()
     };
 
     private MendeleySdk sdk;
@@ -170,7 +185,10 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
     }
 
     public void testPostAndDeleteDocument() {
-        Document doc = new Document.Builder("abc", "book").build();
+        Document doc = new Document.Builder()
+                .setTitle("abc")
+                .setType("book")
+                .build();
 
         postDocument(doc);
 

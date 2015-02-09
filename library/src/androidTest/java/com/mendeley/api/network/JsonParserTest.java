@@ -63,8 +63,10 @@ public class JsonParserTest extends InstrumentationTestCase {
 	}
 
     public Document getTestDocument(ArrayList<Person> authorsList, ArrayList<Person> editorsList, ArrayList<String> keywords, ArrayList<String> tags, ArrayList<String> websites, HashMap<String, String> identifiers) {
-        Document.Builder testDocument = new Document.Builder("test-title", "book");
+        Document.Builder testDocument = new Document.Builder();
 
+        testDocument.setTitle("test-title");
+        testDocument.setType("book");
         testDocument.setAuthors(authorsList);
         testDocument.setEditors(editorsList);
         testDocument.setKeywords(keywords);

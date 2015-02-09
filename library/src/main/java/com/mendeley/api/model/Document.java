@@ -1,6 +1,5 @@
 package com.mendeley.api.model;
 
-import com.mendeley.api.util.Nullable;
 import com.mendeley.api.util.NullableList;
 import com.mendeley.api.util.NullableMap;
 
@@ -174,9 +173,7 @@ public class Document {
         private String clientData;
         private String uniqueId;
 		
-		public Builder(String title, String type) {
-            this.title = title;
-            this.type = type;
+		public Builder() {
         }
 		
 		public Builder(Document from) {
@@ -221,6 +218,11 @@ public class Document {
 
         public Builder setTitle(String title) {
             this.title = title;
+            return this;
+        }
+
+        public Builder setType(String type) {
+            this.type = type;
             return this;
         }
 
@@ -288,7 +290,7 @@ public class Document {
 			this.source = source;
 			return this;
 		}
-		
+
 		public Builder setRevision(String revision) {
 			this.revision = revision;
 			return this;
@@ -442,8 +444,8 @@ public class Document {
 		}
 	}
 
-    public static Builder getBuilder(String title, String type) {
-        return new Builder(title, type);
+    public static Builder getBuilder() {
+        return new Builder();
     }
 
     public String getAuthorsString() {
