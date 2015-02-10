@@ -42,7 +42,10 @@ public class NetworkConnectionTest extends AndroidTestCase {
 	
 
 	public static Document getTestDocument() {
-		return new Document.Builder("test_document_title", "book").setId("test_document_id").build();
+		return new Document.Builder()
+                .setTitle("test_document_title")
+                .setType("book")
+                .setId("test_document_id").build();
 	}
 
 	private void createConnections()

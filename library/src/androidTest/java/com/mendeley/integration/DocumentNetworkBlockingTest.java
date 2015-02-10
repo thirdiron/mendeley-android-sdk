@@ -22,16 +22,30 @@ import java.util.TimeZone;
 
 public class DocumentNetworkBlockingTest extends AndroidTestCase {
     private static final Document[] DOCUMENTS = {
-            new Document.Builder("How to avoid huge ships", "book")
+            new Document.Builder()
+                    .setTitle("How to avoid huge ships")
+                    .setType("book")
                     .setYear(1993).build(),
-            new Document.Builder("Cheese problems solved", "book")
-                    .setYear(2007).build(),
-            new Document.Builder("Across Europe by Kangaroo", "book")
-                    .setYear(2003).build(),
-            new Document.Builder("How to Be Pope: What to Do and Where to Go Once You're in the Vatican", "book")
-                    .setYear(2005).build(),
-            new Document.Builder("Be Bold with Bananas", "book")
-                    .setYear(1972).build()
+            new Document.Builder()
+                    .setYear(2007)
+                    .setTitle("Cheese problems solved")
+                    .setType("book")
+                    .build(),
+            new Document.Builder()
+                    .setYear(2003)
+                    .setTitle("Across Europe by Kangaroo")
+                    .setType("book")
+                    .build(),
+            new Document.Builder()
+                    .setYear(2005)
+                    .setTitle("How to Be Pope: What to Do and Where to Go Once You're in the Vatican")
+                    .setType("book")
+                    .build(),
+            new Document.Builder()
+                    .setYear(1972)
+                    .setTitle("Be Bold with Bananas")
+                    .setType("book")
+                    .build()
     };
 
     private BlockingSdk sdk;
@@ -68,7 +82,10 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
     }
 
     public void testPostAndDeleteDocument() throws MendeleyException {
-        Document doc = new Document.Builder("abc", "book").build();
+        Document doc = new Document.Builder()
+                .setTitle("abc")
+                .setType("book")
+                .build();
 
         Document rcvd = sdk.postDocument(doc);
 

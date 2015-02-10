@@ -756,13 +756,19 @@ public class JsonParser {
         }
 
         String type = documentObject.getString("type");
-		Document.Builder mendeleyDocument = new Document.Builder(title, type);
+		Document.Builder mendeleyDocument = new Document.Builder();
 
 		for (@SuppressWarnings("unchecked")
              Iterator<String> keysIter = documentObject.keys(); keysIter.hasNext(); ) {
 
 			String key = keysIter.next();
-            if (key.equals("last_modified")) {
+            if (key.equals("title")) {
+                mendeleyDocument.setTitle(documentObject.getString(key));
+
+            } else if (key.equals("type")) {
+                mendeleyDocument.setType(documentObject.getString(key));
+
+            } else if (key.equals("last_modified")) {
                 mendeleyDocument.setLastModified(documentObject.getString(key));
 
             } else if (key.equals("group_id")) {
