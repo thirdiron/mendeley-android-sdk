@@ -92,6 +92,7 @@ public class AuthenticationManager implements AccessTokenProvider {
 
     public void signIn(Activity activity) {
         if (isSignedIn()) {
+            authenticated(true);
             return;
         }
         if (username == null) {
