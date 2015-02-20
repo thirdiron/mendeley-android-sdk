@@ -94,7 +94,7 @@ public class SignInActivity  extends Activity implements OnClickListener {
 
 	@Override
 	public void onBackPressed() {
-		moveTaskToBack(true);
+		finish();
 	}
 	
 	@Override
