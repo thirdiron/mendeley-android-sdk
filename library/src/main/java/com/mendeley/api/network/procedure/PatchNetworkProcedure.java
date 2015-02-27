@@ -45,7 +45,7 @@ public abstract class PatchNetworkProcedure<ResultType> extends NetworkProcedure
         NetworkUtils.HttpPatch httpPatch = getHttpPatch(url, date, contentType, authenticationManager);
 
         try {
-            httpPatch.setEntity(new StringEntity(json));
+            httpPatch.setEntity(new StringEntity(json, "UTF-8"));
             HttpResponse response = httpclient.execute(httpPatch);
 
             final int responseCode = response.getStatusLine().getStatusCode();
