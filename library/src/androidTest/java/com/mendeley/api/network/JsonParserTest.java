@@ -117,7 +117,7 @@ public class JsonParserTest extends InstrumentationTestCase {
         testGroup.setCreated("2014-07-29T11:22:55.000Z");
         testGroup.setOwningProfileId("test-group-owing-profile-id");
         testGroup.setAccessLevel(Group.AccessLevel.PUBLIC);
-        testGroup.setRole("owner");
+        testGroup.setRole(Group.Role.OWNER);
         testGroup.setWebpage("test-group-webpage");
         testGroup.setLink("test-group-link");
         Photo testPhoto = new Photo("test-square-photo.png");
