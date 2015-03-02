@@ -34,11 +34,39 @@ public class Group {
         }
     }
 
+    /** Different roles for a group */
+    public static enum Role {
+        OWNER("owner"),
+        ADMIN("admin"),
+        NORMAL("normal"),
+        INVITED("invited"),
+        FOLLOWER("follower");
+
+        private final String stringValue;
+
+        private Role(String stringValue) {
+            this.stringValue = stringValue;
+        }
+
+        public static Role fromValue(String roleStr) {
+            for(Role role : Role.values()) {
+                if (role.toValue().equals(roleStr)) {
+                    return role;
+                }
+            }
+            throw new IllegalArgumentException("Invalid role: " + roleStr);
+        }
+
+        public String toValue() {
+            return stringValue;
+        }
+    }
+
     public final String id;
     public final String created;
     public final String owningProfileId;
     public final String link;
-    public final String role;
+    public final Role role;
     public final AccessLevel accessLevel;
     public final String name;
     public final String description;
@@ -52,7 +80,7 @@ public class Group {
             String created,
             String owningProfileId,
             String link,
-            String role,
+            Role role,
             AccessLevel accessLevel,
             String name,
             String description,
@@ -79,7 +107,7 @@ public class Group {
             private String created;
             private String owningProfileId;
             private String link;
-            private String role;
+            private Role role;
             private AccessLevel accessLevel;
             private String name;
             private String description;
@@ -125,7 +153,7 @@ public class Group {
             return this;
         }
 
-        public Builder setRole(String role) {
+        public Builder setRole(Role role) {
             this.role = role;
             return this;
         }

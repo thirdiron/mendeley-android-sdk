@@ -695,7 +695,7 @@ public class JsonParser {
                 mendeleyGroup.setLink(groupObject.getString(key));
 
             } else if (key.equals("role")) {
-                mendeleyGroup.setRole(groupObject.getString(key));
+                mendeleyGroup.setRole(Group.Role.fromValue(groupObject.getString(key)));
 
             } else if (key.equals("access_level")) {
                 mendeleyGroup.setAccessLevel(Group.AccessLevel.fromValue(groupObject.getString(key)));
