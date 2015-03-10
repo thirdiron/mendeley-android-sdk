@@ -4,6 +4,7 @@ import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.delet
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationUrl;
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.IDENTIFIER_TYPES_BASE_URL;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
@@ -230,6 +231,13 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     public Map<String, String> getDocumentTypes() throws MendeleyException {
         Procedure<Map<String, String>> proc =
                 new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Map<String, String> getIdentifierTypes() throws MendeleyException {
+        Procedure<Map<String, String>> proc =
+                new GetDocumentTypesProcedure(IDENTIFIER_TYPES_BASE_URL, authenticationManager);
         return proc.checkedRun();
     }
 

@@ -51,6 +51,7 @@ import static com.mendeley.api.network.NetworkUtils.getErrorMessage;
 public class DocumentNetworkProvider {
 	public static String DOCUMENTS_BASE_URL = API_URL + "documents";
 	public static String DOCUMENT_TYPES_BASE_URL = API_URL + "document_types";
+    public static String IDENTIFIER_TYPES_BASE_URL = API_URL + "identifier_types";
 	
 	public static SimpleDateFormat patchDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT' Z");
 
