@@ -103,6 +103,11 @@ public interface BlockingSdk {
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
 
+    /**
+     * Return a list of valid identifiers types.
+     */
+    Map<String,String> getIdentifierTypes() throws MendeleyException;
+
     /* FILES */
 
     /**
