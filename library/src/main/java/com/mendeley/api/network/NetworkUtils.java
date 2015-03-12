@@ -21,6 +21,9 @@ import javax.net.ssl.HttpsURLConnection;
 public class NetworkUtils {
     public static final String API_URL = "https://api.mendeley.com/";
 
+    public static final int CONNECTION_TIMEOUT = 1500;
+    public static final int READ_TIMEOUT = 15000 ;
+
     static {
         HttpsURLConnection.setDefaultSSLSocketFactory(new NoSSLv3Factory());
     }
@@ -154,8 +157,8 @@ public class NetworkUtils {
     public static HttpsURLConnection getDownloadConnection(String url, String method) throws IOException {
         final URL callUrl = new URL(url);
         final HttpsURLConnection con = (HttpsURLConnection) callUrl.openConnection();
-        con.setReadTimeout(3000);
-        con.setConnectTimeout(3000);
+        con.setConnectTimeout(CONNECTION_TIMEOUT);
+        con.setReadTimeout(READ_TIMEOUT);
         con.setRequestMethod(method);
 
         return con;
@@ -164,8 +167,8 @@ public class NetworkUtils {
     public static HttpURLConnection getHttpDownloadConnection(String url, String method) throws IOException {
         final URL callUrl = new URL(url);
         final HttpURLConnection con = (HttpURLConnection) callUrl.openConnection();
-        con.setReadTimeout(3000);
-        con.setConnectTimeout(3000);
+        con.setConnectTimeout(CONNECTION_TIMEOUT);
+        con.setReadTimeout(READ_TIMEOUT);
         con.setRequestMethod(method);
 
         return con;
