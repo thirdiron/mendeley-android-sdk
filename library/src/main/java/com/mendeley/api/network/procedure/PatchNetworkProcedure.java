@@ -12,6 +12,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -41,7 +44,11 @@ public abstract class PatchNetworkProcedure<ResultType> extends NetworkProcedure
 
     @Override
     protected ResultType run() throws MendeleyException {
-        HttpClient httpclient = new DefaultHttpClient();
+        final HttpParams httpParameters = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParameters, NetworkUtils.CONNECTION_TIMEOUT);
+        HttpConnectionParams.setSoTimeout(httpParameters, NetworkUtils.READ_TIMEOUT);
+        HttpClient httpclient = new DefaultHttpClient(httpParameters);
+
         NetworkUtils.HttpPatch httpPatch = getHttpPatch(url, date, contentType, authenticationManager);
 
         try {
