@@ -74,7 +74,7 @@ public class AnnotationsNetworkBlockingTest extends AndroidTestCase {
         assertEquals("annotation type incorrect",
                 Annotation.Type.STICKY_NOTE, annotationList.annotations.get(0).type);
         assertEquals("annotation color incorrect",
-                Color.CYAN, annotationList.annotations.get(1).color);
+                 Color.CYAN, (int) annotationList.annotations.get(1).color);
         assertEquals("annotation text incorrect",
                 "Doc note", annotationList.annotations.get(2).text);
     }

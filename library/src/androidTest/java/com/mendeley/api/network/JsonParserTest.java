@@ -1,8 +1,11 @@
 package com.mendeley.api.network;
 
+import android.graphics.Color;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.mendeley.api.model.Annotation;
+import com.mendeley.api.model.Box;
 import com.mendeley.api.model.Discipline;
 import com.mendeley.api.model.Document;
 import com.mendeley.api.model.DocumentId;
@@ -13,6 +16,7 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Person;
 import com.mendeley.api.model.Photo;
+import com.mendeley.api.model.Point;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.model.UserRole;
 import com.mendeley.integration.TestUtils;
@@ -37,6 +41,8 @@ public class JsonParserTest extends InstrumentationTestCase {
     final String documentIdsFile =  "test_document_ids.json";
     final String groupFile =  "test_group.json";
     final String userRoleFile =  "test_user_role.json";
+    final String annotationWithNotNullValuesFile = "test_annotation_not_null_values.json";
+    final String annotationWithNullValuesFile = "test_annotation_null_values.json";
 
 	public Document getTestDocumentWithNonNotNullCollections() {
         HashMap<String,String> identifiers = new HashMap<String, String>();
@@ -196,6 +202,37 @@ public class JsonParserTest extends InstrumentationTestCase {
 
 	    return testProfile.build();
 	}
+
+    public Annotation getTestAnnotationWithNonNotNullValues() {
+        ArrayList<Box> positions = new ArrayList<Box>();
+        positions.add(new Box(new Point(1, 2), new Point(3, 4), 5));
+        Integer color = Color.argb(255, 255, 0, 0);
+        Annotation.PrivacyLevel privacyLevel = Annotation.PrivacyLevel.PRIVATE;
+        Annotation.Type type = Annotation.Type.HIGHLIGHT;
+
+        return getTestAnnotation(positions, color, privacyLevel, type);
+    }
+
+    public Annotation getTestAnnotation(ArrayList<Box> positions, Integer color, Annotation.PrivacyLevel privacyLevel, Annotation.Type type) {
+        Annotation.Builder bld = new Annotation.Builder();
+
+        bld.setId("test-id");
+        bld.setText("test-text");
+        bld.setPositions(positions);
+        if (color != null) {
+            bld.setColor(color);
+        }
+        bld.setCreated("2014-02-20T16:53:25.000Z");
+        bld.setDocumentId("test-doc-id");
+        bld.setFileHash("test-hash");
+        bld.setLastModified("2015-02-20T16:53:25.000Z");
+        bld.setPreviousId("test-prev-id");
+        bld.setPrivacyLevel(privacyLevel);
+        bld.setProfileId("test-profile-id");
+        bld.setType(type);
+
+        return bld.build();
+    }
 
 	public String getJsonStringFromAssetsFile(String fileNameName) throws IOException {
 	    return TestUtils.getAssetsFileAsString(getInstrumentation().getContext().getAssets(), fileNameName);
@@ -451,6 +488,48 @@ public class JsonParserTest extends InstrumentationTestCase {
     }
 
 
+    @SmallTest
+    public void test_parseAnnotation_withNotNullValues()
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
+
+        // GIVEN the JSON representation of an annotation where its values (boxes, color) are NOT null
+        Annotation expectedAnnotation = getTestAnnotationWithNonNotNullValues();
+        String parsingString = getJsonStringFromAssetsFile(annotationWithNotNullValuesFile);
+
+        // WHEN we parse the JSON
+        Annotation actualAnnotation = JsonParser.parseAnnotation(parsingString);
+
+        // THEN the parsed document matches the expected one
+        assertAnnotationsAreEqual(expectedAnnotation, actualAnnotation);
+
+        // ...AND the values are NOT null
+        assertFalse(actualAnnotation.positions.isNull());
+        assertNotNull(actualAnnotation.color);
+        assertNotNull(actualAnnotation.privacyLevel);
+        assertNotNull(actualAnnotation.type);
+    }
+
+    @SmallTest
+    public void test_parseAnotation_withNullValues()
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
+
+        // GIVEN the JSON representation of an annotation where its values (boxes, color) are null
+        Annotation expectedAnnotation = getTestAnnotation(null, null, null, null);
+        String parsingString = getJsonStringFromAssetsFile(annotationWithNullValuesFile);
+
+        // WHEN we parse the JSON
+        Annotation actualAnnotation = JsonParser.parseAnnotation(parsingString);
+
+        // THEN the parsed document matches the expected one
+        assertAnnotationsAreEqual(expectedAnnotation, actualAnnotation);
+
+        // ...AND the values are not null
+        assertTrue(actualAnnotation.positions.isNull());
+        assertNull(actualAnnotation.color);
+        assertNull(actualAnnotation.privacyLevel);
+        assertNull(actualAnnotation.type);
+    }
+
     private void assertDocumentsAreEqual(Document doc1, Document doc2)
             throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
 
@@ -515,6 +594,28 @@ public class JsonParserTest extends InstrumentationTestCase {
         for (int i = 0; i < doc1.editors.size(); i++) {
             assertEquals("editor " + i, doc1.editors.get(i), doc2.editors.get(i));
         }
+    }
+
+    private void assertAnnotationsAreEqual(Annotation anno1, Annotation anno2)
+            throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, JSONException {
+
+        assertEquals("color", anno1.color, anno2.color);
+        assertEquals("created", anno1.created, anno2.created);
+        assertEquals("type", anno1.type, anno2.type);
+        assertEquals("documentId", anno1.documentId, anno2.documentId);
+        assertEquals("fileHash", anno1.fileHash, anno2.fileHash);
+        assertEquals("id", anno1.id, anno2.id);
+        assertEquals("lastModified", anno1.lastModified, anno2.lastModified);
+        assertEquals("previousId", anno1.previousId, anno2.previousId);
+        assertEquals("privacyLevel", anno1.privacyLevel, anno2.privacyLevel);
+        assertEquals("profileId", anno1.profileId, anno2.profileId);
+        assertEquals("hidden", anno1.text, anno2.text);
+
+        assertEquals("positions size", anno1.positions.size(), anno2.positions.size());
+        for (int i = 0; i < anno1.positions.size(); i++) {
+            assertEquals("position " + i, anno1.positions.get(i), anno2.positions.get(i));
+        }
+
     }
 
 }
