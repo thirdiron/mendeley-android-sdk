@@ -42,24 +42,33 @@ public class JsonParser {
     private static final String TAG = JsonParser.class.getCanonicalName();
 
     public static String jsonFromAnnotation(Annotation annotation) throws JSONException {
-        JSONArray positions = new JSONArray();
-        for (int i = 0; i < annotation.positions.size(); i++) {
-            Box box = annotation.positions.get(i);
-            positions.put(i, serializeBox(box));
-        }
-
         JSONObject jAnnotation = new JSONObject();
 
         jAnnotation.put("id", annotation.id);
-        jAnnotation.put("type", annotation.type.name);
+        if (annotation.type != null) {
+            jAnnotation.put("type", annotation.type.name);
+        }
         jAnnotation.put("previous_id", annotation.previousId);
-        jAnnotation.put("color", serializeColor(annotation.color));
+        if (annotation.color != null) {
+            jAnnotation.put("color", serializeColor(annotation.color));
+        }
         jAnnotation.put("text", annotation.text);
         jAnnotation.put("profile_id", annotation.profileId);
-        jAnnotation.put("positions", positions);
+
+        if (!annotation.positions.isNull()) {
+            JSONArray positions = new JSONArray();
+            for (int i = 0; i < annotation.positions.size(); i++) {
+                Box box = annotation.positions.get(i);
+                positions.put(i, serializeBox(box));
+            }
+            jAnnotation.put("positions", positions);
+        }
+
         jAnnotation.put("created", annotation.created);
         jAnnotation.put("last_modified", annotation.lastModified);
-        jAnnotation.put("privacy_level", annotation.privacyLevel.name);
+        if (annotation.privacyLevel != null) {
+            jAnnotation.put("privacy_level", annotation.privacyLevel.name);
+        }
         jAnnotation.put("filehash", annotation.fileHash);
         jAnnotation.put("document_id", annotation.documentId);
 
@@ -750,104 +759,98 @@ public class JsonParser {
     public static Document parseDocument(String jsonString) throws JSONException {
         JSONObject documentObject = new JSONObject(jsonString);
 
-        String title = "";
-        if (documentObject.has("title")) {
-            title = documentObject.getString("title");
-        }
-
-        String type = documentObject.getString("type");
-		Document.Builder mendeleyDocument = new Document.Builder();
+		Document.Builder bld = new Document.Builder();
 
 		for (@SuppressWarnings("unchecked")
              Iterator<String> keysIter = documentObject.keys(); keysIter.hasNext(); ) {
 
 			String key = keysIter.next();
             if (key.equals("title")) {
-                mendeleyDocument.setTitle(documentObject.getString(key));
+                bld.setTitle(documentObject.getString(key));
 
             } else if (key.equals("type")) {
-                mendeleyDocument.setType(documentObject.getString(key));
+                bld.setType(documentObject.getString(key));
 
             } else if (key.equals("last_modified")) {
-                mendeleyDocument.setLastModified(documentObject.getString(key));
+                bld.setLastModified(documentObject.getString(key));
 
             } else if (key.equals("group_id")) {
-                mendeleyDocument.setGroupId(documentObject.getString(key));
+                bld.setGroupId(documentObject.getString(key));
 
             } else if (key.equals("profile_id")) {
-                mendeleyDocument.setProfileId(documentObject.getString(key));
+                bld.setProfileId(documentObject.getString(key));
 
             } else if (key.equals("read")) {
-                mendeleyDocument.setRead(documentObject.getBoolean(key));
+                bld.setRead(documentObject.getBoolean(key));
 
             } else if (key.equals("starred")) {
-                mendeleyDocument.setStarred(documentObject.getBoolean(key));
+                bld.setStarred(documentObject.getBoolean(key));
 
             } else if (key.equals("authored")) {
-                mendeleyDocument.setAuthored(documentObject.getBoolean(key));
+                bld.setAuthored(documentObject.getBoolean(key));
 
             } else if (key.equals("confirmed")) {
-                mendeleyDocument.setConfirmed(documentObject.getBoolean(key));
+                bld.setConfirmed(documentObject.getBoolean(key));
 
             } else if (key.equals("hidden")) {
-                mendeleyDocument.setHidden(documentObject.getBoolean(key));
+                bld.setHidden(documentObject.getBoolean(key));
 
             } else if (key.equals("id")) {
-                mendeleyDocument.setId(documentObject.getString(key));
+                bld.setId(documentObject.getString(key));
 
             } else if (key.equals("month")) {
-                mendeleyDocument.setMonth(documentObject.getInt(key));
+                bld.setMonth(documentObject.getInt(key));
 
             } else if (key.equals("year")) {
-                mendeleyDocument.setYear(documentObject.getInt(key));
+                bld.setYear(documentObject.getInt(key));
 
             } else if (key.equals("day")) {
-                mendeleyDocument.setDay(documentObject.getInt(key));
+                bld.setDay(documentObject.getInt(key));
 
             } else if (key.equals("source")) {
-                mendeleyDocument.setSource(documentObject.getString(key));
+                bld.setSource(documentObject.getString(key));
 
             } else if (key.equals("revision")) {
-                mendeleyDocument.setRevision(documentObject.getString(key));
+                bld.setRevision(documentObject.getString(key));
 
             } else if (key.equals("created")) {
-                mendeleyDocument.setCreated(documentObject.getString(key));
+                bld.setCreated(documentObject.getString(key));
 
             } else if (key.equals("abstract")) {
-                mendeleyDocument.setAbstractString(documentObject.getString(key));
+                bld.setAbstractString(documentObject.getString(key));
 
             } else if (key.equals("pages")) {
-                mendeleyDocument.setPages(documentObject.getString(key));
+                bld.setPages(documentObject.getString(key));
 
             } else if (key.equals("volume")) {
-                mendeleyDocument.setVolume(documentObject.getString(key));
+                bld.setVolume(documentObject.getString(key));
 
             } else if (key.equals("issue")) {
-                mendeleyDocument.setIssue(documentObject.getString(key));
+                bld.setIssue(documentObject.getString(key));
 
             } else if (key.equals("publisher")) {
-                mendeleyDocument.setPublisher(documentObject.getString(key));
+                bld.setPublisher(documentObject.getString(key));
 
             } else if (key.equals("city")) {
-                mendeleyDocument.setCity(documentObject.getString(key));
+                bld.setCity(documentObject.getString(key));
 
             } else if (key.equals("edition")) {
-                mendeleyDocument.setEdition(documentObject.getString(key));
+                bld.setEdition(documentObject.getString(key));
 
             } else if (key.equals("institution")) {
-                mendeleyDocument.setInstitution(documentObject.getString(key));
+                bld.setInstitution(documentObject.getString(key));
 
             } else if (key.equals("series")) {
-                mendeleyDocument.setSeries(documentObject.getString(key));
+                bld.setSeries(documentObject.getString(key));
 
             } else if (key.equals("chapter")) {
-                mendeleyDocument.setChapter(documentObject.getString(key));
+                bld.setChapter(documentObject.getString(key));
 
             } else if (key.equals("client_data")) {
-                mendeleyDocument.setClientData(documentObject.getString(key));
+                bld.setClientData(documentObject.getString(key));
 
             } else if (key.equals("unique_id")) {
-                mendeleyDocument.setUniqueId(documentObject.getString(key));
+                bld.setUniqueId(documentObject.getString(key));
 
             } else if (key.equals("authors")) {
                 final JSONArray authors = documentObject.getJSONArray(key);
@@ -860,7 +863,7 @@ public class JsonParser {
                     authorsList.add(author);
                 }
 
-                mendeleyDocument.setAuthors(authorsList);
+                bld.setAuthors(authorsList);
 
             } else if (key.equals("editors")) {
                 JSONArray editors = documentObject.getJSONArray(key);
@@ -873,7 +876,7 @@ public class JsonParser {
                     editorsList.add(editor);
                 }
 
-                mendeleyDocument.setEditors(editorsList);
+                bld.setEditors(editorsList);
 
             } else if (key.equals("identifiers")) {
                 JSONObject identifiersObject = documentObject.getJSONObject(key);
@@ -886,7 +889,7 @@ public class JsonParser {
                     identifiersMap.put(identifierKey, identifiersObject.getString(identifierKey));
                 }
 
-                mendeleyDocument.setIdentifiers(identifiersMap);
+                bld.setIdentifiers(identifiersMap);
 
             } else if (key.equals("tags")) {
                 JSONArray tags = documentObject.getJSONArray(key);
@@ -896,13 +899,13 @@ public class JsonParser {
                     tagsList.add(tags.getString(i));
                 }
 
-                mendeleyDocument.setTags(tagsList);
+                bld.setTags(tagsList);
 
             } else if (key.equals("accessed")) {
-                mendeleyDocument.setAccessed(documentObject.getString(key));
+                bld.setAccessed(documentObject.getString(key));
 
             } else if (key.equals("file_attached")) {
-                mendeleyDocument.setFileAttached(documentObject.getBoolean(key));
+                bld.setFileAttached(documentObject.getBoolean(key));
 
             } else if (key.equals("keywords")) {
                 JSONArray keywords = documentObject.getJSONArray(key);
@@ -912,7 +915,7 @@ public class JsonParser {
                     keywordsList.add(keywords.getString(i));
                 }
 
-                mendeleyDocument.setKeywords(keywordsList);
+                bld.setKeywords(keywordsList);
 
             } else if (key.equals("websites")) {
                 JSONArray websites = documentObject.getJSONArray(key);
@@ -921,12 +924,12 @@ public class JsonParser {
                 for (int i = 0; i < websites.length(); i++) {
                     websitesList.add(websites.getString(i));
                 }
-                mendeleyDocument.setWebsites(websitesList);
+                bld.setWebsites(websitesList);
 
             }
 		}
 
-		return mendeleyDocument.build();
+		return bld.build();
 	}
 	
 	/**

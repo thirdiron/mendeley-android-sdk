@@ -1,8 +1,7 @@
 package com.mendeley.api.model;
 
-import android.graphics.Color;
+import com.mendeley.api.util.NullableList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Annotation {
@@ -44,10 +43,10 @@ public class Annotation {
     public final String id;
     public final Type type;
     public final String previousId;
-    public final int color;
+    public final Integer color;
     public final String text;
     public final String profileId;
-    public final List<Box> positions;
+    public final NullableList<Box> positions;
     public final String created;
     public final String lastModified;
     public final PrivacyLevel privacyLevel;
@@ -58,7 +57,7 @@ public class Annotation {
             String id,
             Type type,
             String previousId,
-            int color,
+            Integer color,
             String text,
             String profileId,
             List<Box> positions,
@@ -73,7 +72,7 @@ public class Annotation {
         this.color = color;
         this.text = text;
         this.profileId = profileId;
-        this.positions = positions;
+        this.positions = new NullableList<Box>(positions);
         this.created = created;
         this.lastModified = lastModified;
         this.privacyLevel = privacyLevel;
@@ -81,11 +80,49 @@ public class Annotation {
         this.documentId = documentId;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Annotation that = (Annotation) o;
+
+        if (color != null ? !color.equals(that.color) : that.color != null) return false;
+        if (documentId != null ? !documentId.equals(that.documentId) : that.documentId != null)
+            return false;
+        if (fileHash != null ? !fileHash.equals(that.fileHash) : that.fileHash != null)
+            return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (positions != null ? !positions.equals(that.positions) : that.positions != null)
+            return false;
+        if (privacyLevel != that.privacyLevel) return false;
+        if (profileId != null ? !profileId.equals(that.profileId) : that.profileId != null)
+            return false;
+        if (text != null ? !text.equals(that.text) : that.text != null) return false;
+        if (type != that.type) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        result = 31 * result + (text != null ? text.hashCode() : 0);
+        result = 31 * result + (profileId != null ? profileId.hashCode() : 0);
+        result = 31 * result + (positions != null ? positions.hashCode() : 0);
+        result = 31 * result + (privacyLevel != null ? privacyLevel.hashCode() : 0);
+        result = 31 * result + (fileHash != null ? fileHash.hashCode() : 0);
+        result = 31 * result + (documentId != null ? documentId.hashCode() : 0);
+        return result;
+    }
+
     public static class Builder {
         private String id;
         private Type type;
         private String previousId;
-        private int color;
+        private Integer color;
         private String text;
         private String profileId;
         private List<Box> positions;
@@ -96,10 +133,6 @@ public class Annotation {
         private String documentId;
 
         public Builder() {
-            // Reasonable defaults:
-            this.privacyLevel = PrivacyLevel.PRIVATE;
-            this.positions = new ArrayList<Box>();
-            this.color = Color.BLACK;
         }
 
         public Builder(Annotation from) {
