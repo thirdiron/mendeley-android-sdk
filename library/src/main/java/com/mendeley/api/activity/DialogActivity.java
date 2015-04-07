@@ -1,8 +1,21 @@
 package com.mendeley.api.activity;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+import com.mendeley.api.R;
+import com.mendeley.api.auth.AuthenticationManager;
+import com.mendeley.api.impl.DefaultMendeleySdk;
+import com.mendeley.api.network.JsonParser;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -14,21 +27,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Window;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-
-import com.mendeley.api.impl.DefaultMendeleySdk;
-import com.mendeley.api.R;
-import com.mendeley.api.auth.AuthenticationManager;
-import com.mendeley.api.network.JsonParser;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This activity will show the login web interface in a webview.
@@ -38,7 +39,7 @@ import com.mendeley.api.network.JsonParser;
 public class DialogActivity extends Activity {
     private static final String OAUTH2_URL = "https://api.mendeley.com/oauth/authorize";
 
-	private static final double SMALL_SCREEN_SIZE = 7.0;
+	private static final double SMALL_SCREEN_SIZE = 6.0;
 	private static final String FORGOT_PASSWORD_URL = "http://www.mendeley.com/forgot/";
 	private static final String TAG = DialogActivity.class.getSimpleName();
 
@@ -53,7 +54,7 @@ public class DialogActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         if (getScreenSize() > SMALL_SCREEN_SIZE) {
-        	super.setTheme( android.R.style.Theme_Holo_Dialog);
+        	super.setTheme(android.R.style.Theme_Holo_Dialog);
         }
         
         setContentView(R.layout.dialog_layout);
@@ -70,6 +71,16 @@ public class DialogActivity extends Activity {
 	    webView.getSettings().setBuiltInZoomControls(true);
 		webView.setWebViewClient(new MendeleyWebViewClient());
 		webView.loadUrl(getOauth2URL(authenticationManager));
+
+        View dismissButton = findViewById(R.id.dismissButton);
+        if (dismissButton != null) {
+            dismissButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onBackPressed();
+                }
+            });
+        }
     }
 
     /**
@@ -140,7 +151,7 @@ public class DialogActivity extends Activity {
     private final class AuthenticateTask extends AsyncTask<String, Void, String> {
         private String authorizationCode;
 
-    	protected String getJSONTokenString(String authorizationCode) throws ClientProtocolException, IOException {
+    	protected String getJSONTokenString(String authorizationCode) throws IOException {
     		HttpResponse response = doPost(AuthenticationManager.TOKENS_URL, AuthenticationManager.GRANT_TYPE_AUTH,
                     authorizationCode, authenticationManager);
     		return JsonParser.getJsonString(response.getEntity().getContent());
@@ -200,7 +211,7 @@ public class DialogActivity extends Activity {
 	 * @throws IOException
 	 */
 	private static HttpResponse doPost(String url, String grantType, String authorizationCode, AuthenticationManager authenticationManager)
-            throws ClientProtocolException, IOException {
+            throws IOException {
 
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost(url);
