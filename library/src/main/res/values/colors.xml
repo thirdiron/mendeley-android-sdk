@@ -6,4 +6,7 @@
  	<color name="dialog_title">#545454</color>
  	<color name="dialog_title_text">#ffffff</color>
  	<color name="download_progress_bar">#3483e1</color>
+
+    <color name="title_bar_background_clicked">#747474</color>
+    <color name="title_bar_background">#545454</color>
 </resources>
