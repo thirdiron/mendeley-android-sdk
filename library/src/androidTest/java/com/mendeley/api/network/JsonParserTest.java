@@ -587,12 +587,14 @@ public class JsonParserTest extends InstrumentationTestCase {
 
         assertEquals("author size", doc1.authors.size(), doc2.authors.size());
         for (int i = 0; i < doc1.authors.size(); i++) {
-            assertEquals("author " + i, doc1.authors.get(i), doc2.authors.get(i));
+            assertEquals("author firstname" + i, doc1.authors.get(i).firstName, doc2.authors.get(i).firstName);
+            assertEquals("author lastName" + i, doc1.authors.get(i).lastName, doc2.authors.get(i).lastName);
         }
 
         assertEquals("editors size", doc1.editors.size(), doc2.editors.size());
         for (int i = 0; i < doc1.editors.size(); i++) {
-            assertEquals("editor " + i, doc1.editors.get(i), doc2.editors.get(i));
+            assertEquals("editor firstname" + i, doc1.editors.get(i).firstName, doc2.editors.get(i).firstName);
+            assertEquals("editor lastName" + i, doc1.editors.get(i).lastName, doc2.editors.get(i).lastName);
         }
     }
 
