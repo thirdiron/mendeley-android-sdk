@@ -448,29 +448,6 @@ public class Document {
         return new Builder();
     }
 
-    public String getAuthorsString() {
-		String authorsString = "";
-		for (int i = 0; i < authors.size() && i < 2; i++) {
-			if (i > 0) {
-				authorsString +=", ";				
-			}
-			authorsString += authors.get(i).lastName;
-			if (authors.get(i).firstName.length() > 0) {
-				authorsString += " " + authors.get(i).firstName.substring(0, 1);
-			}
-		}
-		
-		if (authors.size() > 2) {
-			authorsString += " " + ET_EL;
-		}
-		
-		return authorsString;
-	}
-	
-	public String getYearString() {
-		return "("+year+")";
-	}
-	
 	@Override
 	public boolean equals(Object object) {
 		

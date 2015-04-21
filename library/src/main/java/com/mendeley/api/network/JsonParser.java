@@ -139,14 +139,8 @@ public class JsonParser {
         }
 
         if (!document.authors.isNull()) {
-            JSONArray authors = new JSONArray();
-            for (int i = 0; i < document.authors.size(); i++) {
-                JSONObject author = new JSONObject();
-                author.put("first_name", document.authors.get(i).firstName);
-                author.put("last_name", document.authors.get(i).lastName);
-                authors.put(i, author);
-            }
-            jDocument.put("authors", authors);
+            JSONArray authorsJson = jsonFromPersons(document.authors);
+            jDocument.put("authors", authorsJson);
         }
 
         if (!document.editors.isNull()) {
@@ -203,8 +197,19 @@ public class JsonParser {
 
 		return jDocument.toString();
 	}
-	
-	/**
+
+    public static JSONArray jsonFromPersons(List<Person> persons) throws JSONException {
+        JSONArray authorsJson = new JSONArray();
+        for (int i = 0; i < persons.size(); i++) {
+            JSONObject author = new JSONObject();
+            author.put("first_name", persons.get(i).firstName);
+            author.put("last_name", persons.get(i).lastName);
+            authorsJson.put(i, author);
+        }
+        return authorsJson;
+    }
+
+    /**
 	 * Creating a json string from a Folder object
 	 * 
 	 * @param folder the Folder object
@@ -854,14 +859,7 @@ public class JsonParser {
 
             } else if (key.equals("authors")) {
                 final JSONArray authors = documentObject.getJSONArray(key);
-                final ArrayList<Person> authorsList = new ArrayList<Person>();
-
-                for (int i = 0; i < authors.length(); i++) {
-                    final Person author = new Person(
-                            authors.getJSONObject(i).optString("first_name"),
-                            authors.getJSONObject(i).getString("last_name"));
-                    authorsList.add(author);
-                }
+                final ArrayList<Person> authorsList = parsePersons(authors);
 
                 bld.setAuthors(authorsList);
 
@@ -931,8 +929,20 @@ public class JsonParser {
 
 		return bld.build();
 	}
-	
-	/**
+
+    public static ArrayList<Person> parsePersons(JSONArray authors) throws JSONException {
+        final ArrayList<Person> authorsList = new ArrayList<Person>();
+
+        for (int i = 0; i < authors.length(); i++) {
+            final Person author = new Person(
+                    authors.getJSONObject(i).optString("first_name"),
+                    authors.getJSONObject(i).getString("last_name"));
+            authorsList.add(author);
+        }
+        return authorsList;
+    }
+
+    /**
 	 * Creating a list of File objects from a json string
 	 * 
 	 * @param jsonString the json string
