@@ -9,38 +9,108 @@ import java.util.List;
  */
 public class Employment {
 
-	public List<String> classes;
-	public Integer id;
-	public String lastModified;
-	public String position;
-	public String created;
-	public String institution;
-	public String startDate;
-	public String endDate;
-	public String website;
-	public Boolean isMainEmployment;
-	
-	public Employment() {
-		classes = new ArrayList<String>();
+	public final String id;
+	public final String institution;
+	public final String position;
+	public final String startDate;
+	public final String endDate;
+	public final String website;
+	public final List<String> classes;
+	public final Boolean isMainEmployment;
+
+	private Employment(
+			String id,
+			String institution,
+			String position,
+			String startDate,
+			String endDate,
+			String website,
+			List<String> classes,
+			Boolean isMainEmployment) {
+
+		this.id = id;
+		this.institution = institution;
+		this.position = position;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.website = website;
+		this.classes = classes;
+		this.isMainEmployment = isMainEmployment;
 	}
-	
-	@Override
-	public String toString() {
-		
-		String classesString = "";
-		for (String s : classes) {
-			classesString += "\n" + s;
+
+	public static class Builder {
+		private String id;
+		private String institution;
+		private String position;
+		private String startDate;
+		private String endDate;
+		private String website;
+		private List<String> classes;
+		private Boolean isMainEmployment;
+
+		public Builder() {}
+
+		public Builder(Employment from) {
+			this.id = from.id;
+			this.institution = from.institution;
+			this.position = from.position;
+			this.startDate = from.startDate;
+			this.endDate = from.endDate;
+			this.website = from.website;
+			this.classes = from.classes==null?new ArrayList<String>():from.classes;
+			this.isMainEmployment = from.isMainEmployment;
 		}
-		
-		return "id: " + id + 
-				", lastModified: " + lastModified +
-				", position: " + position +
-				", created: " + created +
-				", institution: " + institution +
-				", startDate: " + startDate +
-				", endDate: " + endDate +
-				", website: " + website + 
-				", mainEmployment: " + isMainEmployment + 
-				", classes: " + classesString;
+
+		public Builder setId(String id) {
+			this.id = id;
+			return this;
+		}
+
+		public Builder setInstitution(String institution) {
+			this.institution = institution;
+			return this;
+		}
+
+		public Builder setPosition(String position) {
+			this.position = position;
+			return this;
+		}
+
+		public Builder setStartDate(String startDate) {
+			this.startDate = startDate;
+			return this;
+		}
+
+		public Builder setEndDate(String endDate) {
+			this.endDate = endDate;
+			return this;
+		}
+
+		public Builder setWebsite(String website) {
+			this.website = website;
+			return this;
+		}
+
+		public Builder setClasses(List<String> classes) {
+			this.classes = classes;
+			return this;
+		}
+
+		public Builder setIsMainEmployment(Boolean isMainEmployment) {
+			this.isMainEmployment = isMainEmployment;
+			return this;
+		}
+
+		public Employment build() {
+			return new Employment(
+					id,
+					institution,
+					position,
+					startDate,
+					endDate,
+					website,
+					classes,
+					isMainEmployment);
+		}
 	}
 }

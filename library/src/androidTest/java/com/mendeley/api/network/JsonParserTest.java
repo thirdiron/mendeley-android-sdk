@@ -28,6 +28,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -171,14 +172,26 @@ public class JsonParserTest extends InstrumentationTestCase {
 		testDiscipline.name = "test-name";
 		Photo testPhoto = new Photo("test-square");
 		Education.Builder testEducation = new Education.Builder();
-		testEducation.setInstitution("test-education_institution");
-		testEducation.setStartDate("2002-01-01");
-		testEducation.setEndDate("2004-01-01");
-		Employment testEmployment = new Employment();
-		testEmployment.institution = "test-employment_institution";
-		testEmployment.position = "test-position";
-		testEmployment.startDate = "2008-06-01";
-		testEmployment.isMainEmployment = true;
+
+		testEducation.
+                setId("ff316338-86b7-4363-9721-education").
+                setInstitution("test-education_institution").
+                setDegree("test-degree").
+                setStartDate("2002-01-01").
+		        setEndDate("2004-01-01").
+                setWebsite("www.test.education.website");
+
+        Employment.Builder testEmploymentBuilder = new Employment.Builder();
+
+        testEmploymentBuilder.
+                setId("ff316338-86b7-4363-9721-employment").
+                setInstitution("test-employment_institution").
+                setPosition("test-position").
+                setStartDate("2008-06-01").
+                setEndDate("2010-06-01").
+                setWebsite("www.test.employment.website").
+                setClasses(Arrays.asList("Psychology", "Violin")).
+                setIsMainEmployment(true);
 		
 		Profile.Builder testProfile = new Profile.Builder();
 		testProfile.setId("test-id");
@@ -197,7 +210,7 @@ public class JsonParserTest extends InstrumentationTestCase {
       	educationList.add(testEducation.build());
 		testProfile.setEducation(educationList);
 		ArrayList<Employment> employmentList = new ArrayList<Employment>();
-		employmentList.add(testEmployment);
+		employmentList.add(testEmploymentBuilder.build());
 		testProfile.setEmployment(employmentList);
 
 	    return testProfile.build();
@@ -354,15 +367,30 @@ public class JsonParserTest extends InstrumentationTestCase {
 				expectedProfile.createdAt.equals(actualProfile.createdAt) &&
 				expectedProfile.discipline.name.equals(actualProfile.discipline.name) &&
 				expectedProfile.photo.photoUrl.equals(actualProfile.photo.photoUrl) &&
+
+                expectedProfile.education.get(0).id.equals(actualProfile.education.get(0).id) &&
 				expectedProfile.education.get(0).institution.equals(actualProfile.education.get(0).institution) &&
+                expectedProfile.education.get(0).degree.equals(actualProfile.education.get(0).degree) &&
 				expectedProfile.education.get(0).startDate.equals(actualProfile.education.get(0).startDate) &&
 				expectedProfile.education.get(0).endDate.equals(actualProfile.education.get(0).endDate) &&
+                expectedProfile.education.get(0).website.equals(actualProfile.education.get(0).website) &&
+
+                expectedProfile.employment.get(0).id.equals(actualProfile.employment.get(0).id) &&
 				expectedProfile.employment.get(0).institution.equals(actualProfile.employment.get(0).institution) &&
 				expectedProfile.employment.get(0).position.equals(actualProfile.employment.get(0).position) &&
 				expectedProfile.employment.get(0).startDate.equals(actualProfile.employment.get(0).startDate) &&
-				expectedProfile.employment.get(0).isMainEmployment == actualProfile.employment.get(0).isMainEmployment;
-				
-		assertTrue("Parsed profile with wrong or missing data", equal);
+                expectedProfile.employment.get(0).endDate.equals(actualProfile.employment.get(0).endDate) &&
+                expectedProfile.employment.get(0).website.equals(actualProfile.employment.get(0).website) &&
+                expectedProfile.employment.get(0).isMainEmployment == actualProfile.employment.get(0).isMainEmployment;
+
+        assertEquals("Employment classes array size not as expected", expectedProfile.employment.get(0).classes.size(), actualProfile.employment.get(0).classes.size());
+
+        for (int i = 0; i < expectedProfile.employment.get(0).classes.size(); i++) {
+            assertEquals("Employment class not equals", expectedProfile.employment.get(0).classes.get(i), (actualProfile.employment.get(0).classes.get(i)));
+        }
+
+
+        assertTrue("Parsed profile with wrong or missing data", equal);
 	}
 
 
@@ -439,9 +467,9 @@ public class JsonParserTest extends InstrumentationTestCase {
 
         String jsonString = getJsonStringFromAssetsFile(documentIdsFile);
 		List<String> expectedList = new ArrayList<String>();
-		expectedList.add("test-document_id_1");
-		expectedList.add("test-document_id_2");
-		expectedList.add("test-document_id_3");
+        expectedList.add("test-document_id_1");
+        expectedList.add("test-document_id_2");
+        expectedList.add("test-document_id_3");
 		
 		List<DocumentId> actualList = JsonParser.parseDocumentIds(jsonString);
 
