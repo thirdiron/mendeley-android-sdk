@@ -599,7 +599,7 @@ public class JsonParser {
 	}
 
     private static Employment parseEmployment(JSONObject employmentObject) throws JSONException {
-        Employment employment = new Employment();
+        Employment.Builder employmentBuilder = new Employment.Builder();
 
         for (@SuppressWarnings("unchecked") Iterator<String> employmentIter =
                      employmentObject.keys(); employmentIter.hasNext(); ) {
@@ -607,41 +607,37 @@ public class JsonParser {
             String employmentKey = employmentIter.next();
 
             if (employmentKey.equals("id")) {
-                employment.id = employmentObject.getInt(employmentKey);
-
-            } else if (employmentKey.equals("last_modified")) {
-                employment.lastModified = employmentObject.getString(employmentKey);
-
-            } else if (employmentKey.equals("position")) {
-                employment.position = employmentObject.getString(employmentKey);
-
-            } else if (employmentKey.equals("created")) {
-                employment.created = employmentObject.getString(employmentKey);
+                employmentBuilder.setId(employmentObject.getString(employmentKey));
 
             } else if (employmentKey.equals("institution")) {
-                employment.institution = employmentObject.getString(employmentKey);
+                employmentBuilder.setInstitution(employmentObject.getString(employmentKey));
+
+            } else if (employmentKey.equals("position")) {
+                employmentBuilder.setPosition(employmentObject.getString(employmentKey));
 
             } else if (employmentKey.equals("start_date")) {
-                employment.startDate = employmentObject.getString(employmentKey);
+                employmentBuilder.setStartDate(employmentObject.getString(employmentKey));
 
             } else if (employmentKey.equals("end_date")) {
-                employment.endDate = employmentObject.getString(employmentKey);
+                employmentBuilder.setEndDate(employmentObject.getString(employmentKey));
 
             } else if (employmentKey.equals("website")) {
-                employment.website = employmentObject.getString(employmentKey);
-
-            } else if (employmentKey.equals("is_main_employment")) {
-                employment.isMainEmployment = employmentObject.getBoolean(employmentKey);
+                employmentBuilder.setWebsite(employmentObject.getString(employmentKey));
 
             } else if (employmentKey.equals("classes")) {
-                JSONArray classesArray = employmentObject.getJSONArray(employmentKey);
-                for (int j = 0; j < classesArray.length(); j++) {
-                    employment.classes.add(classesArray.getString(j));
+                JSONArray classesJsonArray = employmentObject.getJSONArray(employmentKey);
+                List<String> classesArray = new ArrayList<String>();
+                for (int i = 0; i < classesJsonArray.length(); i++) {
+                    classesArray.add(classesJsonArray.getString(i));
                 }
+                employmentBuilder.setClasses(classesArray);
+
+            } else if (employmentKey.equals("is_main_employment")) {
+                employmentBuilder.setIsMainEmployment(employmentObject.getBoolean(employmentKey));
 
             }
         }
-        return employment;
+        return employmentBuilder.build();
     }
 
     private static Education parseEducation(JSONObject educationObject) throws JSONException {
@@ -652,13 +648,7 @@ public class JsonParser {
 
             String educationKey = educationIter.next();
             if (educationKey.equals("id")) {
-                education.setId(educationObject.getInt(educationKey));
-
-            } else if (educationKey.equals("last_modified")) {
-                education.setLastModified(educationObject.getString(educationKey));
-
-            } else if (educationKey.equals("created")) {
-                education.setCreated(educationObject.getString(educationKey));
+                education.setId(educationObject.getString(educationKey));
 
             } else if (educationKey.equals("degree")) {
                 education.setDegree(educationObject.getString(educationKey));

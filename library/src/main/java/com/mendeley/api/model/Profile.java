@@ -123,7 +123,7 @@ public class Profile {
 		private ArrayList<Employment> employment;	
 		
 		public Builder() {}
-		
+
 		public Builder(Profile from) {
 			this.location = from.location;
 			this.id = from.id;
