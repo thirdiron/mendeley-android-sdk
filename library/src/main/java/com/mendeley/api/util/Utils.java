@@ -1,5 +1,9 @@
 package com.mendeley.api.util;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -17,5 +21,15 @@ public class Utils {
             } catch (IOException e) {
             }
         }
+    }
+
+    private static NetworkInfo getNetworkInfo(Context context) {
+        final ConnectivityManager conMgr = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        return conMgr.getActiveNetworkInfo();
+    }
+
+    public static boolean isOnline(Context context) {
+        final NetworkInfo activeNetwork = getNetworkInfo(context);
+        return activeNetwork != null && activeNetwork.isAvailable() && activeNetwork.isConnected();
     }
 }
