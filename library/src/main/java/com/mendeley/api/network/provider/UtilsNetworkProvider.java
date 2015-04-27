@@ -108,7 +108,7 @@ public class UtilsNetworkProvider {
                 return fileData;
             }
         } catch (IOException e) {
-            throw new MendeleyException("Error downloading group image", e);
+            throw new MendeleyException("Error downloading image: " + url, e);
         } finally {
             if (con != null) {
                 con.disconnect();
@@ -119,8 +119,7 @@ public class UtilsNetworkProvider {
                     if (is != null) {
                         is.close();
                     }
-                } catch (IOException e) {
-                   Log.e("", "Error downloading group image", e);
+                } catch (IOException ignored) {
                 }
             }
         }
