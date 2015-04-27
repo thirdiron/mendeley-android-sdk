@@ -127,7 +127,7 @@ public class JsonParserTest extends InstrumentationTestCase {
         testGroup.setRole(Group.Role.OWNER);
         testGroup.setWebpage("test-group-webpage");
         testGroup.setLink("test-group-link");
-        Photo testPhoto = new Photo("test-square-photo.png");
+        Photo testPhoto = new Photo("test-original.png", "test-standard.png", "test-square.png");
         testGroup.setPhoto(testPhoto);
         ArrayList<String> testDisciplines = new ArrayList<String>();
         testDisciplines.add("Computer and Information Science");
@@ -170,7 +170,7 @@ public class JsonParserTest extends InstrumentationTestCase {
 		
 		Discipline testDiscipline = new Discipline();
 		testDiscipline.name = "test-name";
-		Photo testPhoto = new Photo("test-square");
+		Photo testPhoto = new Photo("test-original.png", "test-standard.png", "test-square.png");
 		Education.Builder testEducation = new Education.Builder();
 
 		testEducation.
@@ -354,34 +354,33 @@ public class JsonParserTest extends InstrumentationTestCase {
 		
 		Profile actualProfile = JsonParser.parseProfile(parsingString);
 
-		boolean equal = 
-				expectedProfile.id.equals(actualProfile.id) &&
-				expectedProfile.firstName.equals(actualProfile.firstName) &&
-				expectedProfile.lastName.equals(actualProfile.lastName) &&
-				expectedProfile.displayName.equals(actualProfile.displayName) &&
-				expectedProfile.email.equals(actualProfile.email) &&
-				expectedProfile.link.equals(actualProfile.link) &&
-				expectedProfile.academicStatus.equals(actualProfile.academicStatus) &&
-				expectedProfile.verified.equals(actualProfile.verified) &&
-				expectedProfile.userType.equals(actualProfile.userType) &&
-				expectedProfile.createdAt.equals(actualProfile.createdAt) &&
-				expectedProfile.discipline.name.equals(actualProfile.discipline.name) &&
-				expectedProfile.photo.photoUrl.equals(actualProfile.photo.photoUrl) &&
+		boolean equal =
+                expectedProfile.id.equals(actualProfile.id) &&
+                        expectedProfile.firstName.equals(actualProfile.firstName) &&
+                        expectedProfile.lastName.equals(actualProfile.lastName) &&
+                        expectedProfile.displayName.equals(actualProfile.displayName) &&
+                        expectedProfile.email.equals(actualProfile.email) &&
+                        expectedProfile.link.equals(actualProfile.link) &&
+                        expectedProfile.academicStatus.equals(actualProfile.academicStatus) &&
+                        expectedProfile.verified.equals(actualProfile.verified) &&
+                        expectedProfile.userType.equals(actualProfile.userType) &&
+                        expectedProfile.createdAt.equals(actualProfile.createdAt) &&
+                        expectedProfile.discipline.name.equals(actualProfile.discipline.name) &&
 
-                expectedProfile.education.get(0).id.equals(actualProfile.education.get(0).id) &&
-				expectedProfile.education.get(0).institution.equals(actualProfile.education.get(0).institution) &&
-                expectedProfile.education.get(0).degree.equals(actualProfile.education.get(0).degree) &&
-				expectedProfile.education.get(0).startDate.equals(actualProfile.education.get(0).startDate) &&
-				expectedProfile.education.get(0).endDate.equals(actualProfile.education.get(0).endDate) &&
-                expectedProfile.education.get(0).website.equals(actualProfile.education.get(0).website) &&
+                        expectedProfile.education.get(0).id.equals(actualProfile.education.get(0).id) &&
+                        expectedProfile.education.get(0).institution.equals(actualProfile.education.get(0).institution) &&
+                        expectedProfile.education.get(0).degree.equals(actualProfile.education.get(0).degree) &&
+                        expectedProfile.education.get(0).startDate.equals(actualProfile.education.get(0).startDate) &&
+                        expectedProfile.education.get(0).endDate.equals(actualProfile.education.get(0).endDate) &&
+                        expectedProfile.education.get(0).website.equals(actualProfile.education.get(0).website) &&
 
-                expectedProfile.employment.get(0).id.equals(actualProfile.employment.get(0).id) &&
-				expectedProfile.employment.get(0).institution.equals(actualProfile.employment.get(0).institution) &&
-				expectedProfile.employment.get(0).position.equals(actualProfile.employment.get(0).position) &&
-				expectedProfile.employment.get(0).startDate.equals(actualProfile.employment.get(0).startDate) &&
-                expectedProfile.employment.get(0).endDate.equals(actualProfile.employment.get(0).endDate) &&
-                expectedProfile.employment.get(0).website.equals(actualProfile.employment.get(0).website) &&
-                expectedProfile.employment.get(0).isMainEmployment == actualProfile.employment.get(0).isMainEmployment;
+                        expectedProfile.employment.get(0).id.equals(actualProfile.employment.get(0).id) &&
+                        expectedProfile.employment.get(0).institution.equals(actualProfile.employment.get(0).institution) &&
+                        expectedProfile.employment.get(0).position.equals(actualProfile.employment.get(0).position) &&
+                        expectedProfile.employment.get(0).startDate.equals(actualProfile.employment.get(0).startDate) &&
+                        expectedProfile.employment.get(0).endDate.equals(actualProfile.employment.get(0).endDate) &&
+                        expectedProfile.employment.get(0).website.equals(actualProfile.employment.get(0).website) &&
+                        expectedProfile.employment.get(0).isMainEmployment == actualProfile.employment.get(0).isMainEmployment;
 
         assertEquals("Employment classes array size not as expected", expectedProfile.employment.get(0).classes.size(), actualProfile.employment.get(0).classes.size());
 
@@ -391,10 +390,18 @@ public class JsonParserTest extends InstrumentationTestCase {
 
 
         assertTrue("Parsed profile with wrong or missing data", equal);
+
+        assertPhoto(expectedProfile.photo, actualProfile.photo);
 	}
 
+    private void assertPhoto(Photo actualPhoto, Photo expectedPhoto) {
+        assertEquals("original photo", actualPhoto.original, expectedPhoto.original);
+        assertEquals("standard photo", actualPhoto.standard, expectedPhoto.standard);
+        assertEquals("square photo", actualPhoto.square, expectedPhoto.square);
+    }
 
-	@SmallTest
+
+    @SmallTest
 	public void test_jsonFromDocument_withNotNullCollections()
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, JSONException {
 
@@ -498,7 +505,7 @@ public class JsonParserTest extends InstrumentationTestCase {
         assertEquals("role", expectedGroup.role, actualGroup.role);
         assertEquals("webpage", expectedGroup.webpage, actualGroup.webpage);
         assertEquals("link", expectedGroup.link, actualGroup.link);
-        assertEquals("photo_square", expectedGroup.photo.photoUrl, actualGroup.photo.photoUrl);
+        assertPhoto(actualGroup.photo, expectedGroup.photo);
         assertEquals("disciplines", expectedGroup.disciplines.get(0), actualGroup.disciplines.get(0));
     }
 

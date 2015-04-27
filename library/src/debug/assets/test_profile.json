@@ -10,8 +10,9 @@
     "name": "test-name"
   },
   "photo": {
-    "standard": "test-standard",
-    "square": "test-square"
+    "standard": "test-standard.png",
+    "original": "test-original.png",
+    "square": "test-square.png"
   },
   "verified": true,
   "user_type": "test-user_type",

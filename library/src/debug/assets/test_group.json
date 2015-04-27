@@ -6,8 +6,9 @@
   ],
   "tags": [],
   "photo": {
-    "standard": "test-standard-photo.png",
-    "square": "test-square-photo.png"
+    "standard": "test-standard.png",
+    "square": "test-square.png",
+    "original": "test-original.png"
   },
   "webpage": "test-group-webpage",
   "id": "test-group-id",

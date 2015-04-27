@@ -561,10 +561,7 @@ public class JsonParser {
 
             } else if (key.equals("photo")) {
                 JSONObject photoObject = profileObject.getJSONObject(key);
-                Photo photo = null;
-                if (photoObject.has("square")) {
-                    photo = new Photo(photoObject.getString("square"));
-                }
+                Photo photo = parsePhoto(photoObject);
 
                 mendeleyProfile.setPhoto(photo);
 
@@ -597,6 +594,13 @@ public class JsonParser {
 		
 		return mendeleyProfile.build();
 	}
+
+    public static Photo parsePhoto(JSONObject photoObject) {
+        return new Photo(
+                                photoObject.optString("original"),
+                                photoObject.optString("standard"),
+                                photoObject.optString("square"));
+    }
 
     private static Employment parseEmployment(JSONObject employmentObject) throws JSONException {
         Employment.Builder employmentBuilder = new Employment.Builder();
@@ -731,11 +735,7 @@ public class JsonParser {
 
             } else if (key.equals("photo")) {
                 JSONObject photoObject = groupObject.getJSONObject(key);
-                Photo photo = null;
-                if (photoObject.has("square")) {
-                    photo = new Photo(photoObject.getString("square"));
-                }
-
+                Photo photo = parsePhoto(photoObject);
                 mendeleyGroup.setPhoto(photo);
 
             }

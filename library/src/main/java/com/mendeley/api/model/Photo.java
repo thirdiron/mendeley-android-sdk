@@ -6,16 +6,22 @@ package com.mendeley.api.model;
  */
 public class Photo {
 
-	public final String photoUrl;
-    public byte[] photoBytes;
+	public final String original;
+	public final String standard;
+	public final String square;
 
-	
-	public Photo(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
+	public Photo(String original, String standard, String square) {
+		this.original = original;
+		this.standard = standard;
+		this.square = square;
+	}
 
 	@Override
 	public String toString() {
-		return "photoUrl: " + photoUrl;
+		return "Photo{" +
+				"original='" + original + '\'' +
+				", standard='" + standard + '\'' +
+				", square='" + square + '\'' +
+				'}';
 	}
 }
