@@ -237,6 +237,8 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
 
         getDocuments();
 
+        assertTrue("no documents received to delete", documentsRcvd.size() > 0);
+
         DocumentRequestParameters params = new DocumentRequestParameters();
         SimpleDateFormat dateFormat =  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));

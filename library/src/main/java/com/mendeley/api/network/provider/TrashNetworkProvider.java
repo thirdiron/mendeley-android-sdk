@@ -69,6 +69,10 @@ public class TrashNetworkProvider {
         return BASE_URL + "/" + documentId + "/restore";
     }
 
+    public static String getDeleteUrl(String documentId) {
+        return BASE_URL + "/" + documentId;
+    }
+
     /* TASKS */
 
     private class PostRecoverDocumentTask extends PostNoBodyNetworkTask {
