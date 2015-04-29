@@ -92,11 +92,18 @@ public interface BlockingSdk {
     void trashDocument(String documentId) throws MendeleyException;
 
     /**
-     * Delete a document.
+     * Delete a document which is NOT trashed.
      *
      * @param documentId id of the document to be deleted.
      */
     void deleteDocument(String documentId) throws MendeleyException;
+
+    /**
+     * Delete a document which is alreare trashed.
+     *
+     * @param documentId id of the document to be deleted.
+     */
+    void deleteTrashedDocument(String documentId) throws MendeleyException;
 
     /**
      * Return a list of valid document types.
@@ -310,6 +317,5 @@ public interface BlockingSdk {
     Annotation patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
 
     void deleteAnnotation(String annotationId) throws MendeleyException;
-
 
 }

@@ -48,7 +48,7 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
                     .build()
     };
 
-    private BlockingSdk sdk;
+    protected BlockingSdk sdk;
 
     @Override
     protected void setUp() throws InterruptedException, SignInException {
@@ -160,6 +160,8 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
 
         DocumentList docList = sdk.getDocuments();
 
+        assertTrue("no documents received to delete", docList.documents.size() > 0 );
+
         DocumentRequestParameters params = new DocumentRequestParameters();
         SimpleDateFormat dateFormat =  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -193,7 +195,7 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
      *
      * This method has quadratic logic complexity, but the number of documents is small.
      */
-    private void ensureCorrectDocumentsExist() throws MendeleyException {
+    protected final void ensureCorrectDocumentsExist() throws MendeleyException {
         DocumentList docList = sdk.getDocuments();
 
         // Delete any incorrect documents:

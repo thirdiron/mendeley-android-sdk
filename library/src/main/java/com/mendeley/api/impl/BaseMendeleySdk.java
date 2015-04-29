@@ -217,13 +217,19 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
 
     @Override
     public void trashDocument(String documentId) throws MendeleyException {
-        Procedure proc = new PostNoBodyNetworkProcedure(getTrashDocumentUrl(documentId), authenticationManager);
+        Procedure<Void> proc = new PostNoBodyNetworkProcedure(getTrashDocumentUrl(documentId), authenticationManager);
         proc.checkedRun();
     }
 
     @Override
     public void deleteDocument(String documentId) throws MendeleyException {
-        Procedure proc = new DeleteNetworkProcedure(getDeleteDocumentUrl(documentId), authenticationManager);
+        Procedure<Void> proc = new DeleteNetworkProcedure(DocumentNetworkProvider.getDeleteDocumentUrl(documentId), authenticationManager);
+        proc.checkedRun();
+    }
+
+    @Override
+    public void deleteTrashedDocument(String documentId) throws MendeleyException {
+        Procedure<Void> proc = new DeleteNetworkProcedure(TrashNetworkProvider.getDeleteUrl(documentId), authenticationManager);
         proc.checkedRun();
     }
 
