@@ -10,6 +10,7 @@ import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.File;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
@@ -21,6 +22,7 @@ import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -133,6 +135,19 @@ public interface BlockingSdk {
      * @param next returned from previous getFiles() call.
      */
     FileList getFiles(Page next) throws MendeleyException;
+
+    /**
+     * Post file
+     *
+     * @param contentType of the file
+     * @param documentId the
+     * @param inputStream
+     * @param fileName
+     * @return the file metadata
+     * @throws MendeleyException
+     */
+    File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException;
+
 
     /* FOLDERS */
 
