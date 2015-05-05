@@ -232,7 +232,7 @@ public class FileNetworkProvider {
      * @param fileId the id of the file to delete
      * @return the url string
      */
-    String getDeleteFileUrl(String fileId) {
+    public static String getDeleteFileUrl(String fileId) {
         return filesUrl + "/" + fileId;
     }
 

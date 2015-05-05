@@ -347,6 +347,14 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         return proc.checkedRun();
     }
 
+    @Override
+    public void deleteFile(String fileId) throws MendeleyException {
+        Procedure<Void> proc = new DeleteNetworkProcedure(FileNetworkProvider.getDeleteFileUrl(fileId), authenticationManager);
+        proc.checkedRun();
+    }
+
+
+
     /* FOLDERS BLOCKING */
 
     @Override

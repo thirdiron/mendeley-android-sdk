@@ -137,17 +137,22 @@ public interface BlockingSdk {
     FileList getFiles(Page next) throws MendeleyException;
 
     /**
-     * Post file
+     * Post a file
      *
      * @param contentType of the file
-     * @param documentId the
-     * @param inputStream
-     * @param fileName
+     * @param documentId the id of the document this file belongs to
+     * @param inputStream the file input stream
+     * @param fileName the file name
      * @return the file metadata
      * @throws MendeleyException
      */
     File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException;
 
+    /**
+     *
+     * @param fileId
+     */
+    void deleteFile(String fileId) throws MendeleyException;
 
     /* FOLDERS */
 
@@ -332,5 +337,4 @@ public interface BlockingSdk {
     Annotation patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
 
     void deleteAnnotation(String annotationId) throws MendeleyException;
-
 }
