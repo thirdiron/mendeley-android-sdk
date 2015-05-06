@@ -149,7 +149,7 @@ public interface BlockingSdk {
     File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException;
 
     /**
-     *
+     * Delete file with the given id
      * @param fileId
      */
     void deleteFile(String fileId) throws MendeleyException;
