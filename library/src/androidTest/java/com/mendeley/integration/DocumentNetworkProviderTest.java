@@ -53,7 +53,7 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
                     .build()
     };
 
-    private MendeleySdk sdk;
+    protected MendeleySdk sdk;
 
     private GetDocumentsCallback getDocumentsCallback;
     private GetDocumentCallback getDocumentCallback;
@@ -298,7 +298,7 @@ public class DocumentNetworkProviderTest extends BaseNetworkProviderTest {
      *
      * This method has quadratic logic complexity, but the number of documents is small.
      */
-    private void ensureCorrectDocumentsExist() {
+    void ensureCorrectDocumentsExist() {
         getDocuments();
 
         // Delete any incorrect documents:
