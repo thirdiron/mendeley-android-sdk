@@ -6,6 +6,10 @@ import com.mendeley.api.ClientCredentials;
 import com.mendeley.api.auth.AuthenticationManager;
 import com.mendeley.api.auth.UserCredentials;
 import com.mendeley.api.callbacks.MendeleySignInInterface;
+import com.mendeley.api.exceptions.MendeleyException;
+import com.mendeley.api.model.File;
+
+import java.io.InputStream;
 
 /**
  * Internal version of MendeleySdk.

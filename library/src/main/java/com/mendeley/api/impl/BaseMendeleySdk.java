@@ -18,6 +18,7 @@ import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroup
 import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupsUrl;
 import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Map;
@@ -42,12 +43,14 @@ import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.File;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
+import com.mendeley.api.network.procedure.PostFileNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
@@ -336,6 +339,21 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         Procedure<FileList> proc = new GetFilesProcedure(next.link, authenticationManager);
         return proc.checkedRun();
     }
+
+    @Override
+    public File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException {
+
+        Procedure<File> proc = new FileNetworkProvider.PostFileProcedure(contentType, documentId, fileName, inputStream, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public void deleteFile(String fileId) throws MendeleyException {
+        Procedure<Void> proc = new DeleteNetworkProcedure(FileNetworkProvider.getDeleteFileUrl(fileId), authenticationManager);
+        proc.checkedRun();
+    }
+
+
 
     /* FOLDERS BLOCKING */
 

@@ -14,11 +14,14 @@ import com.mendeley.api.exceptions.JsonParsingException;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.UserCancelledException;
+import com.mendeley.api.model.Document;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.procedure.GetNetworkProcedure;
+import com.mendeley.api.network.procedure.PostFileNetworkProcedure;
+import com.mendeley.api.network.procedure.PostNetworkProcedure;
 import com.mendeley.api.network.task.DeleteNetworkTask;
 import com.mendeley.api.network.task.GetNetworkTask;
 import com.mendeley.api.network.task.NetworkTask;
@@ -229,7 +232,7 @@ public class FileNetworkProvider {
      * @param fileId the id of the file to delete
      * @return the url string
      */
-    String getDeleteFileUrl(String fileId) {
+    public static String getDeleteFileUrl(String fileId) {
         return filesUrl + "/" + fileId;
     }
 
@@ -563,6 +566,17 @@ public class FileNetworkProvider {
         @Override
         protected FileList processJsonString(String jsonString) throws JSONException {
             return new FileList(JsonParser.parseFileList(jsonString), next, serverDate);
+        }
+    }
+
+    public static class PostFileProcedure extends PostFileNetworkProcedure<File> {
+        public PostFileProcedure(String contentType, String documentId, String fileName, InputStream inputStream, AuthenticationManager authenticationManager) {
+            super(contentType, documentId, fileName, inputStream, authenticationManager);
+        }
+
+        @Override
+        protected File processJsonString(String jsonString) throws JSONException {
+            return JsonParser.parseFile(jsonString);
         }
     }
 }
