@@ -10,22 +10,11 @@ import com.mendeley.api.params.CatalogDocumentRequestParameters;
 
 import java.io.IOException;
 
+/**
+ * These tests are using a file hash of an existing document file, MENDELEY: Getting Started with Mendeley
+ * If this file will change the file hash will not return the catalog document id and the test will fail.
+ */
 public class CatalogBlockingTest extends AndroidTestCase {
-
-    private static final Document[] DOCUMENTS = {
-            new Document.Builder()
-                    .setTitle("Les Chants de Maldoror")
-                    .setType("book")
-                    .setYear(1868).build(),
-            new Document.Builder()
-                    .setTitle("Les Fleurs du mal")
-                    .setType("book")
-                    .setYear(1857).build(),
-            new Document.Builder()
-                    .setTitle("Naked Lunch")
-                    .setType("book")
-                    .setYear(1959).build()
-    };
 
     private BlockingSdk sdk;
 
@@ -36,8 +25,8 @@ public class CatalogBlockingTest extends AndroidTestCase {
 
     public void testGetCatalogDocuments() throws MendeleyException, IOException {
         //GIVEN a file hash
-        final String fileHash = "04f76611735043e1984399109e0891c297194bea";
-        final String catalogDocumentId = "bce09cae-58fc-388e-9021-f1923b988d44";
+        final String fileHash = "2064e86683343709cc3ff535587a4580bbb1b251";
+        final String catalogDocumentId = "6f4c827d-f303-3647-98fe-e51ea19700ed";
         CatalogDocumentRequestParameters catalogueParams = new CatalogDocumentRequestParameters();
         catalogueParams.filehash = fileHash;
 
@@ -51,7 +40,7 @@ public class CatalogBlockingTest extends AndroidTestCase {
 
     public void testGetCatalogDocument() throws MendeleyException, IOException {
         //GIVEN a catalog document id
-        final String catalogDocumentId = "bce09cae-58fc-388e-9021-f1923b988d44";
+        final String catalogDocumentId = "6f4c827d-f303-3647-98fe-e51ea19700ed";
 
         //WHEN getting a catalog document with this id
         Document receivedDoc = sdk.getCatalogDocument(catalogDocumentId, null);
@@ -60,52 +49,4 @@ public class CatalogBlockingTest extends AndroidTestCase {
         assertEquals("wrong catalog document", catalogDocumentId, receivedDoc.id);
     }
 
-
-    /**
-     * Verify we have the correct set of documents to run the tests, and substitute any that
-     * are incorrect. Don't post anything if they are already OK.
-     *
-     * This method has quadratic logic complexity, but the number of documents is small.
-     */
-    protected final void ensureCorrectDocumentsExist() throws MendeleyException {
-        DocumentList docList = sdk.getDocuments();
-
-        // Delete any incorrect documents:
-        for (Document doc: docList.documents) {
-            if (!isInFixture(doc)) {
-                sdk.deleteDocument(doc.id);
-            }
-        }
-
-        // Post any missing documents:
-        for (Document doc : DOCUMENTS) {
-            if (!wasReceived(doc, docList)) {
-                sdk.postDocument(doc);
-            }
-        }
-    }
-
-    private boolean isInFixture(Document doc) {
-        for (Document fixture : DOCUMENTS) {
-            if (documentsEqual(doc, fixture)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean wasReceived(Document doc, DocumentList docList) {
-        for (Document rcvd : docList.documents) {
-            if (documentsEqual(doc, rcvd)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean documentsEqual(Document doc1, Document doc2) {
-        return doc1.title.equals(doc2.title)
-                && doc1.type.equals(doc2.title)
-                && doc1.year.equals(doc2.year);
-    }
 }
