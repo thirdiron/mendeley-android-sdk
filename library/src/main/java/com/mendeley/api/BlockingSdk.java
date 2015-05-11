@@ -15,6 +15,7 @@ import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.params.AnnotationRequestParameters;
+import com.mendeley.api.params.CatalogDocumentRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -321,6 +322,23 @@ public interface BlockingSdk {
      * @param  profileId ID of the profile to be fetched.
      */
     Profile getProfile(String profileId) throws MendeleyException;
+
+    /* CATALOG */
+
+    /**
+     * Retrieve a list of catalog documents
+     */
+    DocumentList getCatalogDocuments(CatalogDocumentRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Retrieve a single catalog document, specified by ID.
+     *
+     * @param catalogId the catalog document id to get.
+     * @param view extended catalog document view. If null, only core fields are returned.
+     */
+    Document getCatalogDocument(String catalogId, View view) throws MendeleyException;
+
+
 
     /* ANNOTATIONS */
 
