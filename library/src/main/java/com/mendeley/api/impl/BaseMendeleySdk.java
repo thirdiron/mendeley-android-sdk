@@ -5,7 +5,6 @@ import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAn
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.IDENTIFIER_TYPES_BASE_URL;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
@@ -50,13 +49,13 @@ import com.mendeley.api.model.Profile;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
 import com.mendeley.api.network.procedure.DeleteNetworkProcedure;
-import com.mendeley.api.network.procedure.PostFileNetworkProcedure;
 import com.mendeley.api.network.procedure.PostNoBodyNetworkProcedure;
 import com.mendeley.api.network.procedure.Procedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.PatchAnnotationProcedure;
+import com.mendeley.api.network.provider.CatalogDocumentNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
 import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentProcedure;
@@ -79,6 +78,7 @@ import com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProced
 import com.mendeley.api.network.provider.TrashNetworkProvider;
 import com.mendeley.api.network.provider.UtilsNetworkProvider;
 import com.mendeley.api.params.AnnotationRequestParameters;
+import com.mendeley.api.params.CatalogDocumentRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -544,6 +544,26 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         String url = TrashNetworkProvider.getRecoverUrl(documentId);
         Procedure<Void> proc = new PostNoBodyNetworkProcedure(url, authenticationManager);
         proc.checkedRun();
+    }
+
+    /* CATALOG BLOCKING */
+
+    @Override
+    public DocumentList getCatalogDocuments(CatalogDocumentRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = CatalogDocumentNetworkProvider.getGetCatalogDocumentsUrl(parameters);
+            Procedure<DocumentList> proc = new CatalogDocumentNetworkProvider.GetCatalogDocumentsProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        } catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Document getCatalogDocument(String catalogId, View view) throws MendeleyException {
+        String url = CatalogDocumentNetworkProvider.getGetCatalogDocumentUrl(catalogId, view);
+        Procedure<Document> proc = new CatalogDocumentNetworkProvider.GetCatalogDocumentProcedure(url, authenticationManager);
+        return proc.checkedRun();
     }
 
     /**
