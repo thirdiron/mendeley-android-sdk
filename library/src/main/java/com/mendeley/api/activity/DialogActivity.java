@@ -69,6 +69,7 @@ public class DialogActivity extends Activity {
 	    webView.getSettings().setUseWideViewPort(true);                                                         
 	    webView.getSettings().setLoadWithOverviewMode(true);
 	    webView.getSettings().setBuiltInZoomControls(true);
+		webView.getSettings().setUserAgentString("Android " + getPackageName());
 		webView.setWebViewClient(new MendeleyWebViewClient());
 		webView.loadUrl(getOauth2URL(authenticationManager));
 
