@@ -51,34 +51,24 @@ public abstract class PostFileNetworkProcedure<ResultType> extends NetworkProced
 
         try {
 
-            int bytesAvailable;
-            final int MAX_BUF_SIZE = 65536;
-            int bufferSize;
-            final byte[] buffer = new byte[MAX_BUF_SIZE];
-            int bytesRead;
+            final int bufferSize = 65536;
+            final byte[] buffer = new byte[bufferSize];
 
             con = getConnection(filesUrl, "POST", authenticationManager);
+            con.setDoOutput(true);
+
             con.addRequestProperty("Content-Disposition", contentDisposition);
             con.addRequestProperty("Content-type", contentType);
             con.addRequestProperty("Link", link);
+            con.setChunkedStreamingMode(0);
 
+            con.connect();
             os = new DataOutputStream(con.getOutputStream());
 
-            bytesAvailable = inputStream.available();
-            bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
-            bytesRead = inputStream.read(buffer, 0, bufferSize);
-
-            while (bytesRead > 0)
-            {
-                os.write(buffer, 0, bufferSize);
-                bytesAvailable = inputStream.available();
-                bufferSize = Math.min(bytesAvailable, MAX_BUF_SIZE);
-                bytesRead = inputStream.read(buffer, 0, bufferSize);
+            int r;
+            while ((r =  inputStream.read(buffer, 0, bufferSize)) > 0) {
+                os.write(buffer, 0, r);
             }
-
-            os.close();
-            inputStream.close();
-            con.connect();
 
             getResponseHeaders();
 
@@ -87,10 +77,7 @@ public abstract class PostFileNetworkProcedure<ResultType> extends NetworkProced
                 throw new HttpResponseException(filesUrl, responseCode, NetworkUtils.getErrorMessage(con));
             } else {
                 is = con.getInputStream();
-                String jsonString = getJsonString(is);
-                is.close();
-
-                return processJsonString(jsonString);
+                return processJsonString(getJsonString(is));
             }
         } catch (ParseException pe) {
             throw new MendeleyException("Could not parse web API headers for " + filesUrl);
