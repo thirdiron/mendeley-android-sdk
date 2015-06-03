@@ -18,6 +18,7 @@ import com.mendeley.api.model.Document;
 import com.mendeley.api.model.File;
 import com.mendeley.api.network.Environment;
 import com.mendeley.api.network.JsonParser;
+import com.mendeley.api.network.NetworkUtils;
 import com.mendeley.api.network.NullRequest;
 import com.mendeley.api.network.procedure.GetNetworkProcedure;
 import com.mendeley.api.network.procedure.PostFileNetworkProcedure;
@@ -454,7 +455,7 @@ public class FileNetworkProvider {
             String fileName = params[2];
 
             String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
-            String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
+            String link = "<"+ NetworkUtils.API_URL+"documents/"+documentId+">; rel=\"document\"";
 
             try {
                 int bytesAvailable;
