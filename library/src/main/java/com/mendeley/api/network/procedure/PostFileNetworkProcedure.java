@@ -46,7 +46,7 @@ public abstract class PostFileNetworkProcedure<ResultType> extends NetworkProced
 
     @Override
     protected ResultType run() throws MendeleyException {
-        String link = "<https://api.mendeley.com/documents/"+documentId+">; rel=\"document\"";
+        String link = "<"+NetworkUtils.API_URL+"documents/"+documentId+">; rel=\"document\"";
         String contentDisposition = "attachment; filename*=UTF-8\'\'"+fileName;
 
         try {
