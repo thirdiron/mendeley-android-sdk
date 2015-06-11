@@ -2,6 +2,8 @@ package com.mendeley.api.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,9 +56,12 @@ public class DialogActivity extends Activity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        if (getScreenSize() > SMALL_SCREEN_SIZE) {
-        	super.setTheme(android.R.style.Theme_Holo_Dialog);
-        }
+        if (getScreenSize() <= SMALL_SCREEN_SIZE) {
+			super.setTheme(R.style.AppTheme);
+
+        } else {
+			setFinishOnTouchOutside(false);
+		}
         
         setContentView(R.layout.dialog_layout);
 
