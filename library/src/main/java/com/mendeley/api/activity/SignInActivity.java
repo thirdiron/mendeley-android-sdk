@@ -7,11 +7,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.widget.Button;
+import android.widget.Toast;
 
 import com.mendeley.api.impl.DefaultMendeleySdk;
 import com.mendeley.api.R;
 import com.mendeley.api.auth.AuthenticationManager;
+import com.mendeley.api.util.Utils;
 
 /**
  * Display the splash screen, with buttons to sign in or create an account.
@@ -36,35 +37,40 @@ public class SignInActivity  extends Activity implements OnClickListener {
         authenticationManager = DefaultMendeleySdk.getInstance().getAuthenticationManager();
 
         setContentView(R.layout.splash_layout);
-        
-        ((Button) findViewById(R.id.signinButton)).setOnClickListener(this);
-        ((Button) findViewById(R.id.signupButton)).setOnClickListener(this);
+
+        findViewById(R.id.signinButton).setOnClickListener(this);
+        findViewById(R.id.signupButton).setOnClickListener(this);
     }
 
     /**
      * Handling click events on the custom buttons.
      * Will call DialogActivity or open the create account url in a web browser.
      */
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.signinButton) {
-            Intent intent = new Intent(this, DialogActivity.class);
-            startActivityForResult(intent, SIGNIN_RESULT);
-        } else if (id == R.id.signupButton) {
-            openUrlInBrowser(CREATE_ACCOUNT_URL);
-        }
-    }
+	@Override
+	public void onClick(View v) {
+		if (!Utils.isOnline(this)) {
+			Toast.makeText(this, R.string.no_connection, Toast.LENGTH_SHORT).show();
+			return;
+		}
+
+		int id = v.getId();
+		if (id == R.id.signinButton) {
+			Intent intent = new Intent(this, DialogActivity.class);
+			startActivityForResult(intent, SIGNIN_RESULT);
+		} else if (id == R.id.signupButton) {
+			openUrlInBrowser(CREATE_ACCOUNT_URL);
+		}
+	}
 
     /**
      * Opening a system web browser to load the given url
      * @param url the url to load
      */
     private void openUrlInBrowser(String url) {
-    	Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
+    	Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
     	startActivity(intent);
     }
-    
+
     /**
      * Handling on activity result.
      * Will be called after the user logged in in the DialogActivity.
@@ -96,12 +102,12 @@ public class SignInActivity  extends Activity implements OnClickListener {
 	public void onBackPressed() {
 		finish();
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 		super.onSaveInstanceState(savedInstanceState);
 	}
-	
+
 	@Override
 	public void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);

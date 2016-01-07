@@ -10,10 +10,12 @@ import com.mendeley.api.callbacks.group.GroupMembersList;
 import com.mendeley.api.exceptions.MendeleyException;
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.File;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
 import com.mendeley.api.params.AnnotationRequestParameters;
+import com.mendeley.api.params.CatalogDocumentRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -21,6 +23,7 @@ import com.mendeley.api.params.GroupRequestParameters;
 import com.mendeley.api.params.Page;
 import com.mendeley.api.params.View;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -92,16 +95,28 @@ public interface BlockingSdk {
     void trashDocument(String documentId) throws MendeleyException;
 
     /**
-     * Delete a document.
+     * Delete a document which is NOT trashed.
      *
      * @param documentId id of the document to be deleted.
      */
     void deleteDocument(String documentId) throws MendeleyException;
 
     /**
+     * Delete a document which is alreare trashed.
+     *
+     * @param documentId id of the document to be deleted.
+     */
+    void deleteTrashedDocument(String documentId) throws MendeleyException;
+
+    /**
      * Return a list of valid document types.
      */
     Map<String, String> getDocumentTypes() throws MendeleyException;
+
+    /**
+     * Return a list of valid identifiers types.
+     */
+    Map<String,String> getIdentifierTypes() throws MendeleyException;
 
     /* FILES */
 
@@ -121,6 +136,24 @@ public interface BlockingSdk {
      * @param next returned from previous getFiles() call.
      */
     FileList getFiles(Page next) throws MendeleyException;
+
+    /**
+     * Post a file
+     *
+     * @param contentType of the file
+     * @param documentId the id of the document this file belongs to
+     * @param inputStream the file input stream
+     * @param fileName the file name
+     * @return the file metadata
+     * @throws MendeleyException
+     */
+    File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException;
+
+    /**
+     * Delete file with the given id
+     * @param fileId
+     */
+    void deleteFile(String fileId) throws MendeleyException;
 
     /* FOLDERS */
 
@@ -290,6 +323,23 @@ public interface BlockingSdk {
      */
     Profile getProfile(String profileId) throws MendeleyException;
 
+    /* CATALOG */
+
+    /**
+     * Retrieve a list of catalog documents
+     */
+    DocumentList getCatalogDocuments(CatalogDocumentRequestParameters parameters) throws MendeleyException;
+
+    /**
+     * Retrieve a single catalog document, specified by ID.
+     *
+     * @param catalogId the catalog document id to get.
+     * @param view extended catalog document view. If null, only core fields are returned.
+     */
+    Document getCatalogDocument(String catalogId, View view) throws MendeleyException;
+
+
+
     /* ANNOTATIONS */
 
     AnnotationList getAnnotations() throws MendeleyException;
@@ -305,6 +355,4 @@ public interface BlockingSdk {
     Annotation patchAnnotation(String annotationId, Annotation annotation) throws MendeleyException;
 
     void deleteAnnotation(String annotationId) throws MendeleyException;
-
-
 }

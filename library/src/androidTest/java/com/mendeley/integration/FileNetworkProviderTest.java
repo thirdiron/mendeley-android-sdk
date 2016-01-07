@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-public class FileNetworkProviderTest extends BaseNetworkProviderTest {
+public class FileNetworkProviderTest extends DocumentNetworkProviderTest {
     // Names of files associated with each document (null if none)
     private static final String[] FILES = {
             "api.pdf",
@@ -34,8 +34,6 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
             "9538225eb639e8450d6dfcd415c3453f74981502"
     };
 
-    private MendeleySdk sdk;
-
     private GetFilesCallback getFilesCallback;
     private PostFileCallback postFileCallback;
     private DeleteFileCallback deleteFileCallback;
@@ -48,6 +46,7 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
 
     @Override
     protected void setUp() throws SignInException, InterruptedException {
+        super.setUp();
         getFilesCallback = new GetFilesCallback() {
             @Override
             public void onFilesReceived(List<File> files, Page next, Date serverDate) {
@@ -99,6 +98,7 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
     }
 
     public void testGetAllFiles() throws IOException {
+        ensureCorrectDocumentsExist();
         ensureCorrectFilesExist();
 
         getFiles();
@@ -106,7 +106,9 @@ public class FileNetworkProviderTest extends BaseNetworkProviderTest {
         assertEquals("expected 3 files", 3, filesRcvd.size());
     }
 
-    public void testGetFilesForDocument() {
+    public void testGetFilesForDocument() throws IOException {
+        ensureCorrectDocumentsExist();
+        ensureCorrectFilesExist();
         getSortedDocuments();
 
         final int docIndex = 1;

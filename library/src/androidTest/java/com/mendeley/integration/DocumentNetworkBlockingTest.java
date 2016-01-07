@@ -48,7 +48,7 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
                     .build()
     };
 
-    private BlockingSdk sdk;
+    protected BlockingSdk sdk;
 
     @Override
     protected void setUp() throws InterruptedException, SignInException {
@@ -94,6 +94,24 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
         sdk.deleteDocument(rcvd.id);
     }
 
+    public void testPostWithStrangeCharactersAndDeleteDocument() throws MendeleyException {
+        final String source = "österreichische ña áéíóuú cÑulo";
+        final String title = source;
+
+        Document doc = new Document.Builder()
+                .setTitle(title)
+                .setType("journal")
+                .setSource(source)
+                .build();
+
+        Document rcvd = sdk.postDocument(doc);
+
+        assertEquals(title, rcvd.title);
+        assertEquals(source, rcvd.source);
+
+        sdk.deleteDocument(rcvd.id);
+    }
+
     public void testPatchDocument() throws MendeleyException {
         DocumentList docList = getSortedDocuments();
 
@@ -118,6 +136,17 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
         assertEquals("incorrect year", docRcvd.year.intValue(), 2003);
     }
 
+    public void testPatchDocumentWithStrangeCharacters() throws MendeleyException {
+        DocumentList docList = getSortedDocuments();
+
+        final String source = "tururú áéíóuú Hausmärchen";
+
+        Document doc = new Document.Builder(docList.documents.get(0)).setSource(source).build();
+
+        Document patchedDoc = patchDocument(doc);
+        assertEquals("incorrect source", patchedDoc.source, doc.source);
+    }
+
     public void testGetDocumentTypes() throws MendeleyException {
         Map<String, String> types = sdk.getDocumentTypes();
 
@@ -130,6 +159,8 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
         ensureCorrectDocumentsExist();
 
         DocumentList docList = sdk.getDocuments();
+
+        assertTrue("no documents received to delete", docList.documents.size() > 0);
 
         DocumentRequestParameters params = new DocumentRequestParameters();
         SimpleDateFormat dateFormat =  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -164,7 +195,7 @@ public class DocumentNetworkBlockingTest extends AndroidTestCase {
      *
      * This method has quadratic logic complexity, but the number of documents is small.
      */
-    private void ensureCorrectDocumentsExist() throws MendeleyException {
+    protected final void ensureCorrectDocumentsExist() throws MendeleyException {
         DocumentList docList = sdk.getDocuments();
 
         // Delete any incorrect documents:

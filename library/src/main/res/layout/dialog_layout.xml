@@ -1,59 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:background="@color/background_red" >
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/login_screen_background">
 
     <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical" >
 
-                <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/dialog_title"
             android:orientation="horizontal" >
 
             <ImageView
-                android:id="@+id/logoImageView"
+                android:id="@+id/dismissButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/dialog_logo_margin"
-                android:layout_marginRight="@dimen/dialog_logo_margin"
-                android:src="@drawable/ic_mendeley" />
+                android:background="@drawable/title_bar_button_selector"
+                android:src="@drawable/ab_cancel" />
 
-            <LinearLayout
-                android:id="@+id/LinearLayout1"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:gravity="center"
-                android:orientation="vertical" >
-
-                <TextView
-                    android:id="@+id/titleText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:text="@string/signin_dialog_title"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="@color/dialog_title_text" />
-            </LinearLayout>
         </LinearLayout>
-        
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
-                
+
         <WebView
-            android:background="@color/background_red"
             android:id="@+id/dialogWebView"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dialog_height"
-            android:layout_gravity="center_vertical"
             android:layout_weight="1" />
-        
-        </LinearLayout>
-	</LinearLayout>
+
+    </LinearLayout>
+
 </ScrollView>

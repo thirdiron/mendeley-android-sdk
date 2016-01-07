@@ -1,0 +1,10 @@
+{
+    "id": "test-id",
+    "text": "test-text",
+    "profile_id": "test-profile-id",
+    "created": "2014-02-20T16:53:25.000Z",
+    "last_modified": "2015-02-20T16:53:25.000Z",
+    "filehash": "test-hash",
+    "document_id": "test-doc-id",
+    "previous_id": "test-prev-id"
+}

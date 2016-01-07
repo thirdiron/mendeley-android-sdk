@@ -4,7 +4,7 @@ import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.delet
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationUrl;
 import static com.mendeley.api.network.provider.AnnotationsNetworkProvider.getAnnotationsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.DOCUMENT_TYPES_BASE_URL;
-import static com.mendeley.api.network.provider.DocumentNetworkProvider.getDeleteDocumentUrl;
+import static com.mendeley.api.network.provider.DocumentNetworkProvider.IDENTIFIER_TYPES_BASE_URL;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getGetDocumentsUrl;
 import static com.mendeley.api.network.provider.DocumentNetworkProvider.getTrashDocumentUrl;
@@ -17,6 +17,7 @@ import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroup
 import static com.mendeley.api.network.provider.GroupNetworkProvider.getGetGroupsUrl;
 import static com.mendeley.api.network.provider.ProfileNetworkProvider.PROFILES_URL;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Map;
@@ -41,6 +42,7 @@ import com.mendeley.api.exceptions.NoMorePagesException;
 import com.mendeley.api.exceptions.NotSignedInException;
 import com.mendeley.api.model.Annotation;
 import com.mendeley.api.model.Document;
+import com.mendeley.api.model.File;
 import com.mendeley.api.model.Folder;
 import com.mendeley.api.model.Group;
 import com.mendeley.api.model.Profile;
@@ -53,6 +55,7 @@ import com.mendeley.api.network.provider.AnnotationsNetworkProvider;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationProcedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.GetAnnotationsProcedure;
 import com.mendeley.api.network.provider.AnnotationsNetworkProvider.PatchAnnotationProcedure;
+import com.mendeley.api.network.provider.CatalogDocumentNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider;
 import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDeletedDocumentsProcedure;
 import com.mendeley.api.network.provider.DocumentNetworkProvider.GetDocumentProcedure;
@@ -75,6 +78,7 @@ import com.mendeley.api.network.provider.ProfileNetworkProvider.GetProfileProced
 import com.mendeley.api.network.provider.TrashNetworkProvider;
 import com.mendeley.api.network.provider.UtilsNetworkProvider;
 import com.mendeley.api.params.AnnotationRequestParameters;
+import com.mendeley.api.params.CatalogDocumentRequestParameters;
 import com.mendeley.api.params.DocumentRequestParameters;
 import com.mendeley.api.params.FileRequestParameters;
 import com.mendeley.api.params.FolderRequestParameters;
@@ -216,13 +220,19 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
 
     @Override
     public void trashDocument(String documentId) throws MendeleyException {
-        Procedure proc = new PostNoBodyNetworkProcedure(getTrashDocumentUrl(documentId), authenticationManager);
+        Procedure<Void> proc = new PostNoBodyNetworkProcedure(getTrashDocumentUrl(documentId), authenticationManager);
         proc.checkedRun();
     }
 
     @Override
     public void deleteDocument(String documentId) throws MendeleyException {
-        Procedure proc = new DeleteNetworkProcedure(getDeleteDocumentUrl(documentId), authenticationManager);
+        Procedure<Void> proc = new DeleteNetworkProcedure(DocumentNetworkProvider.getDeleteDocumentUrl(documentId), authenticationManager);
+        proc.checkedRun();
+    }
+
+    @Override
+    public void deleteTrashedDocument(String documentId) throws MendeleyException {
+        Procedure<Void> proc = new DeleteNetworkProcedure(TrashNetworkProvider.getDeleteUrl(documentId), authenticationManager);
         proc.checkedRun();
     }
 
@@ -230,6 +240,13 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
     public Map<String, String> getDocumentTypes() throws MendeleyException {
         Procedure<Map<String, String>> proc =
                 new GetDocumentTypesProcedure(DOCUMENT_TYPES_BASE_URL, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public Map<String, String> getIdentifierTypes() throws MendeleyException {
+        Procedure<Map<String, String>> proc =
+                new GetDocumentTypesProcedure(IDENTIFIER_TYPES_BASE_URL, authenticationManager);
         return proc.checkedRun();
     }
 
@@ -322,6 +339,21 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         Procedure<FileList> proc = new GetFilesProcedure(next.link, authenticationManager);
         return proc.checkedRun();
     }
+
+    @Override
+    public File postFile(String contentType, String documentId, InputStream inputStream, String fileName) throws MendeleyException {
+
+        Procedure<File> proc = new FileNetworkProvider.PostFileProcedure(contentType, documentId, fileName, inputStream, authenticationManager);
+        return proc.checkedRun();
+    }
+
+    @Override
+    public void deleteFile(String fileId) throws MendeleyException {
+        Procedure<Void> proc = new DeleteNetworkProcedure(FileNetworkProvider.getDeleteFileUrl(fileId), authenticationManager);
+        proc.checkedRun();
+    }
+
+
 
     /* FOLDERS BLOCKING */
 
@@ -512,6 +544,26 @@ public abstract class BaseMendeleySdk implements BlockingSdk, Environment {
         String url = TrashNetworkProvider.getRecoverUrl(documentId);
         Procedure<Void> proc = new PostNoBodyNetworkProcedure(url, authenticationManager);
         proc.checkedRun();
+    }
+
+    /* CATALOG BLOCKING */
+
+    @Override
+    public DocumentList getCatalogDocuments(CatalogDocumentRequestParameters parameters) throws MendeleyException {
+        try {
+            String url = CatalogDocumentNetworkProvider.getGetCatalogDocumentsUrl(parameters);
+            Procedure<DocumentList> proc = new CatalogDocumentNetworkProvider.GetCatalogDocumentsProcedure(url, authenticationManager);
+            return proc.checkedRun();
+        } catch (UnsupportedEncodingException e) {
+            throw new MendeleyException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Document getCatalogDocument(String catalogId, View view) throws MendeleyException {
+        String url = CatalogDocumentNetworkProvider.getGetCatalogDocumentUrl(catalogId, view);
+        Procedure<Document> proc = new CatalogDocumentNetworkProvider.GetCatalogDocumentProcedure(url, authenticationManager);
+        return proc.checkedRun();
     }
 
     /**

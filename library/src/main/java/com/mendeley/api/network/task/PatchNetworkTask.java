@@ -32,7 +32,7 @@ public abstract class PatchNetworkTask extends NetworkTask {
         NetworkUtils.HttpPatch httpPatch = getHttpPatch(url, getDate(), getContentType(), getAccessTokenProvider());
 
         try {
-            httpPatch.setEntity(new StringEntity(jsonString));
+            httpPatch.setEntity(new StringEntity(jsonString, "UTF-8"));
             HttpResponse response = httpclient.execute(httpPatch);
 
             final int responseCode = response.getStatusLine().getStatusCode();
